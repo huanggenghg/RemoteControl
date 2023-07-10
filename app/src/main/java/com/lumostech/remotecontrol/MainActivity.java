@@ -1,9 +1,13 @@
 package com.lumostech.remotecontrol;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -34,11 +38,17 @@ import im.zego.zegoexpress.entity.ZegoUser;
 public class MainActivity extends AppCompatActivity {
 
     ZegoExpressEngine engine;
+    public static MediaProjectionManager mMediaProjectionManager;
+    public static MediaProjection mMediaProjection;
+    private static final int REQUEST_CODE = 111;
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        init();
 
         // 在通话前需请求相应摄像头、录音权限
         requestPermission();
@@ -76,6 +86,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                //Target版本高于等于10.0需要使用前台服务，并在前台服务的onStartCommand方法中创建MediaProjection
+                Intent service = new Intent(MainActivity.this, CaptureScreenService.class);
+                service.putExtra("code", resultCode);
+                service.putExtra("data", data);
+                startForegroundService(service);
+            } else {
+                //Target版本低于10.0直接获取MediaProjection
+                mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+            }
+        }
+    }
+
     //请求摄像头、录音权限
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestPermission() {
@@ -86,6 +113,23 @@ public class MainActivity extends AppCompatActivity {
                 ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(permissionNeeded, 101);
         }
+    }
+
+    private void init() {
+        // 5.0及以上版本
+        // 请求录屏权限，等待用户授权
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+
+//        //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
+//        VideoCaptureScreen videoCapture = new VideoCaptureScreen(ZGVideoCaptureOriginUI.mMediaProjection, DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT, mSDKEngine);
+////监听自定义采集开始停止回调
+//        mSDKEngine.setCustomVideoCaptureHandler(videoCapture);
+//        ZegoCustomVideoCaptureConfig videoCaptureConfig=new ZegoCustomVideoCaptureConfig();
+////使用SurfaceTexture类型进行自定义采集
+//        videoCaptureConfig.bufferType=ZegoVideoBufferType.SURFACE_TEXTURE;
+////开始自定义采集
+//        mSDKEngine.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN);
     }
 
     // 创建 ZegoExpress 实例，监听常用事件
