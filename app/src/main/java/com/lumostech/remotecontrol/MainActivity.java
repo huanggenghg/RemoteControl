@@ -1,5 +1,6 @@
 package com.lumostech.remotecontrol;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
@@ -12,8 +13,11 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.util.Log;
 import android.view.View;
 
+import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -24,12 +28,15 @@ import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.callback.IZegoDestroyCompletionCallback;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
+import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoPublisherState;
 import im.zego.zegoexpress.constants.ZegoRoomStateChangedReason;
 import im.zego.zegoexpress.constants.ZegoScenario;
 import im.zego.zegoexpress.constants.ZegoStreamQualityLevel;
 import im.zego.zegoexpress.constants.ZegoUpdateType;
+import im.zego.zegoexpress.constants.ZegoVideoBufferType;
 import im.zego.zegoexpress.entity.ZegoCanvas;
+import im.zego.zegoexpress.entity.ZegoCustomVideoCaptureConfig;
 import im.zego.zegoexpress.entity.ZegoEngineProfile;
 import im.zego.zegoexpress.entity.ZegoRoomConfig;
 import im.zego.zegoexpress.entity.ZegoStream;
@@ -120,16 +127,7 @@ public class MainActivity extends AppCompatActivity {
         // 请求录屏权限，等待用户授权
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
-
-//        //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
-//        VideoCaptureScreen videoCapture = new VideoCaptureScreen(ZGVideoCaptureOriginUI.mMediaProjection, DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT, mSDKEngine);
-////监听自定义采集开始停止回调
-//        mSDKEngine.setCustomVideoCaptureHandler(videoCapture);
-//        ZegoCustomVideoCaptureConfig videoCaptureConfig=new ZegoCustomVideoCaptureConfig();
-////使用SurfaceTexture类型进行自定义采集
-//        videoCaptureConfig.bufferType=ZegoVideoBufferType.SURFACE_TEXTURE;
-////开始自定义采集
-//        mSDKEngine.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN);
+        Log.d("TAG", "init: mMediaProjectionManager = " + mMediaProjectionManager);
     }
 
     // 创建 ZegoExpress 实例，监听常用事件
@@ -142,6 +140,18 @@ public class MainActivity extends AppCompatActivity {
         profile.scenario = ZegoScenario.DEFAULT;  // 通用场景接入
         profile.application = getApplication();
         engine = ZegoExpressEngine.createEngine(profile, null);
+        //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        int width = wm.getDefaultDisplay().getWidth();
+        int height = wm.getDefaultDisplay().getHeight();
+        VideoCaptureScreen videoCapture = new VideoCaptureScreen(mMediaProjection, width, height, engine);
+        //监听自定义采集开始停止回调
+        engine.setCustomVideoCaptureHandler(videoCapture);
+        ZegoCustomVideoCaptureConfig videoCaptureConfig=new ZegoCustomVideoCaptureConfig();
+        //使用SurfaceTexture类型进行自定义采集
+        videoCaptureConfig.bufferType= ZegoVideoBufferType.SURFACE_TEXTURE;
+        //开始自定义采集
+        engine.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN);
     }
 
     //登录房间
