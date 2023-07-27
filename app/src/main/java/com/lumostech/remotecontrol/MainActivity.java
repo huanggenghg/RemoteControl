@@ -6,6 +6,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -25,11 +26,13 @@ public class MainActivity extends BaseActivity {
     public static MediaProjection mMediaProjection;
     private static final int REQUEST_CODE = 111;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        startActivity(intent);
+
         requestMediaProjection();
 
         // 开始通话按钮
@@ -93,11 +96,13 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onRoomStreamUpdate(ZegoStream zegoStream, String playStreamId) {
         // 通知推流已成功
+        Log.d("MAIN", "onRoomStreamUpdate: playStreamId = " + playStreamId);
     }
 
     @Override
     protected void onLoginRoomSuccess() {
         // 通知已登录房间
+        Log.d("MAIN", "onLoginRoomSuccess");
     }
 
     @Override

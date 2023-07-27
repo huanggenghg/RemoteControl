@@ -1,6 +1,7 @@
 package com.lumostech.remotecontrol;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoStream;
@@ -14,16 +15,24 @@ public class RemoteControlActivity extends BaseActivity {
         createEngine();
         setEventHandler();
         loginRoom("user3", "room1");
+        ZegoCanvas zegoCanvas = new ZegoCanvas(findViewById(R.id.remoteUserView));
+        mEngine.startPlayingStream("stream2", zegoCanvas);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mEngine.logoutRoom();
     }
 
     @Override
     protected void onRoomStreamUpdate(ZegoStream zegoStream, String playStreamId) {
-        ZegoCanvas zegoCanvas = new ZegoCanvas(findViewById(R.id.remoteUserView));
-        mEngine.startPlayingStream(playStreamId, zegoCanvas);
+        Log.d("REMOTE", "onRoomStreamUpdate: playStreamId = " + playStreamId);
+
     }
 
     @Override
     protected void onLoginRoomSuccess() {
-
+        Log.d("REMOTE", "onLoginRoomSuccess");
     }
 }
