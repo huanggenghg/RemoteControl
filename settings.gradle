@@ -27,3 +27,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "RemoteControl"
 include ':app'
+include ':cp-fast-accessibility'

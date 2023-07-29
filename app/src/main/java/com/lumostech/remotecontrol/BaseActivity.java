@@ -171,6 +171,8 @@ public abstract class BaseActivity extends AppCompatActivity {
                 ZegoStreamQualityLevel.UNKNOWN, 网络质量未知
                 */
             }
+
+
         });
     }
 
