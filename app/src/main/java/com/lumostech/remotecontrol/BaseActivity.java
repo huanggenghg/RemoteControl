@@ -172,7 +172,11 @@ public abstract class BaseActivity extends AppCompatActivity {
                 */
             }
 
+            @Override
+            public void onIMRecvCustomCommand(String roomID, ZegoUser fromUser, String command) {
+                super.onIMRecvCustomCommand(roomID, fromUser, command);
 
+            }
         });
     }
 

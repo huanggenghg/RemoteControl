@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">RemoteControl</string>
+    <string name="accessibility_service_label">RemoteControlAccessibilityService</string>
+    <string name="accessibility_service_description">RemoteControlAccessibilityService</string>
 </resources>

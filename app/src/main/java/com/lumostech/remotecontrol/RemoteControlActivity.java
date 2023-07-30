@@ -2,6 +2,10 @@ package com.lumostech.remotecontrol;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoStream;
@@ -34,5 +38,25 @@ public class RemoteControlActivity extends BaseActivity {
     @Override
     protected void onLoginRoomSuccess() {
         Log.d("REMOTE", "onLoginRoomSuccess");
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("action", event.getAction());
+            jsonObject.put("x", event.getX());
+            jsonObject.put("y", event.getY());
+            jsonObject.put("rawX", event.getRawX());
+            jsonObject.put("rawY", event.getRawY());
+
+            Log.d("TAG", "onTouchEvent: " + jsonObject);
+            mEngine.sendCustomCommand("room1", jsonObject.toString(), null, errorCode -> {
+                Log.d("TAG", "sendCustomCommand: error = " + errorCode);
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return super.onTouchEvent(event);
     }
 }
