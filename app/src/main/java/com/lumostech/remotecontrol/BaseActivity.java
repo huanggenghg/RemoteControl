@@ -1,8 +1,13 @@
 package com.lumostech.remotecontrol;
 
+import android.app.Instrumentation;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -10,9 +15,11 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
@@ -29,12 +36,36 @@ import im.zego.zegoexpress.entity.ZegoUser;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+    private static final String TAG = "BaseActivity";
     protected ZegoExpressEngine mEngine;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestPermission();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        hideSystemUI();
+    }
+
+    private void hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
     protected abstract void onRoomStreamUpdate(ZegoStream zegoStream, String playStreamId);
@@ -175,7 +206,23 @@ public abstract class BaseActivity extends AppCompatActivity {
             @Override
             public void onIMRecvCustomCommand(String roomID, ZegoUser fromUser, String command) {
                 super.onIMRecvCustomCommand(roomID, fromUser, command);
-
+                Log.d(TAG, "onIMRecvCustomCommand: roomID = " + roomID + " ZegoUser = " + fromUser.userID + " \ncommand = " + command);
+                Executors.newCachedThreadPool().execute(() -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(command);
+                        int action = jsonObject.getInt("action");
+                        float x = Float.parseFloat(jsonObject.getString("x"));
+                        float y = Float.parseFloat(jsonObject.getString("y"));
+                        long downTime = SystemClock.uptimeMillis();
+                        final MotionEvent event = MotionEvent.obtain(downTime, downTime,
+                                action, x, y, 0);
+//                        Instrumentation instrumentation = new Instrumentation();
+//                        instrumentation.sendPointerSync(event);
+                        event.recycle();
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
         });
     }

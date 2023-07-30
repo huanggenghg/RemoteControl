@@ -19,9 +19,12 @@ abstract class FastAccessibilityService : AccessibilityService() {
         var instance: FastAccessibilityService? = null  // 无障碍服务对象实例，暴露给外部调用
         val isServiceEnable: Boolean get() = instance != null   // 无障碍服务是否可用
         private var _appContext: Context? = null    // 幕后属性，对外表现为只读，对内表现为可读写
-        val appContext get() = _appContext ?: throw NullPointerException("需要在Application的onCreate()中调用init()")
+        val appContext
+            get() = _appContext
+                ?: throw NullPointerException("需要在Application的onCreate()中调用init()")
         lateinit var specificServiceClass: Class<*> // 具体无障碍服务实现类的类类型
-        private var listenEventTypeList = arrayListOf(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) // 监听的event类型列表
+        private var listenEventTypeList =
+            arrayListOf(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) // 监听的event类型列表
         val currentEvent get() = instance?.currentEventWrapper  // 获取当前Event
 
         /**
@@ -68,13 +71,13 @@ abstract class FastAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (!enableListenApp || event == null) return
-        if (event.eventType in listenEventTypeList) {
-            val className = event.className.blankOrThis()
-            val packageName = event.packageName.blankOrThis()
-            val eventType = event.eventType
-            if (className.isNotBlank() && packageName.isNotBlank())
-                analyzeSource(EventWrapper(packageName, className, eventType), ::analyzeCallBack)
-        }
+
+        val className = event.className.blankOrThis()
+        val packageName = event.packageName.blankOrThis()
+        val eventType = event.eventType
+        if (className.isNotBlank() && packageName.isNotBlank())
+            analyzeSource(EventWrapper(packageName, className, eventType), ::analyzeCallBack)
+
     }
 
     /**
@@ -83,7 +86,10 @@ abstract class FastAccessibilityService : AccessibilityService() {
      * @param wrapper Event包装类
      * @param
      * */
-    fun analyzeSource(wrapper: EventWrapper? = null, callback: ((EventWrapper?, AnalyzeSourceResult) -> Unit)? = null) {
+    fun analyzeSource(
+        wrapper: EventWrapper? = null,
+        callback: ((EventWrapper?, AnalyzeSourceResult) -> Unit)? = null
+    ) {
         executor.execute {
             Thread.sleep(100)   // 休眠200毫秒避免获取到错误的source
             currentEventWrapper = wrapper

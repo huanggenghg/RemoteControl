@@ -1,19 +1,23 @@
 package com.lumostech.remotecontrol;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 
+import com.lumostech.remotecontrol.fw_permission.FloatWinPermissionCompat;
+
+import cn.coderpig.cp_fast_accessibility.FastAccessibilityService;
 import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoVideoBufferType;
@@ -30,8 +34,6 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-        startActivity(intent);
 
         requestMediaProjection();
 
@@ -56,11 +58,12 @@ public class MainActivity extends BaseActivity {
             // 点击停止通话
             @Override
             public void onClick(View view) {
-                mEngine.logoutRoom();
-                ZegoExpressEngine.destroyEngine(() -> {
-                    //销毁成功
-                });
-
+                if(mEngine != null) {
+                    mEngine.logoutRoom();
+                    ZegoExpressEngine.destroyEngine(() -> {
+                        //销毁成功
+                    });
+                }
             }
         });
 
@@ -72,6 +75,31 @@ public class MainActivity extends BaseActivity {
                 Intent intent = new Intent(MainActivity.this, RemoteControlActivity.class);
                 startActivity(intent);
 
+            }
+        });
+
+        findViewById(R.id.testButton).setOnClickListener(new View.OnClickListener() {
+            // 点击停止通话
+            @Override
+            public void onClick(View view) {
+                if (FastAccessibilityService.Companion.isServiceEnable()) {
+                    startService(new Intent(MainActivity.this, RemoteControlAccessibilityService.class));
+                } else {
+                    FastAccessibilityService.Companion.requireAccessibility();
+                }
+                boolean hasWinPermission = FloatWinPermissionCompat.getInstance().check(MainActivity.this);
+                if (!hasWinPermission) {
+                    requestPermissionAndShow();
+                }
+//                moveTaskToBack(true);
+            }
+        });
+
+        findViewById(R.id.testButton2).setOnClickListener(new View.OnClickListener() {
+            // 点击停止通话
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "click me!!!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -135,5 +163,22 @@ public class MainActivity extends BaseActivity {
         // 用户调用 loginRoom 之后再调用此接口进行推流
         // 在同一个 AppID 下，todo 开发者需要保证“streamID” 全局唯一，如果不同用户各推了一条 “streamID” 相同的流，后推流的用户会推流失败。
         mEngine.startPublishingStream("stream2");
+    }
+
+    private void requestPermissionAndShow() {
+        new AlertDialog.Builder(this).setTitle("悬浮窗权限未开启")
+                .setMessage(getString(R.string.app_name) + "获得悬浮窗权限，才能正常使用应用")
+                .setPositiveButton("去开启", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 显示授权界面
+                        try {
+                            FloatWinPermissionCompat.getInstance().apply(MainActivity.this);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                })
+                .setNegativeButton("取消", null).show();
     }
 }

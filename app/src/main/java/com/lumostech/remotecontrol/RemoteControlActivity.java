@@ -45,8 +45,8 @@ public class RemoteControlActivity extends BaseActivity {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("action", event.getAction());
-            jsonObject.put("x", event.getX());
-            jsonObject.put("y", event.getY());
+            jsonObject.put("x", String.valueOf(event.getX()));
+            jsonObject.put("y", String.valueOf(event.getY()));
             jsonObject.put("rawX", event.getRawX());
             jsonObject.put("rawY", event.getRawY());
 

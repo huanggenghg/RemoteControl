@@ -34,12 +34,14 @@ public class CaptureScreenService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //在这里获取MediaProjection
-        int resultCode = intent.getIntExtra("code", 1);
-        Intent resultData = intent.getParcelableExtra("data");
-        MainActivity.mMediaProjectionManager = (MediaProjectionManager)getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        MainActivity.mMediaProjection = MainActivity.mMediaProjectionManager
-                .getMediaProjection(resultCode, Objects.requireNonNull(resultData));
+        if(intent != null) {
+            //在这里获取MediaProjection
+            int resultCode = intent.getIntExtra("code", 1);
+            Intent resultData = intent.getParcelableExtra("data");
+            MainActivity.mMediaProjectionManager = (MediaProjectionManager)getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            MainActivity.mMediaProjection = MainActivity.mMediaProjectionManager
+                    .getMediaProjection(resultCode, Objects.requireNonNull(resultData));
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
