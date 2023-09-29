@@ -15,12 +15,15 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.lumostech.remotecontrol.utils.Utils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
+import cn.coderpig.cp_fast_accessibility.FastAccessibilityService;
 import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
@@ -210,15 +213,9 @@ public abstract class BaseActivity extends AppCompatActivity {
                 Executors.newCachedThreadPool().execute(() -> {
                     try {
                         JSONObject jsonObject = new JSONObject(command);
-                        int action = jsonObject.getInt("action");
                         float x = Float.parseFloat(jsonObject.getString("x"));
                         float y = Float.parseFloat(jsonObject.getString("y"));
-                        long downTime = SystemClock.uptimeMillis();
-                        final MotionEvent event = MotionEvent.obtain(downTime, downTime,
-                                action, x, y, 0);
-//                        Instrumentation instrumentation = new Instrumentation();
-//                        instrumentation.sendPointerSync(event);
-                        event.recycle();
+                        Utils.INSTANCE.click(FastAccessibilityService.Companion.getInstance(), x, y);
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

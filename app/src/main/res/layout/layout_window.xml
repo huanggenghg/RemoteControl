@@ -8,7 +8,7 @@
     <TextView
         android:id="@+id/top"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="10dp"
         android:background="@android:color/holo_red_dark"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,7 +17,7 @@
     <TextView
         android:id="@+id/bottom"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="10dp"
         android:background="@android:color/holo_red_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -16,12 +16,16 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.lumostech.remotecontrol.utils.Utils;
+
 import java.util.Arrays;
+import java.util.concurrent.Executors;
 
 import cn.coderpig.cp_fast_accessibility.AnalyzeSourceResult;
 import cn.coderpig.cp_fast_accessibility.EventWrapper;
@@ -39,6 +43,10 @@ public class RemoteControlAccessibilityService extends FastAccessibilityService 
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "onCreate");
+    }
+
+    private void addFloatView() {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
         mWindowManager.getDefaultDisplay().getMetrics(outMetrics);
@@ -54,15 +62,15 @@ public class RemoteControlAccessibilityService extends FastAccessibilityService 
             layoutParam.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         }
         layoutParam.flags =
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-        layoutParam.width = WindowManager.LayoutParams.MATCH_PARENT;
-        layoutParam.height = WindowManager.LayoutParams.MATCH_PARENT;
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+//                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        layoutParam.width = 100;
+        layoutParam.height = 100;
         layoutParam.format = PixelFormat.TRANSPARENT;
         //设置剧中屏幕显示
 //        layoutParam.x = outMetrics.widthPixels / 2;
 //        layoutParam.y = outMetrics.heightPixels / 2;
-        mFloatRootView = LayoutInflater.from(this).inflate(R.layout.layout_window, null);
+        mFloatRootView = LayoutInflater.from(getApplicationContext()).inflate(R.layout.layout_window, null);
         mFloatRootView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -70,6 +78,13 @@ public class RemoteControlAccessibilityService extends FastAccessibilityService 
                 return false;
             }
         });
+        mFloatRootView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "click float window!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
 //        floatRootView?.setOnTouchListener(ItemViewTouchListener(layoutParam, windowManager))
         mWindowManager.addView(mFloatRootView, layoutParam);
     }
@@ -100,49 +115,31 @@ public class RemoteControlAccessibilityService extends FastAccessibilityService 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        AccessibilityServiceInfo serviceInfo = new AccessibilityServiceInfo();
-        serviceInfo.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
-        serviceInfo.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;
-        serviceInfo.flags = AccessibilityServiceInfo.DEFAULT | AccessibilityServiceInfo.CAPABILITY_CAN_REQUEST_ENHANCED_WEB_ACCESSIBILITY
-                | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
-        | AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS | AccessibilityServiceInfo.CAPABILITY_CAN_REQUEST_TOUCH_EXPLORATION;
-        serviceInfo.notificationTimeout = 100;
-        setServiceInfo(serviceInfo);
+        Log.d(TAG, "onServiceConnected");
+//        addFloatView();
         Log.d(TAG, "=======================onServiceConnected: " + getServiceInfo());
-
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+        new Thread() {
             @Override
             public void run() {
-                Log.d(TAG, "=======================getRootInActiveWindow = " + getRootInActiveWindow());
-
-                if (getRootInActiveWindow() != null) {
-                    getRootInActiveWindow().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                try {
+                    Thread.sleep(5000);
+                    autoTest();
+                    super.run();
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "=======================onServiceConnected: " + e);
                 }
             }
-        },10000);
+        }.start();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     private void autoTest() {
-        Log.d(TAG, "=======================autoTest");
-        GestureDescription.Builder builder = new GestureDescription.Builder();
-        Path path = new Path();
-        path.moveTo(549.4912f, 676.6101f);
-        GestureDescription gestureDescription = builder.addStroke(
-                        new GestureDescription.StrokeDescription(path, 0, 100))
-                .build();
-        dispatchGesture(gestureDescription, new AccessibilityService.GestureResultCallback() {
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
-            public void onCompleted(GestureDescription gestureDescription) {
-                super.onCompleted(gestureDescription);
-                Log.d("AutoTouchService", "滑动结束" + gestureDescription.getStrokeCount());
+            public void run() {
+                Log.d(TAG, "=======================autoTest: " + Thread.currentThread().getName());
+                boolean res = Utils.INSTANCE.click(RemoteControlAccessibilityService.this, 725f, 838f);
+                Log.d(TAG, "=======================autoTest: res = " + res);
             }
-
-            @Override
-            public void onCancelled(GestureDescription gestureDescription) {
-                super.onCancelled(gestureDescription);
-                Log.d("AutoTouchService", "滑动取消");
-            }
-        }, null);
+        });
     }
 }

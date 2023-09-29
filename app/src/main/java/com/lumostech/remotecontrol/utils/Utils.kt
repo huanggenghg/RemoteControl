@@ -1,9 +1,12 @@
 package com.lumostech.remotecontrol.utils
 
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.GestureDescription
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Path
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -106,4 +109,24 @@ object Utils {
 
     fun isNull(any: Any?): Boolean = any == null
 
+     fun click(accessibilityService: AccessibilityService, x: Float, y: Float) : Boolean{
+        Log.d("~~~", "click: ($x, $y)")
+        val builder = GestureDescription.Builder()
+        val path = Path()
+        path.moveTo(x, y)
+        path.lineTo(x, y)
+        builder.addStroke(GestureDescription.StrokeDescription(path, 0, 1))
+        val gesture = builder.build()
+        return accessibilityService.dispatchGesture(gesture, object : AccessibilityService.GestureResultCallback() {
+            override fun onCancelled(gestureDescription: GestureDescription) {
+                super.onCancelled(gestureDescription)
+                Log.d("~~~", "onCancelled")
+            }
+
+            override fun onCompleted(gestureDescription: GestureDescription) {
+                super.onCompleted(gestureDescription)
+                Log.d("~~~", "onCompleted")
+            }
+        }, null)
+    }
 }

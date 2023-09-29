@@ -79,7 +79,6 @@ abstract class FastAccessibilityService : AccessibilityService() {
             analyzeSource(EventWrapper(packageName, className, eventType), ::analyzeCallBack)
 
     }
-
     /**
      * 解析当前页面结点
      *

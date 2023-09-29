@@ -8,6 +8,7 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -82,9 +83,7 @@ public class MainActivity extends BaseActivity {
             // 点击停止通话
             @Override
             public void onClick(View view) {
-                if (FastAccessibilityService.Companion.isServiceEnable()) {
-                    startService(new Intent(MainActivity.this, RemoteControlAccessibilityService.class));
-                } else {
+                if (!FastAccessibilityService.Companion.isServiceEnable()) {
                     FastAccessibilityService.Companion.requireAccessibility();
                 }
                 boolean hasWinPermission = FloatWinPermissionCompat.getInstance().check(MainActivity.this);
@@ -102,6 +101,12 @@ public class MainActivity extends BaseActivity {
                 Toast.makeText(MainActivity.this, "click me!!!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        Toast.makeText(MainActivity.this, "dispatchTouchEvent!!!", Toast.LENGTH_SHORT).show();
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override
