@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">RemoteControl</string>
-    <string name="accessibility_service_label">RemoteControlAccessibilityService</string>
-    <string name="accessibility_service_description">RemoteControlAccessibilityService</string>
+    <string name="app_name">连点器</string>
+    <string name="accessibility_desc">使用连点器必须打开该功能</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>
