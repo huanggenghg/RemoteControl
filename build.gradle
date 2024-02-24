@@ -9,6 +9,7 @@ buildscript {
             url 'https://maven.aliyun.com/repository/spring/'
         }
         google()
+        mavenCentral()
         maven {
             url 'https://maven.aliyun.com/repository/google'
         }
@@ -39,6 +40,7 @@ allprojects {
             url 'https://maven.aliyun.com/repository/spring/'
         }
         google()
+        mavenCentral()
         maven {
             url 'https://maven.aliyun.com/repository/google'
         }
