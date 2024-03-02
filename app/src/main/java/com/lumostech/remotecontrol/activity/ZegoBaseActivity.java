@@ -75,7 +75,7 @@ public abstract class ZegoBaseActivity extends AccessibilityActivity {
         // TODO: 2023/7/15 密钥安全 gradle + xml + string + so + ...
         profile.appID = 678281271L;  // 请通过官网注册获取，格式为：1234567890L
         profile.appSign = "a356faea31ad94234a560f61c7e4628659d27041846d7b22b239886af3e7e6a4"; //请通过官网注册获取，格式为："0123456789012345678901234567890123456789012345678901234567890123"（共64个字符）
-        profile.scenario = ZegoScenario.DEFAULT;  // 通用场景接入
+        profile.scenario = ZegoScenario.STANDARD_VIDEO_CALL;  // 通用场景接入
         profile.application = getApplication();
         mEngine = ZegoExpressEngine.createEngine(profile, null);
     }
