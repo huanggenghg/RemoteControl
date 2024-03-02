@@ -49,7 +49,7 @@
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
     </style>
 
-    <style name="MyDialog" parent="@style/ThemeOverlay.Material3.MaterialCalendar.Fullscreen">
+    <style name="MyDialog">
 
         <!--Dialog的windowFrame框为无-->
         <item name="android:windowFrame">@null</item>
