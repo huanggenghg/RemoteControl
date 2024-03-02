@@ -15,13 +15,16 @@ import im.zego.zegoexpress.entity.ZegoStream;
 
 public class RemoteControlActivity extends ZegoBaseActivity {
 
+    public static final String EXTRA_CODE = "code";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_remote_control);
         createEngine();
         setEventHandler();
-        loginRoom("user3", "room1");
+        String code = getIntent().getStringExtra(EXTRA_CODE);
+        loginRoom("user3", code);
         ZegoCanvas zegoCanvas = new ZegoCanvas(findViewById(R.id.remoteUserView));
         mEngine.startPlayingStream("stream2", zegoCanvas);
     }

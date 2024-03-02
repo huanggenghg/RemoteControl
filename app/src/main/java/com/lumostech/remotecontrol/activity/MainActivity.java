@@ -3,13 +3,15 @@ package com.lumostech.remotecontrol.activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lumostech.remotecontrol.R;
+
+import java.util.Random;
 
 import im.zego.zegoexpress.ZegoExpressEngine;
 
@@ -17,6 +19,7 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
 
     private static final String FAB_PROJECTION_TAG_CAST = "cast";
     private static final String FAB_PROJECTION_TAG_CAST_PAUSE = "cast_pause";
+    private static final int CODE_LENGTH = 6;
     private FloatingActionButton fabProjection;
     private FloatingActionButton fabAssist;
     private TextView tvCode;
@@ -27,6 +30,7 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initViews();
+        initCode();
     }
 
     private void initViews() {
@@ -35,7 +39,15 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
         tvCode = findViewById(R.id.tv_code);
         fabProjection.setOnClickListener(this);
         fabAssist.setOnClickListener(this);
-        tvCode.setOnClickListener(this);
+    }
+
+    private void initCode() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            sb.append(random.nextInt(10));
+        }
+        tvCode.setText(sb.toString());
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -43,6 +55,10 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab_projection:
+                if (!checkCode()) {
+                    return;
+                }
+
                 if (mMediaProjection == null) {
                     requestMediaProjection();
                     showAccessibilityDialog();
@@ -54,9 +70,6 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
                 break;
             case R.id.fab_assist:
                 assist();
-            case R.id.tv_code:
-                tvCode.setInputType(InputType.TYPE_CLASS_NUMBER);
-                break;
         }
     }
 
@@ -74,14 +87,29 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
     }
 
     private void startCast() {
+        if (!checkCode()) {
+            return;
+        }
+
+        String code = tvCode.getText().toString();
+
         // 创建Express SDK 实例
         createEngine();
         // 监听常用事件
         setEventHandler();
         // 登录房间
-        loginRoom("user2", "room1");
+        loginRoom("user2", code);
         // 开始预览及推流
         startPublish();
+    }
+
+    private boolean checkCode() {
+        String code = tvCode.getText().toString();
+        if (TextUtils.isEmpty(code) || code.length() != CODE_LENGTH) {
+            Toast.makeText(this, "协助码是六位数字，请重新输入", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private void pauseCast() {
@@ -94,7 +122,13 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
     }
 
     private void assist() {
+        if (!checkCode()) {
+            return;
+        }
+
+        String code = tvCode.getText().toString();
         Intent intent = new Intent(MainActivity.this, RemoteControlActivity.class);
+        intent.putExtra(RemoteControlActivity.EXTRA_CODE, code);
         startActivity(intent);
     }
 }
