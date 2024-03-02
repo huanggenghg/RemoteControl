@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -19,12 +18,6 @@ public class MediaProjectionActivity extends ZegoBaseActivity {
     public static MediaProjectionManager mMediaProjectionManager;
     public static MediaProjection mMediaProjection;
     private static final int REQUEST_CODE = 111;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestMediaProjection();
-    }
 
     @Override
     protected void createEngine() {
@@ -78,7 +71,7 @@ public class MediaProjectionActivity extends ZegoBaseActivity {
         mEngine.startPublishingStream("stream2");
     }
 
-    private void requestMediaProjection() {
+    protected void requestMediaProjection() {
         // 5.0及以上版本
         // 请求录屏权限，等待用户授权
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);

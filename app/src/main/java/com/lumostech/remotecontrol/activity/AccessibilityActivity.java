@@ -45,9 +45,6 @@ public class AccessibilityActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initSmallViewLayout();
         this.singleThreadExecutor = Executors.newSingleThreadExecutor();
-        if (!MyService.isStart()) {
-            dialog = DialogHelper.showMessagePositiveDialog(this, "辅助功能", "使用连点器需要开启(无障碍)辅助功能，是否现在去开启？");
-        }
 
         powerKeyObserver = new PowerKeyObserver(this);
         powerKeyObserver.startListen();//开始注册广播
@@ -57,6 +54,12 @@ public class AccessibilityActivity extends AppCompatActivity {
                 myHandler.sendEmptyMessage(2);
             }
         });
+    }
+
+    protected void showAccessibilityDialog() {
+        if (!MyService.isStart()) {
+            dialog = DialogHelper.showMessagePositiveDialog(this, "辅助功能", "使用连点器需要开启(无障碍)辅助功能，是否现在去开启？");
+        }
     }
 
     protected void performClick(float x, float y) {
