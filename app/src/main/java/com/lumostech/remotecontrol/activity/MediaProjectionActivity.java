@@ -1,13 +1,11 @@
 package com.lumostech.remotecontrol.activity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -32,9 +30,8 @@ public class MediaProjectionActivity extends ZegoBaseActivity {
     protected void createEngine() {
         super.createEngine();
         //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
-        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        int width = wm.getDefaultDisplay().getWidth();
-        int height = wm.getDefaultDisplay().getHeight();
+        int width = getWindow().getDecorView().getWidth();
+        int height = getWindow().getDecorView().getHeight();
         VideoCaptureScreen videoCapture = new VideoCaptureScreen(mMediaProjection, width, height, mEngine);
         //监听自定义采集开始停止回调
         mEngine.setCustomVideoCaptureHandler(videoCapture);
