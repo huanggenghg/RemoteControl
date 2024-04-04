@@ -2,6 +2,7 @@ package com.lumostech.remotecontrol.activity;
 
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -16,6 +17,7 @@ import im.zego.zegoexpress.entity.ZegoStream;
 public class RemoteControlActivity extends ZegoBaseActivity {
 
     public static final String EXTRA_CODE = "code";
+    private String mRoomId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +25,8 @@ public class RemoteControlActivity extends ZegoBaseActivity {
         setContentView(R.layout.activity_remote_control);
         createEngine();
         setEventHandler();
-        String code = getIntent().getStringExtra(EXTRA_CODE);
-        loginRoom("user3", code);
+        mRoomId = getIntent().getStringExtra(EXTRA_CODE);
+        loginRoom("user3", mRoomId);
         ZegoCanvas zegoCanvas = new ZegoCanvas(findViewById(R.id.remoteUserView));
         mEngine.startPlayingStream("stream2", zegoCanvas);
     }
@@ -48,6 +50,11 @@ public class RemoteControlActivity extends ZegoBaseActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (TextUtils.isEmpty(mRoomId)) {
+            Log.w("TAG", "onTouchEvent: mRoomId is empty!");
+            return super.onTouchEvent(event);
+        }
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("action", event.getAction());
@@ -57,7 +64,7 @@ public class RemoteControlActivity extends ZegoBaseActivity {
             jsonObject.put("rawY", event.getRawY());
 
             Log.d("TAG", "onTouchEvent: " + jsonObject);
-            mEngine.sendCustomCommand("room1", jsonObject.toString(), null, errorCode -> {
+            mEngine.sendCustomCommand(mRoomId, jsonObject.toString(), null, errorCode -> {
                 Log.d("TAG", "sendCustomCommand: error = " + errorCode);
             });
         } catch (JSONException e) {

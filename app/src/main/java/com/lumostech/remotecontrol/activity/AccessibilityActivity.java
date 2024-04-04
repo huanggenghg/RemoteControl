@@ -70,27 +70,22 @@ public class AccessibilityActivity extends AppCompatActivity {
                 singleThreadExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
                         Message message = new Message();
                         message.obj = new Bean(x, y);
                         message.what = 1;
                         AccessibilityActivity.this.myHandler.sendMessage(message);
-                        for (int t = 0; t < 100; t++) {
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException e2) {
-                                e2.printStackTrace();
-                            }
-                        }
-                        AccessibilityActivity.this.myHandler.sendEmptyMessageDelayed(0, 200);
+//                        for (int t = 0; t < 100; t++) {
+//                            try {
+//                                Thread.sleep(10);
+//                            } catch (InterruptedException e2) {
+//                                e2.printStackTrace();
+//                            }
+//                        }
+//                        AccessibilityActivity.this.myHandler.sendEmptyMessageDelayed(0, 200);
                     }
                 });
             }
-        }, 10000);
+        }, 0);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
