@@ -4,6 +4,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 android {
     compileSdkVersion 33
 
+    namespace = "com.lumostech.remotecontrol"
 
     defaultConfig {
         applicationId "com.lumostech.remotecontrol"
