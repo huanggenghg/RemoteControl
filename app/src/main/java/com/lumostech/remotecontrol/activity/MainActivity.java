@@ -53,23 +53,21 @@ public class MainActivity extends MediaProjectionActivity implements View.OnClic
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.fab_projection:
-                if (!checkCode()) {
-                    return;
-                }
+        if (v.getId() == R.id.fab_projection) {
+            if (!checkCode()) {
+                return;
+            }
 
-                if (mMediaProjection == null) {
-                    requestMediaProjection();
-                    showAccessibilityDialog();
-                    return;
-                }
-                showAccessibilityDialog();// 再次检查，因为可能被关闭了服务，故需要再次检查
+            if (mMediaProjection == null) {
+                requestMediaProjection();
+                showAccessibilityDialog();
+                return;
+            }
+            showAccessibilityDialog();// 再次检查，因为可能被关闭了服务，故需要再次检查
 
-                switchProjection();
-                break;
-            case R.id.fab_assist:
-                assist();
+            switchProjection();
+        } else if (v.getId() == R.id.fab_assist) {
+            assist();
         }
     }
 
