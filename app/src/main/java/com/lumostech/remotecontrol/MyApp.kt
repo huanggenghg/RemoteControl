@@ -1,39 +1,43 @@
-package com.lumostech.remotecontrol;
+package com.lumostech.remotecontrol
 
-import android.app.Application;
-import android.content.Context;
-import android.provider.Settings;
+import android.app.Application
+import android.content.Context
+import android.provider.Settings
 
-public class MyApp extends Application {
-    public static final String TAG="MyApp";
-    private Context context;
+class MyApp : Application() {
+    private var context: Context? = null
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context=this;
+    override fun onCreate() {
+        super.onCreate()
+        context = this
         try {
-            setMyServiceEnable();
-        }catch (Exception ignored){
-
+            setMyServiceEnable()
+        } catch (ignored: Exception) {
         }
-
     }
 
     /**
      * 需要授予权限 android.permission.WRITE_SECURE_SETTINGS
      * adb shell pm grant 包名 android.permission.WRITE_SECURE_SETTINGS
      */
-    private void setMyServiceEnable() {
-        String name = getPackageName()+"/"+ MyService.class.getName();
+    private fun setMyServiceEnable() {
+        val name = packageName + "/" + MyService::class.java.name
 
-        String string = Settings.Secure.getString(getContentResolver(),
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-        StringBuffer stringBuffer=new StringBuffer(string);
-        if (!string.contains(name)){
-            String s = stringBuffer.append(":").append(name).toString();
-            Settings.Secure.putString(getContentResolver(),
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,s);
+        val string = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        val stringBuffer = StringBuffer(string)
+        if (!string.contains(name)) {
+            val s = stringBuffer.append(":").append(name).toString()
+            Settings.Secure.putString(
+                contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, s
+            )
         }
+    }
+
+    companion object {
+        const val TAG: String = "MyApp"
     }
 }

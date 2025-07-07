@@ -1,54 +1,46 @@
-package com.lumostech.remotecontrol;
+package com.lumostech.remotecontrol
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 
-public class PowerKeyObserver {
-    private Context mContext;
-    private IntentFilter mIntentFilter;
-    private OnPowerKeyListener mOnPowerKeyListener;
-    private PowerKeyBroadcastReceiver mPowerKeyBroadcastReceiver;
-
-    public PowerKeyObserver(Context context) {
-        this.mContext = context;
-    }
+open class PowerKeyObserver(private val mContext: Context) {
+    private var mIntentFilter: IntentFilter? = null
+    private var mOnPowerKeyListener: OnPowerKeyListener? = null
+    private var mPowerKeyBroadcastReceiver: PowerKeyBroadcastReceiver? = null
 
     //注册广播接收者
-    public void startListen() {
-        mIntentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-        mPowerKeyBroadcastReceiver = new PowerKeyBroadcastReceiver();
-        mContext.registerReceiver(mPowerKeyBroadcastReceiver, mIntentFilter);
-
+    fun startListen() {
+        mIntentFilter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+        mPowerKeyBroadcastReceiver = PowerKeyBroadcastReceiver()
+        mContext.registerReceiver(mPowerKeyBroadcastReceiver, mIntentFilter)
     }
 
     //取消广播接收者
-    public void stopListen() {
+    fun stopListen() {
         if (mPowerKeyBroadcastReceiver != null) {
-            mContext.unregisterReceiver(mPowerKeyBroadcastReceiver);
+            mContext.unregisterReceiver(mPowerKeyBroadcastReceiver)
         }
     }
 
     // 对外暴露接口
-    public void setHomeKeyListener(OnPowerKeyListener powerKeyListener) {
-        mOnPowerKeyListener = powerKeyListener;
+    fun setHomeKeyListener(powerKeyListener: OnPowerKeyListener?) {
+        mOnPowerKeyListener = powerKeyListener
     }
 
     // 回调接口
-    public interface OnPowerKeyListener {
-        public void onPowerKeyPressed();
+    interface OnPowerKeyListener {
+        fun onPowerKeyPressed()
     }
 
     //广播接收者
-    class PowerKeyBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-                mOnPowerKeyListener.onPowerKeyPressed();
+    internal inner class PowerKeyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (action == Intent.ACTION_SCREEN_OFF) {
+                mOnPowerKeyListener!!.onPowerKeyPressed()
             }
         }
     }
-
 }

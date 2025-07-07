@@ -1,7 +1,5 @@
-package com.lumostech.remotecontrol.activity;
+package com.lumostech.remotecontrol.activity
 
-import im.zego.zegoexpress.callback.IZegoCustomVideoCaptureHandler;
+import im.zego.zegoexpress.callback.IZegoCustomVideoCaptureHandler
 
-public class ZegoVideoCaptureCallback extends IZegoCustomVideoCaptureHandler {
-
-}
+open class ZegoVideoCaptureCallback : IZegoCustomVideoCaptureHandler()
