@@ -9,15 +9,16 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.MutableLiveData
+import com.lumostech.accessibilitybase.AccessibilityBaseEvent
 
-class AccessibilityCoreService : AccessibilityService() {
+class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent {
     var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
 
     init {
         Log.e(TAG, "MyService: ")
     }
 
-    fun dispatchGestureClick(x: Float, y: Float) {
+    override fun dispatchGestureClick(x: Float, y: Float) {
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
@@ -31,52 +32,6 @@ class AccessibilityCoreService : AccessibilityService() {
             ).build(),
             null,
             null
-        )
-    }
-
-    fun dispatchGestureClick(x: Float, y: Float, duration: Int) {
-        val path = Path()
-        path.moveTo(x, y)
-        path.lineTo(x + 1, y + 1)
-        dispatchGesture(
-            GestureDescription.Builder().addStroke(
-                GestureDescription.StrokeDescription(
-                    path,
-                    0,
-                    duration.toLong()
-                )
-            )
-                .build(), null, null
-        )
-    }
-
-    fun dispatchGesture(x1: Float, y1: Float, x2: Float, y2: Float, duration: Int) {
-        val path = Path()
-        path.moveTo(x1, y1)
-        path.lineTo(x2, y2)
-        dispatchGesture(
-            GestureDescription.Builder().addStroke(
-                GestureDescription.StrokeDescription(
-                    path,
-                    0,
-                    duration.toLong()
-                )
-            )
-                .build(), null, null
-        )
-    }
-
-
-    fun dispatchGesture(path: Path, duration: Int) {
-        dispatchGesture(
-            GestureDescription.Builder().addStroke(
-                GestureDescription.StrokeDescription(
-                    path,
-                    0,
-                    duration.toLong()
-                )
-            )
-                .build(), null, null
         )
     }
 

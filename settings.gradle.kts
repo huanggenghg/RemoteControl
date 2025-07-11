@@ -56,3 +56,4 @@ dependencyResolutionManagement {
 rootProject.name = "RemoteControl"
 include(":app")
 include(":accessibilityCore")
+include(":accessibilityBase")
