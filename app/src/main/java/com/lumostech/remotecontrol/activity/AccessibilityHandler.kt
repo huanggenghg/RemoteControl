@@ -15,13 +15,9 @@ class AccessibilityHandler(accessibilityActivity: AccessibilityActivity?) : Hand
             return
         }
         val i = msg.what
-        if (i == 0) {
-            accessibilityActivityWf.get()!!.windowView!!.setwmParamsFlags(8)
-        } else if (i == 1) {
+        if (i == 1) {
             val bean = msg.obj as Bean
             accessibilityActivityWf.get()!!.setMouseClick(bean.x, bean.y)
-        } else if (i == 2) {
-            accessibilityActivityWf.get()!!.windowView!!.setwmParamsFlags(8)
         }
     }
 }

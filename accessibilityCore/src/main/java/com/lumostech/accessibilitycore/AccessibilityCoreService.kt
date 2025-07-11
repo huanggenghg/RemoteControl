@@ -1,55 +1,67 @@
-package com.lumostech.remotecontrol
+package com.lumostech.accessibilitycore
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.accessibilityservice.GestureDescription
-import android.accessibilityservice.GestureDescription.StrokeDescription
 import android.content.Intent
 import android.graphics.Path
-import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 
-class MyService : AccessibilityService() {
+class AccessibilityCoreService : AccessibilityService() {
     var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
 
     init {
         Log.e(TAG, "MyService: ")
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     fun dispatchGestureClick(x: Float, y: Float) {
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
         dispatchGesture(
-            GestureDescription.Builder().addStroke(StrokeDescription(path, 0, 20)).build(),
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    20
+                )
+            ).build(),
             null,
             null
         )
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     fun dispatchGestureClick(x: Float, y: Float, duration: Int) {
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
         dispatchGesture(
-            GestureDescription.Builder().addStroke(StrokeDescription(path, 0, duration.toLong()))
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    duration.toLong()
+                )
+            )
                 .build(), null, null
         )
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     fun dispatchGesture(x1: Float, y1: Float, x2: Float, y2: Float, duration: Int) {
         val path = Path()
         path.moveTo(x1, y1)
         path.lineTo(x2, y2)
         dispatchGesture(
-            GestureDescription.Builder().addStroke(StrokeDescription(path, 0, duration.toLong()))
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    duration.toLong()
+                )
+            )
                 .build(), null, null
         )
     }
@@ -57,7 +69,13 @@ class MyService : AccessibilityService() {
 
     fun dispatchGesture(path: Path, duration: Int) {
         dispatchGesture(
-            GestureDescription.Builder().addStroke(StrokeDescription(path, 0, duration.toLong()))
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    duration.toLong()
+                )
+            )
                 .build(), null, null
         )
     }
@@ -70,7 +88,7 @@ class MyService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        myService = null
+        accessibilityCoreService = null
         Log.e(TAG, "onDestroy: ")
     }
 
@@ -110,14 +128,14 @@ class MyService : AccessibilityService() {
         config.flags = AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
 
         serviceInfo = config
-        myService = this
+        accessibilityCoreService = this
     }
 
     companion object {
         const val TAG: String = "MyService"
-        var myService: MyService? = null
+        var accessibilityCoreService: AccessibilityCoreService? = null
 
         val isStart: Boolean
-            get() = myService != null
+            get() = accessibilityCoreService != null
     }
 }

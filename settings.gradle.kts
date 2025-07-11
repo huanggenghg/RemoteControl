@@ -55,4 +55,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "RemoteControl"
 include(":app")
- 
+include(":accessibilityCore")

@@ -73,7 +73,7 @@ open class MediaProjectionActivity : ZegoBaseActivity() {
         mMediaProjectionManager =
             getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         startActivityForResult(mMediaProjectionManager!!.createScreenCaptureIntent(), REQUEST_CODE)
-        Log.d("TAG", "init: mMediaProjectionManager = " + mMediaProjectionManager)
+        Log.d("TAG", "init: mMediaProjectionManager = $mMediaProjectionManager")
     }
 
     companion object {

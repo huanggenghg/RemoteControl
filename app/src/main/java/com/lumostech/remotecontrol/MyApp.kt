@@ -3,6 +3,7 @@ package com.lumostech.remotecontrol
 import android.app.Application
 import android.content.Context
 import android.provider.Settings
+import com.lumostech.accessibilitycore.AccessibilityCoreService
 
 class MyApp : Application() {
     private var context: Context? = null
@@ -21,7 +22,7 @@ class MyApp : Application() {
      * adb shell pm grant 包名 android.permission.WRITE_SECURE_SETTINGS
      */
     private fun setMyServiceEnable() {
-        val name = packageName + "/" + MyService::class.java.name
+        val name = packageName + "/" + AccessibilityCoreService::class.java.name
 
         val string = Settings.Secure.getString(
             contentResolver,
