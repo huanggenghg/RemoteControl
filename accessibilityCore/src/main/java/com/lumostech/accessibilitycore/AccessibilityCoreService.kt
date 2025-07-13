@@ -18,10 +18,20 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
         Log.e(TAG, "MyService: ")
     }
 
+    private var oldX = Float.MIN_VALUE;
+    private var oldY = Float.MIN_VALUE;
+
     override fun dispatchGestureClick(x: Float, y: Float) {
         val path = Path()
-        path.moveTo(x, y)
-        path.lineTo(x + 1, y + 1)
+        if (oldX == Float.MIN_VALUE && oldY == Float.MIN_VALUE) {
+            path.moveTo(x, y)
+            path.lineTo(x, y)
+        } else {
+            path.moveTo(x, y)
+            path.lineTo(oldX, oldY)
+        }
+        oldX = x;
+        oldY = y;
         dispatchGesture(
             GestureDescription.Builder().addStroke(
                 GestureDescription.StrokeDescription(
