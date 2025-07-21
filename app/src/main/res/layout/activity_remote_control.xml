@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,5 +11,46 @@
         android:id="@+id/remoteUserView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <Button
+        android:id="@+id/scrollUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="上划"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/scrollDown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="下划"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/scrollUp" />
+
+    <Button
+        android:id="@+id/softInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="软键盘"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/scrollDown" />
+
+    <Button
+        android:id="@+id/softInputOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="软键盘关"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/softInput" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/softInput" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

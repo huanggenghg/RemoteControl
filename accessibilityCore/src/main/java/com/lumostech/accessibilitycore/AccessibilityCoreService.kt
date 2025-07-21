@@ -11,6 +11,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
 
+
 class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent {
     var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
 
@@ -18,20 +19,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
         Log.e(TAG, "MyService: ")
     }
 
-    private var oldX = Float.MIN_VALUE;
-    private var oldY = Float.MIN_VALUE;
-
     override fun dispatchGestureClick(x: Float, y: Float) {
         val path = Path()
-        if (oldX == Float.MIN_VALUE && oldY == Float.MIN_VALUE) {
-            path.moveTo(x, y)
-            path.lineTo(x, y)
-        } else {
-            path.moveTo(x, y)
-            path.lineTo(oldX, oldY)
-        }
-        oldX = x;
-        oldY = y;
+        path.moveTo(x, y)
+        path.lineTo(x + 1, y + 1)
         dispatchGesture(
             GestureDescription.Builder().addStroke(
                 GestureDescription.StrokeDescription(
@@ -43,6 +34,39 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
             null,
             null
         )
+    }
+
+    override fun dispatchScrollUp() {
+        dispatchScroll(true)
+    }
+
+    override fun dispatchScrollDown() {
+        dispatchScroll(false)
+    }
+
+    private fun dispatchScroll(isScrollingUp: Boolean) {
+        val diff = if (isScrollingUp) -50F else 50F
+        val centerX = resources.displayMetrics.widthPixels / 2
+        val centerY = resources.displayMetrics.widthPixels / 2
+
+        val path = Path()
+        path.moveTo(centerX.toFloat(), centerY.toFloat())
+        path.lineTo(centerX.toFloat(), centerY + diff)
+        dispatchGesture(
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    20
+                )
+            ).build(),
+            null,
+            null
+        )
+    }
+
+    override fun dispatchSoftInput(inputText: String) {
+        Log.e(TAG, "dispatchSoftInput: $inputText")
     }
 
     override fun onRebind(intent: Intent) {

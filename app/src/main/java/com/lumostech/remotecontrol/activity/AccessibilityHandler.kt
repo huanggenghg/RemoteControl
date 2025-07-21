@@ -14,10 +14,21 @@ class AccessibilityHandler(accessibilityActivity: AccessibilityActivity?) : Hand
         if (accessibilityActivityWf.get() == null) {
             return
         }
-        val i = msg.what
-        if (i == 1) {
-            val bean = msg.obj as Bean
-            accessibilityActivityWf.get()!!.setMouseClick(bean.x, bean.y)
+        when (msg.what) {
+            1 -> {
+                val bean = msg.obj as Bean
+                accessibilityActivityWf.get()!!.setMouseClick(bean.x, bean.y)
+            }
+            2 -> {
+                accessibilityActivityWf.get()!!.scrollUp()
+            }
+            3 -> {
+                accessibilityActivityWf.get()!!.scrollDown()
+            }
+            4 -> {
+                val inputText = msg.obj as String
+                accessibilityActivityWf.get()!!.softInput(inputText)
+            }
         }
     }
 }

@@ -222,9 +222,26 @@ command = $command"""
                 )
                 try {
                     val jsonObject = JSONObject(command)
-                    val x = jsonObject.getString("x").toFloat()
-                    val y = jsonObject.getString("y").toFloat()
-                    performClick(x, y)
+                    when (jsonObject.getString("action")) {
+                        "scrollUp" -> {
+                            performScrollUp()
+                        }
+
+                        "scrollDown" -> {
+                            performScrollDown()
+                        }
+
+                        "softInput" -> {
+                            val x = jsonObject.getString("inputText")
+                            performSoftInput(x)
+                        }
+
+                        else -> {
+                            val x = jsonObject.getString("x").toFloat()
+                            val y = jsonObject.getString("y").toFloat()
+                            performClick(x, y)
+                        }
+                    }
                 } catch (e: JSONException) {
                     throw RuntimeException(e)
                 }

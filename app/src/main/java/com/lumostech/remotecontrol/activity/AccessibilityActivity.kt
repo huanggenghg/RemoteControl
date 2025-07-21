@@ -35,9 +35,39 @@ open class AccessibilityActivity : AppCompatActivity() {
         myHandler.sendMessage(message)
     }
 
+    protected fun performScrollUp() {
+        val message = Message()
+        message.what = 2
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performScrollDown() {
+        val message = Message()
+        message.what = 3
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performSoftInput(inputText: String) {
+        val message = Message()
+        message.what = 4
+        message.obj = inputText
+        myHandler.sendMessage(message)
+    }
+
     fun setMouseClick(x: Float, y: Float) {
-        val myService = AccessibilityCoreService.accessibilityCoreService
-        myService?.dispatchGestureClick(x, y)
+        AccessibilityCoreService.accessibilityCoreService?.dispatchGestureClick(x, y)
+    }
+
+    fun scrollUp() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollUp()
+    }
+
+    fun scrollDown() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollDown()
+    }
+
+    fun softInput(inputText: String) {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchSoftInput(inputText)
     }
 
 
