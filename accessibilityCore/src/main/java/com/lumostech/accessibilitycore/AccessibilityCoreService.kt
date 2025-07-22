@@ -3,11 +3,15 @@ package com.lumostech.accessibilitycore
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.accessibilityservice.GestureDescription
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.graphics.Path
+import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
 
@@ -67,6 +71,32 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
 
     override fun dispatchSoftInput(inputText: String) {
         Log.e(TAG, "dispatchSoftInput: $inputText")
+        execInputText(inputText)
+    }
+
+    /**
+     * 输入文本
+     */
+    private fun execInputText(text: String?) {
+        if (rootInActiveWindow == null) {
+            Log.w(TAG, "inputText: $rootInActiveWindow, return")
+            return
+        }
+
+        val info = rootInActiveWindow.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        //粘贴板
+        val clipboard: ClipboardManager =
+            getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("label", text)
+        clipboard.setPrimaryClip(clip)
+
+        val arguments = Bundle()
+        arguments.putCharSequence(
+            AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+            text
+        )
+        info.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        info.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
     }
 
     override fun onRebind(intent: Intent) {
