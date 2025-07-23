@@ -96,18 +96,31 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         }.toString())
     }
 
+    private var isClicked = false;
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (TextUtils.isEmpty(mRoomId)) {
             Log.w("TAG", "onTouchEvent: mRoomId is empty!")
             return super.onTouchEvent(event)
         }
-        sendCustomCommand(JSONObject().apply {
-            put("action", event.action)
-            put("x", event.x.toString())
-            put("y", event.y.toString())
-            put("rawX", event.rawX.toDouble())
-            put("rawY", event.rawY.toDouble())
-        }.toString())
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                isClicked = true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                if (isClicked) {
+                    sendCustomCommand(JSONObject().apply {
+                        put("action", event.action)
+                        put("x", event.x.toString())
+                        put("y", event.y.toString())
+                        put("rawX", event.rawX.toDouble())
+                        put("rawY", event.rawY.toDouble())
+                    }.toString())
+                }
+                isClicked = false
+            }
+        }
         return super.onTouchEvent(event)
     }
 
