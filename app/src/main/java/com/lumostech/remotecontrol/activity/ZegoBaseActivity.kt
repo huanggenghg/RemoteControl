@@ -1,13 +1,17 @@
 package com.lumostech.remotecontrol.activity
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import com.lumostech.remotecontrol.SoftInputUtils
+import com.lumostech.remotecontrol.bean.Bean
 import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.callback.IZegoEventHandler
 import im.zego.zegoexpress.constants.ZegoPlayerState
@@ -236,10 +240,30 @@ command = $command"""
                             performSoftInput(x)
                         }
 
+                        "onRemoteControlLoginRoomSuccess" -> {
+                            val remoteWindowWidth = jsonObject.getInt("windowWidth")
+                            val remoteWindowHeight = jsonObject.getInt("windowHeight")
+                            SoftInputUtils.targetDim.width = remoteWindowWidth
+                            SoftInputUtils.targetDim.height = remoteWindowHeight
+                        }
+
                         else -> {
                             val x = jsonObject.getString("x").toFloat()
                             val y = jsonObject.getString("y").toFloat()
-                            performClick(x, y)
+                            val clickOnTarget = Bean(x, y)
+                            val windowManager =
+                                getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                            val sourceDimens = SoftInputUtils.ScreenDimensions(
+                                window.decorView.width,
+                                window.decorView.height
+                            )
+                            val sourceBean = SoftInputUtils.mapCoordinatesFromTargetToSource(
+                                clickOnTarget,
+                                sourceDimens
+                            )
+                            sourceBean?.let {
+                                performClick(it.x, it.y)
+                            }
                         }
                     }
                 } catch (e: JSONException) {

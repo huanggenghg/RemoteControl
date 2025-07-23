@@ -84,6 +84,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
         }
 
         val info = rootInActiveWindow.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        if (info == null) {
+            Log.e(TAG, "execInputText: not focus node!")
+            return
+        }
         //粘贴板
         val clipboard: ClipboardManager =
             getSystemService(CLIPBOARD_SERVICE) as ClipboardManager

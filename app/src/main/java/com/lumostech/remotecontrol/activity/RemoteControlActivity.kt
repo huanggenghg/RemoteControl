@@ -1,5 +1,6 @@
 package com.lumostech.remotecontrol.activity
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
@@ -7,6 +8,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import com.lumostech.remotecontrol.R
@@ -86,6 +88,12 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     override fun onLoginRoomSuccess() {
         Log.d("REMOTE", "onLoginRoomSuccess")
+        sendCustomCommand(JSONObject().apply {
+            put("action", "onRemoteControlLoginRoomSuccess")
+            val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            put("windowWidth", window.decorView.width)
+            put("windowHeight", window.decorView.height)
+        }.toString())
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
