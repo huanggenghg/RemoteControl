@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 zego = "3.6.0"
 material = "1.9.0"
 appcompat = "1.7.1"
+accessibilityCore = "v0.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,6 +31,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 zego-express-video = { group = "im.zego", name = "express-video", version.ref = "zego" }
 android-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+accessibilityCore = { group = "com.github.huanggenghg.RemoteControl", name = "accessibilityCore", version.ref = "accessibilityCore" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
