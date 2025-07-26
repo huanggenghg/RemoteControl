@@ -1,17 +1,15 @@
 package com.lumostech.remotecontrol.activity
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import com.lumostech.accessibilitycore.ClickPoint
 import com.lumostech.remotecontrol.SoftInputUtils
-import com.lumostech.remotecontrol.bean.Bean
 import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.callback.IZegoEventHandler
 import im.zego.zegoexpress.constants.ZegoPlayerState
@@ -27,7 +25,7 @@ import im.zego.zegoexpress.entity.ZegoUser
 import org.json.JSONException
 import org.json.JSONObject
 
-abstract class ZegoBaseActivity : AccessibilityActivity() {
+abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityActivity() {
     protected var mEngine: ZegoExpressEngine? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -250,18 +248,16 @@ command = $command"""
                         else -> {
                             val x = jsonObject.getString("x").toFloat()
                             val y = jsonObject.getString("y").toFloat()
-                            val clickOnTarget = Bean(x, y)
-                            val windowManager =
-                                getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                            val clickOnTarget = ClickPoint(x, y)
                             val sourceDimens = SoftInputUtils.ScreenDimensions(
                                 window.decorView.width,
                                 window.decorView.height
                             )
-                            val sourceBean = SoftInputUtils.mapCoordinatesFromTargetToSource(
+                            val sourceClickPoint = SoftInputUtils.mapCoordinatesFromTargetToSource(
                                 clickOnTarget,
                                 sourceDimens
                             )
-                            sourceBean?.let {
+                            sourceClickPoint?.let {
                                 performClick(it.x, it.y)
                             }
                         }
@@ -304,7 +300,6 @@ command = $command"""
     }
 
     //请求摄像头、录音权限
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private fun requestPermission() {
         val permissionNeeded = arrayOf(
             "android.permission.CAMERA",

@@ -3,24 +3,95 @@ package com.lumostech.accessibilitycore
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.accessibilityservice.GestureDescription
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.graphics.Path
+import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
+import java.util.Objects.isNull
 
 
-class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent {
-    var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
+class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent, LifecycleOwner {
+    private var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
+
+    private lateinit var windowManager: WindowManager
+    private var floatRootView: View? = null//悬浮窗View
+    private val lifecycleRegistry = LifecycleRegistry(this)
 
     init {
         Log.e(TAG, "MyService: ")
+    }
+
+    override fun onCreate() {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        super.onCreate()
+        initObserve()
+    }
+
+    /**
+     * 打开关闭的订阅
+     */
+    private fun initObserve() {
+        ViewModelMain.isShowWindow.observe(this, {
+            if (it) {
+                showWindow()
+            } else {
+                if (!isNull(floatRootView)) {
+                    if (!isNull(floatRootView?.windowToken)) {
+                        if (!isNull(windowManager)) {
+                            windowManager.removeView(floatRootView)
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showWindow() {
+        // 设置LayoutParam
+        // 获取WindowManager服务
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        val outMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(outMetrics)
+        var layoutParam = WindowManager.LayoutParams()
+        layoutParam.apply {
+            //显示的位置
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
+                //刘海屏延伸到刘海里面
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+            } else {
+                type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+            }
+            flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            width = WindowManager.LayoutParams.WRAP_CONTENT
+            height = WindowManager.LayoutParams.WRAP_CONTENT
+            format = PixelFormat.TRANSPARENT
+        }
+        floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null)
+//        floatRootView?.setOnTouchListener(ItemViewTouchListener(layoutParam, windowManager))
+        windowManager.addView(floatRootView, layoutParam)
     }
 
     override fun dispatchGestureClick(x: Float, y: Float) {
@@ -110,6 +181,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
 
 
     override fun onDestroy() {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         super.onDestroy()
         accessibilityCoreService = null
         Log.e(TAG, "onDestroy: ")
@@ -122,6 +194,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
 
     override fun onUnbind(intent: Intent): Boolean {
         Log.e(TAG, "onUnbind: ")
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         return super.onUnbind(intent)
     }
 
@@ -142,6 +215,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
     }
 
     override fun onServiceConnected() {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         super.onServiceConnected()
         Log.d(TAG, "onServiceConnected: ")
         val config = AccessibilityServiceInfo()
@@ -154,8 +228,12 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent 
         accessibilityCoreService = this
     }
 
+    override val lifecycle: Lifecycle
+        get() = lifecycleRegistry
+
     companion object {
         const val TAG: String = "MyService"
+        @SuppressLint("StaticFieldLeak")
         var accessibilityCoreService: AccessibilityCoreService? = null
 
         val isStart: Boolean

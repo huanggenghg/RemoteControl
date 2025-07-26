@@ -1,4 +1,4 @@
-package com.lumostech.remotecontrol.dialog
+package com.lumostech.accessibilitycore
 
 import android.app.Activity
 import android.app.Dialog

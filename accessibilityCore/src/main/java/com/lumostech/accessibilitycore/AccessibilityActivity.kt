@@ -1,22 +1,12 @@
-package com.lumostech.remotecontrol.activity
+package com.lumostech.accessibilitycore
 
 import android.app.Dialog
-import android.os.Bundle
 import android.os.Message
-import androidx.appcompat.app.AppCompatActivity
-import com.lumostech.accessibilitycore.AccessibilityCoreService
-import com.lumostech.remotecontrol.R
-import com.lumostech.remotecontrol.bean.Bean
-import com.lumostech.remotecontrol.dialog.DialogHelper
+import androidx.activity.ComponentActivity
 
-open class AccessibilityActivity : AppCompatActivity() {
+open class AccessibilityActivity : ComponentActivity() {
     private val myHandler = AccessibilityHandler(this)
-    var dialog: Dialog? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-    }
+    private var dialog: Dialog? = null
 
     protected fun showAccessibilityDialog() {
         if (!AccessibilityCoreService.isStart) {
@@ -30,7 +20,7 @@ open class AccessibilityActivity : AppCompatActivity() {
 
     protected fun performClick(x: Float, y: Float) {
         val message = Message()
-        message.obj = Bean(x, y)
+        message.obj = ClickPoint(x, y)
         message.what = 1
         myHandler.sendMessage(message)
     }

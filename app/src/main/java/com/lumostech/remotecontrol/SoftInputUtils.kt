@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import com.lumostech.remotecontrol.bean.Bean
+import com.lumostech.accessibilitycore.ClickPoint
 
 object SoftInputUtils {
     @SuppressLint("ServiceCast")
@@ -37,9 +37,9 @@ object SoftInputUtils {
      * @return 映射到源设备上的坐标 Point(x, y)；如果点击位置在黑边上，则返回 null。
      */
     fun mapCoordinatesFromTargetToSource(
-        clickOnTarget: Bean,
+        clickOnTarget: ClickPoint,
         sourceDim: ScreenDimensions,
-    ): Bean? {
+    ): ClickPoint? {
         if (targetDim.width == 0 || targetDim.height == 0) return null
 
         // 1. 计算缩放比例，取宽、高缩放比中较小的一个，以确保内容能完整显示
@@ -74,6 +74,6 @@ object SoftInputUtils {
         val sourceX = relativeX / scale
         val sourceY = relativeY / scale
 
-        return Bean(sourceX, sourceY)
+        return ClickPoint(sourceX, sourceY)
     }
 }

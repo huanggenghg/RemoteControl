@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.lumostech.remotecontrol"
+    namespace = "com.lumostech.autoclick"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.lumostech.remotecontrol"
+        applicationId = "com.lumostech.autoclick"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -57,8 +57,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.zego.express.video)
-    implementation(libs.android.material)
 //    implementation(libs.accessibilityCore)
     implementation(project(":accessibilityCore"))
 }
