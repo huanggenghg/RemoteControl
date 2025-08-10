@@ -210,10 +210,12 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        Log.e(TAG, "onKeyEvent: $event")
         return super.onKeyEvent(event)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        Log.e(TAG, "onAccessibilityEvent: $event")
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (event.packageName != null && event.className != null) {
                 pkgNameMutableLiveData.value = event.packageName.toString()
