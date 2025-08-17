@@ -7,14 +7,14 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.appcompat.widget.AppCompatButton
 import com.lumostech.remotecontrol.R
 import im.zego.zegoexpress.ZegoExpressEngine
 import java.util.Random
 
 class MainActivity : MediaProjectionActivity(), View.OnClickListener {
-    private var fabProjection: FloatingActionButton? = null
-    private var fabAssist: FloatingActionButton? = null
+    private var fabProjection: AppCompatButton? = null
+    private var fabAssist: AppCompatButton? = null
     private var tvCode: TextView? = null
 
     @SuppressLint("CutPasteId")
@@ -26,8 +26,8 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     }
 
     private fun initViews() {
-        fabProjection = findViewById(R.id.fab_projection)
-        fabAssist = findViewById(R.id.fab_assist)
+        fabProjection = findViewById(R.id.projection)
+        fabAssist = findViewById(R.id.assist)
         tvCode = findViewById(R.id.tv_code)
         fabProjection?.setOnClickListener(this)
         fabAssist?.setOnClickListener(this)
@@ -44,7 +44,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
 
     @SuppressLint("NonConstantResourceId")
     override fun onClick(v: View) {
-        if (v.id == R.id.fab_projection) {
+        if (v.id == R.id.projection) {
             if (!checkCode()) {
                 return
             }
@@ -57,22 +57,22 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             showAccessibilityDialog() // 再次检查，因为可能被关闭了服务，故需要再次检查
 
             switchProjection()
-        } else if (v.id == R.id.fab_assist) {
+        } else if (v.id == R.id.assist) {
             assist()
         }
     }
 
     private fun switchProjection() {
-        val switchTag = if (fabProjection!!.tag != null) fabProjection!!.tag as String else ""
-        if (TextUtils.isEmpty(switchTag) || switchTag == FAB_PROJECTION_TAG_CAST) {
-            fabProjection!!.setImageResource(R.drawable.cast_pause)
-            fabProjection!!.tag = FAB_PROJECTION_TAG_CAST_PAUSE
-            startCast()
-        } else {
-            fabProjection!!.setImageResource(R.drawable.cast)
-            fabProjection!!.tag = FAB_PROJECTION_TAG_CAST
-            pauseCast()
-        }
+        startCast()
+//        val switchTag = if (fabProjection!!.tag != null) fabProjection!!.tag as String else ""
+//        if (TextUtils.isEmpty(switchTag) || switchTag == FAB_PROJECTION_TAG_CAST) {
+//            fabProjection!!.setImageResource(R.drawable.cast_pause)
+//            fabProjection!!.tag = FAB_PROJECTION_TAG_CAST_PAUSE
+//        } else {
+//            fabProjection!!.setImageResource(R.drawable.cast)
+//            fabProjection!!.tag = FAB_PROJECTION_TAG_CAST
+//            pauseCast()
+//        }
     }
 
     private fun startCast() {
