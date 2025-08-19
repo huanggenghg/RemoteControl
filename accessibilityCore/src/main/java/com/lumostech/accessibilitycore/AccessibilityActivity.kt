@@ -10,11 +10,10 @@ open class AccessibilityActivity : ComponentActivity() {
 
     protected fun showAccessibilityDialog() {
         if (!AccessibilityCoreService.isStart) {
-            dialog = DialogHelper.showMessagePositiveDialog(
-                this,
-                "辅助功能",
-                "使用连点器需要开启(无障碍)辅助功能，是否现在去开启？"
-            )
+            if (dialog == null) {
+                dialog = FullScreenWidthDialog(this)
+            }
+            dialog?.show()
         }
     }
 
