@@ -59,5 +59,5 @@ dependencies {
     implementation(libs.zego.express.video)
     implementation(libs.android.material)
 //    implementation(libs.accessibilityCore)
-    implementation(project(":accessibilityCore"))
+    api(project(":accessibilityCore"))
 }

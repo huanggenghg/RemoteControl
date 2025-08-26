@@ -7,6 +7,27 @@
     android:background="@drawable/shape_page"
     tools:context=".activity.MainActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        app:navigationIcon="@drawable/icon_back"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/center_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="远程控制"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/abc_text_size_title_material" />
+    </androidx.appcompat.widget.Toolbar>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_code"
         android:layout_width="match_parent"
@@ -32,22 +53,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="UnusedAttribute" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/shape_corner_gray"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:padding="16dp"
-            android:text="369020"
-            android:textColor="#475569"
-            android:textFontWeight="500"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/title"
             tools:ignore="UnusedAttribute" />
 
         <TextView
@@ -82,6 +87,237 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_code_projecting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/shape_corner_white"
+        android:padding="24dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/terminal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/iv_shield"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/icon_safety"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/title_projecting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif"
+            android:text="@string/remote_control_assisted_waiting"
+            android:textColor="#475569"
+            android:textFontWeight="500"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iv_shield"
+            tools:ignore="UnusedAttribute" />
+
+        <TextView
+            android:id="@+id/text_projecting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:text="@string/remote_control_assisted_ready_text"
+            android:textColor="#475569"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/title_projecting" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_code_working"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/shape_corner_gray"
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/text_projecting">
+
+            <TextView
+                android:id="@+id/text_code_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:text="@string/remote_control_code_desc"
+                android:textColor="#475569"
+                android:textFontWeight="500"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="UnusedAttribute" />
+
+            <TextView
+                android:id="@+id/text_waiting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:text="@string/remote_control_waiting"
+                android:textColor="#64748B"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_code_projecting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:text="568 942"
+                android:textColor="#1E293B"
+                android:textFontWeight="700"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toBottomOf="@id/text_code_desc"
+                tools:ignore="UnusedAttribute" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/text_remote_control_assisted_alert1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:drawableStart="@drawable/shape_icon_circle_green"
+            android:drawablePadding="8dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
+            android:text="@string/remote_control_assisted_alert1"
+            android:textColor="#475569"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/layout_code_working"
+            tools:ignore="UseCompatTextViewDrawableXml" />
+
+        <TextView
+            android:id="@+id/text_remote_control_assisted_alert2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:drawableStart="@drawable/shape_icon_circle_green"
+            android:drawablePadding="8dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
+            android:text="@string/remote_control_assisted_alert2"
+            android:textColor="#475569"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/text_remote_control_assisted_alert1"
+            tools:ignore="UseCompatTextViewDrawableXml" />
+
+        <TextView
+            android:id="@+id/text_remote_control_assisted_alert3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:drawableStart="@drawable/shape_icon_circle_green"
+            android:drawablePadding="8dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
+            android:text="@string/remote_control_assisted_alert3"
+            android:textColor="#475569"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/text_remote_control_assisted_alert2"
+            tools:ignore="UseCompatTextViewDrawableXml" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_code_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/shape_corner_white"
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_code_input_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:text="@string/remote_control_assist_code_input"
+            android:textColor="#475569"
+            android:textFontWeight="500"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="UnusedAttribute" />
+
+        <EditText
+            android:id="@+id/tv_code_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/selector_edittext_input"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:hint="@string/remote_control_assist_code_hint"
+            android:maxLength="6"
+            android:padding="16dp"
+            android:textColor="#475569"
+            android:textFontWeight="500"
+            android:textSize="30sp"
+            android:inputType="numberDecimal"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/tv_code_input_title"
+            tools:ignore="UnusedAttribute" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/go_assist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_button_enable"
+            android:enabled="false"
+            android:stateListAnimator="@null"
+            android:text="@string/fab_assist"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="normal"
+            app:layout_constraintTop_toBottomOf="@id/tv_code_input" />
+
+        <ImageView
+            android:id="@+id/iv_border_line"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="#E2E8F0"
+            app:layout_constraintTop_toBottomOf="@id/go_assist"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tv_text_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="monospace"
+            android:gravity="start"
+            android:text="@string/remote_control_assist_desc1"
+            android:textColor="#475569"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/iv_border_line"
+            tools:ignore="UnusedAttribute" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/projection"
         android:layout_width="match_parent"
@@ -90,6 +326,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/selector_button"
+        android:stateListAnimator="@null"
         android:text="@string/remote_control_assisted"
         android:textColor="@android:color/white"
         android:textSize="18sp"
@@ -105,10 +342,50 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/selector_button"
+        android:stateListAnimator="@null"
         android:text="@string/remote_control_assist"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="normal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/projection" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/terminal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/selector_button_alert"
+        android:stateListAnimator="@null"
+        android:text="@string/remote_control_assisted_terminal"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="normal"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_code_projecting" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_main"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        app:constraint_referenced_ids="layout_code,projection,assist" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_projecting"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:constraint_referenced_ids="layout_code_projecting,terminal" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_code_input"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:constraint_referenced_ids="layout_code_input" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

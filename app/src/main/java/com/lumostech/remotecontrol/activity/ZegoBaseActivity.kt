@@ -1,12 +1,10 @@
 package com.lumostech.remotecontrol.activity
 
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.lumostech.accessibilitycore.ClickPoint
 import com.lumostech.remotecontrol.SoftInputUtils
@@ -35,7 +33,7 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        hideSystemUI()
+//        hideSystemUI()
     }
 
     private fun hideSystemUI() {
