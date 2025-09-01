@@ -267,6 +267,7 @@ command = $command"""
             roomId, user, roomConfig
         ) { error: Int, extendedData: JSONObject? ->
             // 登录房间结果，如果仅关注登录结果，关注此回调即可
+            Log.d(TAG, "loginRoom: roomId=$roomId user=${user.userID} error=$error")
             if (error == 0) {
                 // 登录成功
                 onLoginRoomSuccess()

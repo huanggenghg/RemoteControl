@@ -181,7 +181,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             return
         }
 
-        val code = tvCode!!.text.toString()
+        val code = tvCodeInput!!.text.toString()
         val intent = Intent(
             this@MainActivity,
             RemoteControlActivity::class.java
