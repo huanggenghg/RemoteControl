@@ -5,18 +5,20 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.util.Log
-import com.lumostech.remotecontrol.activity.CaptureScreenService
+import android.view.WindowManager
 import im.zego.zegoexpress.constants.ZegoPublishChannel
 import im.zego.zegoexpress.constants.ZegoVideoBufferType
 import im.zego.zegoexpress.entity.ZegoCustomVideoCaptureConfig
 import im.zego.zegoexpress.entity.ZegoStream
 
+
 open class MediaProjectionActivity : ZegoBaseActivity() {
     override fun createEngine() {
         super.createEngine()
         //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
-        val width = window.decorView.width
-        val height = window.decorView.height
+        val wm = this.getSystemService(WINDOW_SERVICE) as WindowManager
+        val width = wm.defaultDisplay.width
+        val height = wm.defaultDisplay.height
         val videoCapture = VideoCaptureScreen(mMediaProjection, width, height, mEngine)
         //监听自定义采集开始停止回调
         mEngine?.setCustomVideoCaptureHandler(videoCapture)

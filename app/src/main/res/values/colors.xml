@@ -141,4 +141,13 @@
     <color name="md_theme_surfaceContainer_highContrast">#EBEFE7</color>
     <color name="md_theme_surfaceContainerHigh_highContrast">#E5EAE2</color>
     <color name="md_theme_surfaceContainerHighest_highContrast">#DFE4DC</color>
+
+    <color name="rs_bg">#0E1726</color>           <!-- 整体深色背景 -->
+    <color name="rs_card">#152132</color>        <!-- 浮层/圆形按钮底色 -->
+    <color name="rs_card_60">#99152132</color>   <!-- 半透明深色 -->
+    <color name="rs_text">#BFD0E3</color>        <!-- 说明文字（浅灰蓝） -->
+    <color name="rs_text_strong">#DDE7F2</color> <!-- 强调文字 -->
+    <color name="rs_accent">#EF4444</color>      <!-- 挂断红 -->
+    <color name="rs_ok">#22C55E</color>          <!-- 已连接绿点 -->
+    <color name="rs_stroke">#3A475C</color>      <!-- 轮廓线 -->
 </resources>
