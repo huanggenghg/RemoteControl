@@ -1,17 +1,21 @@
 package com.lumostech.remotecontrol.activity
 
+import android.app.Activity
 import android.content.Context
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageButton
 import androidx.constraintlayout.widget.Group
+import com.lumostech.remotecontrol.ImmersiveFullscreenUtil
 import com.lumostech.remotecontrol.R
+import im.zego.zegoexpress.constants.ZegoOrientationMode
+import im.zego.zegoexpress.constants.ZegoViewMode
 import im.zego.zegoexpress.entity.ZegoCanvas
 import im.zego.zegoexpress.entity.ZegoStream
 import org.json.JSONObject
@@ -28,55 +32,22 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setupFullScreenWithNotch()
         setContentView(R.layout.activity_remote_control2)
+        ImmersiveFullscreenUtil.enableTrueFullscreen(this)
         initViews()
         createEngine()
+        mEngine?.setAppOrientationMode(ZegoOrientationMode.ADAPTION)
         setEventHandler()
         mRoomId = intent.getStringExtra(EXTRA_CODE)
+        Log.d("REMOTE", "onCreate:loginRoom")
         loginRoom("user3", mRoomId)
-        val zegoCanvas = ZegoCanvas(findViewById(R.id.remoteUserView))
-        mEngine?.startPlayingStream("stream2", zegoCanvas, )
+        Log.d("REMOTE", "onCreate:ZegoCanvas")
     }
 
-    private fun setupFullScreenWithNotch() {
-        val window = window
-
-        // 隐藏状态栏和导航栏
-        window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                )
-
-        // Android 9.0+ 刘海屏适配
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val lp = window.attributes
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            window.attributes = lp
-        }
-
-        // 状态栏和导航栏透明
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
-    }
-
-    private fun hideSystemUI() {
-        // Enables regular immersive mode.
-        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        val decorView = window.decorView
-        decorView.systemUiVisibility =
-            (View.SYSTEM_UI_FLAG_IMMERSIVE // Set the content to appear under the system bars so that the
-                    // content doesn't resize when the system bars hide and show.
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN // Hide the nav bar and status bar
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // 某些 ROM/场景下切回前台会丢失，需要重新应用
+        if (hasFocus) ImmersiveFullscreenUtil.enableTrueFullscreen(this)
     }
 
     private fun initViews() {
@@ -125,7 +96,40 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
+        Log.d("REMOTE", "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
         Log.d("REMOTE", "onRoomStreamUpdate: playStreamId = $playStreamId")
+        val canvasView: View = findViewById(R.id.remoteUserView)
+        val lp = canvasView.layoutParams
+        lp.width = window.decorView.width
+        val windowData = zegoStream?.extraInfo?.split(",")
+        if (windowData?.isEmpty() == false) {
+            lp.height =
+                (lp.width * (windowData[1].toFloat() / windowData[0].toFloat())).toInt() + getStatusBarHeightPx(
+                    this
+                )
+        }
+        Log.d("REMOTE", "onRoomStreamUpdate: lp = ${lp.width},${lp.height}")
+        canvasView.layoutParams = lp
+        val zegoCanvas = ZegoCanvas(canvasView)
+        zegoCanvas.viewMode = ZegoViewMode.SCALE_TO_FILL
+        mEngine?.startPlayingStream("stream2", zegoCanvas)
+    }
+
+    private fun getStatusBarHeightPx(activity: Activity): Int {
+        // 优先用 WindowInsets（忽略可见性，沉浸式也能拿到真实高度）
+        val insets = activity.window?.decorView?.rootWindowInsets
+        if (insets != null) {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                insets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
+            } else {
+                // R 以下没有 Type.statusBars 常量的便捷获取，使用已存在的 top inset
+                insets.systemWindowInsetTop
+            }
+        }
+        // 资源兜底（大多数 ROM 提供）
+        val res = activity.resources
+        val resId = res.getIdentifier("status_bar_height", "dimen", "android")
+        return if (resId > 0) res.getDimensionPixelSize(resId) else 0
     }
 
     override fun onLoginRoomSuccess() {

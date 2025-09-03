@@ -20,6 +20,8 @@ open class MediaProjectionActivity : ZegoBaseActivity() {
         val width = wm.defaultDisplay.width
         val height = wm.defaultDisplay.height
         val videoCapture = VideoCaptureScreen(mMediaProjection, width, height, mEngine)
+        //传递投屏的长宽
+        mEngine?.setStreamExtraInfo("$width,$height", null)
         //监听自定义采集开始停止回调
         mEngine?.setCustomVideoCaptureHandler(videoCapture)
         val videoCaptureConfig = ZegoCustomVideoCaptureConfig()

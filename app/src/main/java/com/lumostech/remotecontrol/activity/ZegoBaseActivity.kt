@@ -9,16 +9,19 @@ import com.lumostech.accessibilitycore.ClickPoint
 import com.lumostech.remotecontrol.SoftInputUtils
 import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.callback.IZegoEventHandler
+import im.zego.zegoexpress.constants.ZegoOrientationMode
 import im.zego.zegoexpress.constants.ZegoPlayerState
 import im.zego.zegoexpress.constants.ZegoPublisherState
 import im.zego.zegoexpress.constants.ZegoRoomStateChangedReason
 import im.zego.zegoexpress.constants.ZegoScenario
 import im.zego.zegoexpress.constants.ZegoStreamQualityLevel
 import im.zego.zegoexpress.constants.ZegoUpdateType
+import im.zego.zegoexpress.constants.ZegoVideoConfigPreset
 import im.zego.zegoexpress.entity.ZegoEngineProfile
 import im.zego.zegoexpress.entity.ZegoRoomConfig
 import im.zego.zegoexpress.entity.ZegoStream
 import im.zego.zegoexpress.entity.ZegoUser
+import im.zego.zegoexpress.entity.ZegoVideoConfig
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -30,7 +33,9 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
         requestPermission()
     }
 
-    protected abstract fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?)
+    protected open fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
+        Log.d(TAG, "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
+    }
 
     protected abstract fun onLoginRoomSuccess()
 
@@ -50,6 +55,10 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
         profile.scenario = ZegoScenario.STANDARD_VIDEO_CALL // 通用场景接入
         profile.application = application
         mEngine = ZegoExpressEngine.createEngine(profile, null)
+        // 使用预设置进行视频设置
+        val videoConfig = ZegoVideoConfig(ZegoVideoConfigPreset.PRESET_1080P)
+        mEngine?.videoConfig = videoConfig
+        mEngine?.setAppOrientationMode(ZegoOrientationMode.FIXED_RESOLUTION_RATIO)
     }
 
     protected fun setEventHandler() {
