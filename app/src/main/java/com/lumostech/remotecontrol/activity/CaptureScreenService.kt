@@ -6,12 +6,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.lumostech.remotecontrol.R
-import java.util.Objects
 
 class CaptureScreenService : Service() {
     override fun onCreate() {
@@ -31,6 +32,18 @@ class CaptureScreenService : Service() {
                 MediaProjectionActivity.mMediaProjection =
                     MediaProjectionActivity.mMediaProjectionManager
                         ?.getMediaProjection(resultCode, it)
+                // Define the callback
+                val mediaProjectionCallback = object : MediaProjection.Callback() {
+                    override fun onStop() {
+                        Log.i("ScreenCapture", "MediaProjection stopped.")
+                        // Clean up resources here (e.g., stop virtual display)
+                    }
+                }
+                // Register the callback before starting the display
+                MediaProjectionActivity.mMediaProjection?.registerCallback(
+                    mediaProjectionCallback,
+                    null
+                )
             }
         }
         return super.onStartCommand(intent, flags, startId)
