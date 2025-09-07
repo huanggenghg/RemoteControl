@@ -26,6 +26,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     private var scrollUpButton: ImageButton? = null
     private var scrollDownButton: ImageButton? = null
     private var softInputButton: ImageButton? = null
+    private var exitButton: ImageButton? = null
     private var softInputButtonOff: ImageButton? = null
 //    private var editText: EditText? = null
     private var groupMonitor: Group? = null
@@ -54,12 +55,14 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         scrollUpButton = findViewById(R.id.scrollUp)
         scrollDownButton = findViewById(R.id.scrollDown)
         softInputButton = findViewById(R.id.softInput)
+        exitButton = findViewById(R.id.exit)
 //        softInputButtonOff = findViewById(R.id.softInputOff)
 //        editText = findViewById(R.id.editText)
         groupMonitor = findViewById(R.id.group_monitor)
         scrollUpButton?.setOnClickListener(this)
         scrollDownButton?.setOnClickListener(this)
         softInputButton?.setOnClickListener(this)
+        exitButton?.setOnClickListener(this)
 //        softInputButtonOff?.setOnClickListener(this)
 //        editText?.addTextChangedListener(object : TextWatcher {
 //            override fun afterTextChanged(s: Editable?) {
@@ -201,6 +204,9 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
             R.id.softInputOff -> {
 //                editText?.visibility = View.GONE
+            }
+            R.id.exit -> {
+                finish()
             }
         }
     }
