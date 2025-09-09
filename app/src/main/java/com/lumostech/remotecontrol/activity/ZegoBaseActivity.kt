@@ -33,6 +33,13 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
         requestPermission()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        mEngine?.logoutRoom()
+        mEngine?.setEventHandler(null)
+        mEngine = null
+    }
+
     protected open fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
         Log.d(TAG, "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
     }
@@ -163,6 +170,7 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
                 extendedData: JSONObject
             ) {
                 super.onPlayerStateUpdate(streamID, state, errorCode, extendedData)
+                Log.i(TAG, "onPlayerStateUpdate: $streamID $state $errorCode $extendedData")
                 if (errorCode != 0) {
                     //拉流状态出错
                 }

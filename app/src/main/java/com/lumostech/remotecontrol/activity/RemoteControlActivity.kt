@@ -13,6 +13,7 @@ import android.view.WindowManager
 import android.widget.ImageButton
 import androidx.constraintlayout.widget.Group
 import com.lumostech.remotecontrol.ImmersiveFullscreenUtil
+import com.lumostech.remotecontrol.MyApp
 import com.lumostech.remotecontrol.R
 import im.zego.zegoexpress.constants.ZegoOrientationMode
 import im.zego.zegoexpress.constants.ZegoViewMode
@@ -31,6 +32,8 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 //    private var editText: EditText? = null
     private var groupMonitor: Group? = null
 
+    private var hasStartedPlayingStream = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_remote_control2)
@@ -42,7 +45,6 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         mRoomId = intent.getStringExtra(EXTRA_CODE)
         Log.d("REMOTE", "onCreate:loginRoom")
         loginRoom("user3", mRoomId)
-        Log.d("REMOTE", "onCreate:ZegoCanvas")
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -93,29 +95,52 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 //        })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        mEngine?.logoutRoom()
-    }
-
-    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
+    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一次
         Log.d("REMOTE", "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
         Log.d("REMOTE", "onRoomStreamUpdate: playStreamId = $playStreamId")
-        val canvasView: View = findViewById(R.id.remoteUserView)
-        val lp = canvasView.layoutParams
-        lp.width = window.decorView.width
+        MyApp.remoteScreenAdaptedWidth = window.decorView.width
         val windowData = zegoStream?.extraInfo?.split(",")
         if (windowData?.isEmpty() == false) {
-            lp.height =
-                (lp.width * (windowData[1].toFloat() / windowData[0].toFloat())).toInt() + getStatusBarHeightPx(
+            MyApp.remoteScreenAdaptedHeight =
+                (MyApp.remoteScreenAdaptedWidth * (windowData[1].toFloat() / windowData[0].toFloat())).toInt() + getStatusBarHeightPx(
                     this
                 )
         }
-        Log.d("REMOTE", "onRoomStreamUpdate: lp = ${lp.width},${lp.height}")
+        startPlayingStreamOnAdaptedCanvas()
+    }
+
+    private fun startPlayingStreamOnAdaptedCanvas() {
+        if(hasStartedPlayingStream) {
+            Log.i("REMOTE", "startPlayingStreamOnAdaptedCanvas: hasStartedPlayingStream, return.")
+            return
+        }
+        Log.d("REMOTE", "startPlayingStreamOnAdaptedCanvas: MyApp.remoteScreenAdaptedWidth = $MyApp.remoteScreenAdaptedWidth, MyApp.remoteScreenAdaptedHeight = $MyApp.remoteScreenAdaptedHeight")
+        val zegoCanvas = getScreenAdaptedCanvas()
+        zegoCanvas?.let {
+            mEngine?.startPlayingStream("stream2", it)
+            hasStartedPlayingStream = true
+        } ?: let {
+            Log.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
+        }
+    }
+
+    private fun getScreenAdaptedCanvas(): ZegoCanvas? {
+        if (MyApp.remoteScreenAdaptedWidth == -1 || MyApp.remoteScreenAdaptedHeight == -1) {
+            Log.w(
+                "REMOTE",
+                "adaptScreenParams: remoteScreenWidth or remoteScreenHeight is not valid! check onRoomStreamUpdate."
+            )
+            return null;
+        }
+
+        val canvasView: View = findViewById(R.id.remoteUserView)
+        val lp = canvasView.layoutParams
+        lp.width = MyApp.remoteScreenAdaptedWidth
+        lp.height = MyApp.remoteScreenAdaptedHeight
         canvasView.layoutParams = lp
         val zegoCanvas = ZegoCanvas(canvasView)
         zegoCanvas.viewMode = ZegoViewMode.SCALE_TO_FILL
-        mEngine?.startPlayingStream("stream2", zegoCanvas)
+        return zegoCanvas
     }
 
     private fun getStatusBarHeightPx(activity: Activity): Int {
@@ -143,6 +168,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
             put("windowWidth", window.decorView.width)
             put("windowHeight", window.decorView.height)
         }.toString())
+        startPlayingStreamOnAdaptedCanvas()
     }
 
     override fun onPlayerPlaying() {

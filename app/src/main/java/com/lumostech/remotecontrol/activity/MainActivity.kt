@@ -174,6 +174,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             it.logoutRoom()
             ZegoExpressEngine.destroyEngine {}
         }
+        mMediaProjection = null
     }
 
     private fun assist() {

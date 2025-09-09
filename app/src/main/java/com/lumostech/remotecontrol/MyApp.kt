@@ -40,5 +40,7 @@ class MyApp : Application() {
 
     companion object {
         const val TAG: String = "MyApp"
+        var remoteScreenAdaptedWidth = -1
+        var remoteScreenAdaptedHeight = -1
     }
 }
