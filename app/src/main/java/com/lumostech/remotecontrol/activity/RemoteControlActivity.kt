@@ -24,10 +24,6 @@ import org.json.JSONObject
 
 class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
-    private var scrollUpButton: ImageButton? = null
-    private var scrollDownButton: ImageButton? = null
-    private var softInputButton: ImageButton? = null
-    private var exitButton: ImageButton? = null
     private var softInputButtonOff: ImageButton? = null
 //    private var editText: EditText? = null
     private var groupMonitor: Group? = null
@@ -54,17 +50,18 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     private fun initViews() {
-        scrollUpButton = findViewById(R.id.scrollUp)
-        scrollDownButton = findViewById(R.id.scrollDown)
-        softInputButton = findViewById(R.id.softInput)
-        exitButton = findViewById(R.id.exit)
 //        softInputButtonOff = findViewById(R.id.softInputOff)
 //        editText = findViewById(R.id.editText)
         groupMonitor = findViewById(R.id.group_monitor)
-        scrollUpButton?.setOnClickListener(this)
-        scrollDownButton?.setOnClickListener(this)
-        softInputButton?.setOnClickListener(this)
-        exitButton?.setOnClickListener(this)
+        findViewById<View>(R.id.scrollUp)?.setOnClickListener(this)
+        findViewById<View>(R.id.scrollDown)?.setOnClickListener(this)
+        findViewById<View>(R.id.scrollLeft)?.setOnClickListener(this)
+        findViewById<View>(R.id.scrollRight)?.setOnClickListener(this)
+        findViewById<View>(R.id.exit)?.setOnClickListener(this)
+        findViewById<View>(R.id.softInput)?.setOnClickListener(this)
+        findViewById<View>(R.id.back)?.setOnClickListener(this)
+        findViewById<View>(R.id.home)?.setOnClickListener(this)
+        findViewById<View>(R.id.recents)?.setOnClickListener(this)
 //        softInputButtonOff?.setOnClickListener(this)
 //        editText?.addTextChangedListener(object : TextWatcher {
 //            override fun afterTextChanged(s: Editable?) {
@@ -218,6 +215,22 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                 }.toString())
             }
 
+            R.id.scrollLeft -> {
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "scrollLeft")
+                }.toString())
+            }
+
+            R.id.scrollRight -> {
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "scrollRight")
+                }.toString())
+            }
+
+            R.id.exit -> {
+                finish()
+            }
+
             R.id.softInput -> {
 //                editText?.let {
 //                    it.visibility = View.VISIBLE
@@ -226,13 +239,32 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 //                        SoftInputUtils.showSoftInput(it)
 //                    }
 //                }
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "softInput")
+                    put("inputText", "s")
+                }.toString())
+            }
+
+            R.id.back -> {
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "back")
+                }.toString())
+            }
+
+            R.id.home -> {
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "home")
+                }.toString())
+            }
+
+            R.id.recents -> {
+                sendCustomCommand(JSONObject().apply {
+                    put("action", "recents")
+                }.toString())
             }
 
             R.id.softInputOff -> {
 //                editText?.visibility = View.GONE
-            }
-            R.id.exit -> {
-                finish()
             }
         }
     }

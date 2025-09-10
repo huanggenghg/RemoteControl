@@ -130,6 +130,35 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         dispatchScroll(false)
     }
 
+    override fun dispatchScrollLeft() {
+        dispatchXScroll(true)
+    }
+
+    override fun dispatchScrollRight() {
+        dispatchXScroll(false)
+    }
+
+    private fun dispatchXScroll(isScrollingLeft: Boolean) {
+        val diff = if (isScrollingLeft) -50F else 50F
+        val centerX = resources.displayMetrics.widthPixels / 2
+        val centerY = resources.displayMetrics.widthPixels / 2
+
+        val path = Path()
+        path.moveTo(centerX.toFloat(), centerY.toFloat())
+        path.lineTo(centerX + diff, centerY.toFloat())
+        dispatchGesture(
+            GestureDescription.Builder().addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0,
+                    20
+                )
+            ).build(),
+            null,
+            null
+        )
+    }
+
     private fun dispatchScroll(isScrollingUp: Boolean) {
         val diff = if (isScrollingUp) -50F else 50F
         val centerX = resources.displayMetrics.widthPixels / 2
@@ -154,6 +183,18 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     override fun dispatchSoftInput(inputText: String) {
         Log.e(TAG, "dispatchSoftInput: $inputText")
         execInputText(inputText)
+    }
+
+    override fun dispatchBack() {
+        performGlobalAction(GLOBAL_ACTION_BACK)
+    }
+
+    override fun dispatchHome() {
+        performGlobalAction(GLOBAL_ACTION_HOME)
+    }
+
+    override fun dispatchRecents() {
+        performGlobalAction(GLOBAL_ACTION_RECENTS)
     }
 
     /**

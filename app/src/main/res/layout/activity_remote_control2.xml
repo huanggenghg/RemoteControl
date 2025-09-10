@@ -7,12 +7,12 @@
 
     <TextureView
         android:id="@+id/remoteUserView"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/iv_monitor"
@@ -46,66 +46,141 @@
         app:layout_constraintTop_toBottomOf="@id/iv_monitor" />
 
     <ImageButton
-        android:id="@+id/exit"
-        android:layout_width="68dp"
-        android:layout_height="68dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/bg_circle_primary_red"
-        android:importantForAccessibility="no"
-        android:padding="18dp"
-        android:src="@drawable/ic_call_end"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/scrollUp"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
         android:id="@+id/scrollUp"
         android:layout_width="68dp"
         android:layout_height="68dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_circle_dark"
         android:importantForAccessibility="no"
         android:padding="16dp"
         android:src="@drawable/ic_chevron_up"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/scrollDown"
-        app:layout_constraintStart_toEndOf="@id/exit" />
+        app:layout_constraintBottom_toTopOf="@id/scrollDown"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <ImageButton
         android:id="@+id/scrollDown"
         android:layout_width="68dp"
         android:layout_height="68dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_circle_dark"
         android:importantForAccessibility="no"
         android:padding="16dp"
         android:src="@drawable/ic_chevron_down"
+        app:layout_constraintBottom_toTopOf="@id/scrollLeft"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scrollUp"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/scrollLeft"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_circle_dark"
+        android:importantForAccessibility="no"
+        android:padding="16dp"
+        android:src="@drawable/ic_chevron_left"
+        app:layout_constraintBottom_toTopOf="@id/scrollRight"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scrollDown"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/scrollRight"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_circle_dark"
+        android:importantForAccessibility="no"
+        android:padding="16dp"
+        android:src="@drawable/ic_chevron_right"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scrollLeft"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/exit"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_circle_primary_red"
+        android:importantForAccessibility="no"
+        android:padding="18dp"
+        android:src="@drawable/ic_call_end"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/softInput"
-        app:layout_constraintStart_toEndOf="@id/scrollUp"
-        app:tint="@color/rs_text" />
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
         android:id="@+id/softInput"
         android:layout_width="68dp"
         android:layout_height="68dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/bg_circle_dark"
         android:importantForAccessibility="no"
         android:padding="16dp"
         android:src="@drawable/ic_keyboard"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/back"
+        app:layout_constraintStart_toEndOf="@id/exit"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/back"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_circle_dark"
+        android:importantForAccessibility="no"
+        android:padding="16dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/home"
+        app:layout_constraintStart_toEndOf="@id/softInput"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/home"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_circle_dark"
+        android:importantForAccessibility="no"
+        android:padding="16dp"
+        android:src="@drawable/ic_home"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/recents"
+        app:layout_constraintStart_toEndOf="@id/back"
+        app:tint="@color/rs_text" />
+
+    <ImageButton
+        android:id="@+id/recents"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_circle_dark"
+        android:importantForAccessibility="no"
+        android:padding="16dp"
+        android:src="@drawable/ic_recents"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/scrollDown"
+        app:layout_constraintStart_toEndOf="@id/home"
         app:tint="@color/rs_text" />
 
     <androidx.constraintlayout.widget.Group

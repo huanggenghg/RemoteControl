@@ -36,10 +36,40 @@ open class AccessibilityActivity : ComponentActivity() {
         myHandler.sendMessage(message)
     }
 
-    protected fun performSoftInput(inputText: String) {
+    protected fun performScrollLeft() {
         val message = Message()
         message.what = 4
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performScrollRight() {
+        val message = Message()
+        message.what = 5
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performSoftInput(inputText: String) {
+        val message = Message()
+        message.what = 6
         message.obj = inputText
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performBack() {
+        val message = Message()
+        message.what = 7
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performHome() {
+        val message = Message()
+        message.what = 8
+        myHandler.sendMessage(message)
+    }
+
+    protected fun performRecents() {
+        val message = Message()
+        message.what = 9
         myHandler.sendMessage(message)
     }
 
@@ -55,8 +85,28 @@ open class AccessibilityActivity : ComponentActivity() {
         AccessibilityCoreService.accessibilityCoreService?.dispatchScrollDown()
     }
 
+    fun scrollLeft() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollLeft()
+    }
+
+    fun scrollRight() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollRight()
+    }
+
     fun softInput(inputText: String) {
         AccessibilityCoreService.accessibilityCoreService?.dispatchSoftInput(inputText)
+    }
+
+    fun back() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchBack()
+    }
+
+    fun home() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchHome()
+    }
+
+    fun recents() {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchRecents()
     }
 
 

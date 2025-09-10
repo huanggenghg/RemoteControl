@@ -232,9 +232,29 @@ command = $command"""
                             performScrollDown()
                         }
 
+                        "scrollLeft" -> {
+                            performScrollLeft()
+                        }
+
+                        "scrollRight" -> {
+                            performScrollRight()
+                        }
+
                         "softInput" -> {
                             val x = jsonObject.getString("inputText")
                             performSoftInput(x)
+                        }
+
+                        "back" -> {
+                            performBack()
+                        }
+
+                        "home" -> {
+                            performHome()
+                        }
+
+                        "recents" -> {
+                            performRecents()
                         }
 
                         "onRemoteControlLoginRoomSuccess" -> {

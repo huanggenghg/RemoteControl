@@ -28,8 +28,28 @@ class AccessibilityHandler(accessibilityActivity: AccessibilityActivity?) : Hand
             }
 
             4 -> {
+                accessibilityActivityWf.get()!!.scrollLeft()
+            }
+
+            5 -> {
+                accessibilityActivityWf.get()!!.scrollRight()
+            }
+
+            6 -> {
                 val inputText = msg.obj as String
                 accessibilityActivityWf.get()!!.softInput(inputText)
+            }
+
+            7 -> {
+                accessibilityActivityWf.get()!!.back()
+            }
+
+            8 -> {
+                accessibilityActivityWf.get()!!.home()
+            }
+
+            9 -> {
+                accessibilityActivityWf.get()!!.recents()
             }
         }
     }
