@@ -20,6 +20,7 @@ import im.zego.zegoexpress.constants.ZegoViewMode
 import im.zego.zegoexpress.entity.ZegoCanvas
 import im.zego.zegoexpress.entity.ZegoStream
 import org.json.JSONObject
+import java.util.UUID
 
 
 class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
@@ -39,8 +40,8 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         mEngine?.setAppOrientationMode(ZegoOrientationMode.ADAPTION)
         setEventHandler()
         mRoomId = intent.getStringExtra(EXTRA_CODE)
-        Log.d("REMOTE", "onCreate:loginRoom")
-        loginRoom("user3", mRoomId)
+        val uniqueID = UUID.randomUUID().toString()
+        loginRoom(uniqueID, mRoomId)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

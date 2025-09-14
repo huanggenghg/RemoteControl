@@ -14,7 +14,9 @@ import androidx.constraintlayout.widget.Group
 import androidx.core.widget.addTextChangedListener
 import com.lumostech.remotecontrol.R
 import im.zego.zegoexpress.ZegoExpressEngine
+import im.zego.zegoexpress.constants.ZegoUpdateType
 import java.util.Random
+import java.util.UUID
 
 
 class MainActivity : MediaProjectionActivity(), View.OnClickListener {
@@ -29,6 +31,8 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     private var goAssist: AppCompatButton? = null
     private var tvCodeInput: EditText? = null
     private var tvCodeProjecting: TextView? = null
+    private var tvWaiting: TextView? = null
+    private var loginUserId: String? = null
 
 
     @SuppressLint("CutPasteId")
@@ -37,6 +41,16 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         setContentView(R.layout.activity_main)
         initViews()
         initCode()
+    }
+
+    override fun onRoomUserUpdate(userId: String, updateType: ZegoUpdateType) {
+        super.onRoomUserUpdate(userId, updateType)
+        if (userId == loginUserId) return // 房间登录的回调是自己，不需要更新页面状态
+
+        tvWaiting?.text =
+            if (updateType == ZegoUpdateType.ADD) getString(R.string.remote_controlling) else getString(
+                R.string.remote_control_waiting
+            )
     }
 
     private fun initViews() {
@@ -48,6 +62,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         toolbar = findViewById(R.id.toolbar)
         goAssist = findViewById(R.id.go_assist)
         tvCodeInput = findViewById(R.id.tv_code_input)
+        tvWaiting = findViewById(R.id.text_waiting)
 
         groupMain = findViewById(R.id.group_main)
         groupProjecting = findViewById(R.id.group_projecting)
@@ -155,7 +170,8 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         // 监听常用事件
         setEventHandler()
         // 登录房间
-        loginRoom("user2", code)
+        loginUserId = UUID.randomUUID().toString()
+        loginRoom(loginUserId, code)
         // 开始预览及推流
         startPublish()
     }

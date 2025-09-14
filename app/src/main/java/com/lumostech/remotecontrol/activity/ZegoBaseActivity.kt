@@ -50,6 +50,10 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
         Log.d(TAG, "onPlayerPlaying")
     }
 
+    protected open fun onRoomUserUpdate(userId: String, updateType: ZegoUpdateType) {
+        Log.d(TAG, "onRoomUserUpdate: userId=$userId updateType=$updateType")
+    }
+
     // 创建 ZegoExpress 实例，监听常用事件
     protected open fun createEngine() {
         // 创建引擎，通用场景接入，并注册 self 为 eventHandler 回调
@@ -99,13 +103,11 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
                 // 您可以在回调中根据用户的进出/退出情况，处理对应的业务逻辑
                 if (updateType == ZegoUpdateType.ADD) {
                     for (user in userList) {
-                        val text = user.userID + "进入了房间"
-                        Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
+                        onRoomUserUpdate(user.userID, updateType)
                     }
                 } else if (updateType == ZegoUpdateType.DELETE) {
                     for (user in userList) {
-                        val text = user.userID + "退出了房间"
-                        Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
+                        onRoomUserUpdate(user.userID, updateType)
                     }
                 }
             }
