@@ -10,7 +10,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.ImageButton
 import androidx.constraintlayout.widget.Group
 import com.lumostech.remotecontrol.ImmersiveFullscreenUtil
 import com.lumostech.remotecontrol.MyApp
@@ -25,15 +24,12 @@ import java.util.UUID
 
 class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
-    private var softInputButtonOff: ImageButton? = null
-//    private var editText: EditText? = null
     private var groupMonitor: Group? = null
-
     private var hasStartedPlayingStream = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_remote_control2)
+        setContentView(R.layout.activity_remote_control)
         ImmersiveFullscreenUtil.enableTrueFullscreen(this)
         initViews()
         createEngine()
@@ -51,46 +47,15 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     private fun initViews() {
-//        softInputButtonOff = findViewById(R.id.softInputOff)
-//        editText = findViewById(R.id.editText)
         groupMonitor = findViewById(R.id.group_monitor)
         findViewById<View>(R.id.scrollUp)?.setOnClickListener(this)
         findViewById<View>(R.id.scrollDown)?.setOnClickListener(this)
         findViewById<View>(R.id.scrollLeft)?.setOnClickListener(this)
         findViewById<View>(R.id.scrollRight)?.setOnClickListener(this)
         findViewById<View>(R.id.exit)?.setOnClickListener(this)
-        findViewById<View>(R.id.softInput)?.setOnClickListener(this)
         findViewById<View>(R.id.back)?.setOnClickListener(this)
         findViewById<View>(R.id.home)?.setOnClickListener(this)
         findViewById<View>(R.id.recents)?.setOnClickListener(this)
-//        softInputButtonOff?.setOnClickListener(this)
-//        editText?.addTextChangedListener(object : TextWatcher {
-//            override fun afterTextChanged(s: Editable?) {
-//                Log.d("REMOTE", "afterTextChanged:")
-//            }
-//
-//            override fun beforeTextChanged(
-//                s: CharSequence?,
-//                start: Int,
-//                count: Int,
-//                after: Int
-//            ) {
-//                Log.d("REMOTE", "beforeTextChanged:")
-//            }
-//
-//            override fun onTextChanged(
-//                s: CharSequence?,
-//                start: Int,
-//                before: Int,
-//                count: Int
-//            ) {
-//                Log.d("REMOTE", "onTextChanged:$s")
-//                sendCustomCommand(JSONObject().apply {
-//                    put("action", "softInput")
-//                    put("inputText", "$s")
-//                }.toString())
-//            }
-//        })
     }
 
     override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一次
@@ -108,11 +73,14 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     private fun startPlayingStreamOnAdaptedCanvas() {
-        if(hasStartedPlayingStream) {
+        if (hasStartedPlayingStream) {
             Log.i("REMOTE", "startPlayingStreamOnAdaptedCanvas: hasStartedPlayingStream, return.")
             return
         }
-        Log.d("REMOTE", "startPlayingStreamOnAdaptedCanvas: MyApp.remoteScreenAdaptedWidth = $MyApp.remoteScreenAdaptedWidth, MyApp.remoteScreenAdaptedHeight = $MyApp.remoteScreenAdaptedHeight")
+        Log.d(
+            "REMOTE",
+            "startPlayingStreamOnAdaptedCanvas: MyApp.remoteScreenAdaptedWidth = $MyApp.remoteScreenAdaptedWidth, MyApp.remoteScreenAdaptedHeight = $MyApp.remoteScreenAdaptedHeight"
+        )
         val zegoCanvas = getScreenAdaptedCanvas()
         zegoCanvas?.let {
             mEngine?.startPlayingStream("stream2", it)
@@ -232,20 +200,6 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                 finish()
             }
 
-            R.id.softInput -> {
-//                editText?.let {
-//                    it.visibility = View.VISIBLE
-//                    it.requestFocus()
-//                    if (it.requestFocus()) {
-//                        SoftInputUtils.showSoftInput(it)
-//                    }
-//                }
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "softInput")
-                    put("inputText", "s")
-                }.toString())
-            }
-
             R.id.back -> {
                 sendCustomCommand(JSONObject().apply {
                     put("action", "back")
@@ -262,10 +216,6 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                 sendCustomCommand(JSONObject().apply {
                     put("action", "recents")
                 }.toString())
-            }
-
-            R.id.softInputOff -> {
-//                editText?.visibility = View.GONE
             }
         }
     }
