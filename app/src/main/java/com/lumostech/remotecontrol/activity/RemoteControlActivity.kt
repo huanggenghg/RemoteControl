@@ -10,7 +10,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.ImageButton
 import androidx.constraintlayout.widget.Group
+import com.lumostech.remotecontrol.AnimUtils
 import com.lumostech.remotecontrol.ImmersiveFullscreenUtil
 import com.lumostech.remotecontrol.MyApp
 import com.lumostech.remotecontrol.R
@@ -26,6 +28,16 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
     private var groupMonitor: Group? = null
     private var hasStartedPlayingStream = false
+    private var scrollUpView: View? = null
+    private var scrollDownView: View? = null
+    private var scrollLeftView: View? = null
+    private var scrollRightView: View? = null
+    private var moreHorBtn: ImageButton? = null
+    private var exit: View? = null
+    private var back: View? = null
+    private var home: View? = null
+    private var recents: View? = null
+    private var moreVerBtn: ImageButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,14 +60,26 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     private fun initViews() {
         groupMonitor = findViewById(R.id.group_monitor)
-        findViewById<View>(R.id.scrollUp)?.setOnClickListener(this)
-        findViewById<View>(R.id.scrollDown)?.setOnClickListener(this)
-        findViewById<View>(R.id.scrollLeft)?.setOnClickListener(this)
-        findViewById<View>(R.id.scrollRight)?.setOnClickListener(this)
-        findViewById<View>(R.id.exit)?.setOnClickListener(this)
-        findViewById<View>(R.id.back)?.setOnClickListener(this)
-        findViewById<View>(R.id.home)?.setOnClickListener(this)
-        findViewById<View>(R.id.recents)?.setOnClickListener(this)
+        scrollUpView = findViewById(R.id.scrollUp)
+        scrollDownView = findViewById(R.id.scrollDown)
+        scrollLeftView = findViewById(R.id.scrollLeft)
+        scrollRightView = findViewById(R.id.scrollRight)
+        moreHorBtn = findViewById(R.id.more_hor)
+        exit = findViewById(R.id.exit)
+        back = findViewById(R.id.back)
+        home = findViewById(R.id.home)
+        recents = findViewById(R.id.recents)
+        moreVerBtn = findViewById(R.id.more_ver)
+        scrollUpView?.setOnClickListener(this)
+        scrollDownView?.setOnClickListener(this)
+        scrollLeftView?.setOnClickListener(this)
+        scrollRightView?.setOnClickListener(this)
+        moreHorBtn?.setOnClickListener(this)
+        exit?.setOnClickListener(this)
+        back?.setOnClickListener(this)
+        home?.setOnClickListener(this)
+        recents?.setOnClickListener(this)
+        moreVerBtn?.setOnClickListener(this)
     }
 
     override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一次
@@ -216,6 +240,50 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                 sendCustomCommand(JSONObject().apply {
                     put("action", "recents")
                 }.toString())
+            }
+
+            R.id.more_hor -> {
+                val isShowHor = "left" == moreHorBtn?.tag
+                AnimUtils.showHorView(
+                    this,
+                    isShowHor,
+                    {
+                        if (isShowHor) {
+                            moreHorBtn?.tag = "right"
+                            moreHorBtn?.setImageResource(R.drawable.ic_chevron_right)
+                        } else {
+                            moreHorBtn?.tag = "left"
+                            moreHorBtn?.setImageResource(R.drawable.ic_chevron_left)
+                        }
+                    },
+                    moreHorBtn!!,
+                    scrollUpView!!,
+                    scrollDownView!!,
+                    scrollLeftView!!,
+                    scrollRightView!!
+                )
+            }
+
+            R.id.more_ver -> {
+                val isShowVer = "up" == moreVerBtn?.tag
+                AnimUtils.showVerView(
+                    this,
+                    isShowVer,
+                    {
+                        if (isShowVer) {
+                            moreVerBtn?.tag = "down"
+                            moreVerBtn?.setImageResource(R.drawable.ic_chevron_down)
+                        } else {
+                            moreVerBtn?.tag = "up"
+                            moreVerBtn?.setImageResource(R.drawable.ic_chevron_up)
+                        }
+                    },
+                    moreVerBtn!!,
+                    exit!!,
+                    back!!,
+                    home!!,
+                    recents!!
+                )
             }
         }
     }
