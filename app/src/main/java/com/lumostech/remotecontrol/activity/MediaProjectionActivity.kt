@@ -64,11 +64,11 @@ open class MediaProjectionActivity : ZegoBaseActivity() {
         }
     }
 
-    protected fun startPublish() {
+    protected fun startPublish(streamId: String) {
         // 开始推流
         // 用户调用 loginRoom 之后再调用此接口进行推流
-        // 在同一个 AppID 下，todo 开发者需要保证“streamID” 全局唯一，如果不同用户各推了一条 “streamID” 相同的流，后推流的用户会推流失败。
-        mEngine?.startPublishingStream("stream2")
+        // 在同一个 AppID 下, 开发者需要保证“streamID” 全局唯一，如果不同用户各推了一条 “streamID” 相同的流，后推流的用户会推流失败。
+        mEngine?.startPublishingStream(streamId)
     }
 
     protected fun requestMediaProjection() {

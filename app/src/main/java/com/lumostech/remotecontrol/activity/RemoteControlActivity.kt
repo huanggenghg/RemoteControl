@@ -27,7 +27,7 @@ import java.util.UUID
 class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
     private var groupMonitor: Group? = null
-    private var hasStartedPlayingStream = false
+    private var playStreamId: String? = null
     private var scrollUpView: View? = null
     private var scrollDownView: View? = null
     private var scrollLeftView: View? = null
@@ -93,12 +93,13 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                     this
                 )
         }
+        this.playStreamId = playStreamId
         startPlayingStreamOnAdaptedCanvas()
     }
 
     private fun startPlayingStreamOnAdaptedCanvas() {
-        if (hasStartedPlayingStream) {
-            Log.i("REMOTE", "startPlayingStreamOnAdaptedCanvas: hasStartedPlayingStream, return.")
+        if (playStreamId.isNullOrEmpty()) {
+            Log.w("REMOTE", "startPlayingStreamOnAdaptedCanvas: playStreamId isNullOrEmpty, return.")
             return
         }
         Log.d(
@@ -107,8 +108,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         )
         val zegoCanvas = getScreenAdaptedCanvas()
         zegoCanvas?.let {
-            mEngine?.startPlayingStream("stream2", it)
-            hasStartedPlayingStream = true
+            mEngine?.startPlayingStream(playStreamId, it)
         } ?: let {
             Log.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
         }

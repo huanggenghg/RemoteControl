@@ -173,7 +173,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         loginUserId = UUID.randomUUID().toString()
         loginRoom(loginUserId, code)
         // 开始预览及推流
-        startPublish()
+        startPublish(loginUserId!!)
     }
 
     private fun checkCode(): Boolean {
