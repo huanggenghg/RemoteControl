@@ -13,22 +13,22 @@ import im.zego.zegoexpress.entity.ZegoStream
 
 
 open class MediaProjectionActivity : ZegoBaseActivity() {
-    override fun createEngine() {
-        super.createEngine()
+
+    protected fun enableCustomVideoCapture() {
         //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
         val wm = this.getSystemService(WINDOW_SERVICE) as WindowManager
         val width = wm.defaultDisplay.width
         val height = wm.defaultDisplay.height
-        val videoCapture = VideoCaptureScreen(mMediaProjection, width, height, mEngine)
+        val videoCapture = VideoCaptureScreen(mMediaProjection, width, height, engine)
         //传递投屏的长宽
-        mEngine?.setStreamExtraInfo("$width,$height", null)
+        engine.setStreamExtraInfo("$width,$height", null)
         //监听自定义采集开始停止回调
-        mEngine?.setCustomVideoCaptureHandler(videoCapture)
+        engine.setCustomVideoCaptureHandler(videoCapture)
         val videoCaptureConfig = ZegoCustomVideoCaptureConfig()
         //使用SurfaceTexture类型进行自定义采集
         videoCaptureConfig.bufferType = ZegoVideoBufferType.SURFACE_TEXTURE
         //开始自定义采集
-        mEngine?.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN)
+        engine.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN)
     }
 
     override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
@@ -68,7 +68,7 @@ open class MediaProjectionActivity : ZegoBaseActivity() {
         // 开始推流
         // 用户调用 loginRoom 之后再调用此接口进行推流
         // 在同一个 AppID 下, 开发者需要保证“streamID” 全局唯一，如果不同用户各推了一条 “streamID” 相同的流，后推流的用户会推流失败。
-        mEngine?.startPublishingStream(streamId)
+        engine.startPublishingStream(streamId)
     }
 
     protected fun requestMediaProjection() {

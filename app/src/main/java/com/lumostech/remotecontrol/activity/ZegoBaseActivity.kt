@@ -5,8 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.lumostech.accessibilitycore.AccessibilityActivity
 import com.lumostech.accessibilitycore.ClickPoint
 import com.lumostech.remotecontrol.SoftInputUtils
+import com.lumostech.remotecontrol.api.ZegoTokenViewModel
 import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.callback.IZegoEventHandler
 import im.zego.zegoexpress.constants.ZegoOrientationMode
@@ -22,11 +26,26 @@ import im.zego.zegoexpress.entity.ZegoRoomConfig
 import im.zego.zegoexpress.entity.ZegoStream
 import im.zego.zegoexpress.entity.ZegoUser
 import im.zego.zegoexpress.entity.ZegoVideoConfig
+import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 
-abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityActivity() {
-    protected var mEngine: ZegoExpressEngine? = null
+abstract class ZegoBaseActivity : AccessibilityActivity() {
+    protected var loginUserId: String? = null
+    protected val engine: ZegoExpressEngine by lazy {
+        // 创建引擎，通用场景接入，并注册 self 为 eventHandler 回调
+        // 不需要注册回调的话，eventHandler 参数可以传 null，后续可调用 "setEventHandler:" 方法设置回调
+        val profile = ZegoEngineProfile()
+        profile.appID = 678281271L
+        profile.scenario = ZegoScenario.HIGH_QUALITY_VIDEO_CALL // 通用场景接入
+        profile.application = application
+        ZegoExpressEngine.createEngine(profile, null).apply {
+            videoConfig = ZegoVideoConfig(ZegoVideoConfigPreset.PRESET_1080P)
+            setAppOrientationMode(ZegoOrientationMode.FIXED_RESOLUTION_RATIO)
+        }
+    }
+    private val viewModel by lazy { ViewModelProvider(this)[ZegoTokenViewModel::class.java] }
+    protected var isToLoginRoom: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +54,8 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
 
     override fun onDestroy() {
         super.onDestroy()
-        mEngine?.logoutRoom()
-        mEngine?.setEventHandler(null)
-        mEngine = null
+        engine.logoutRoom()
+        ZegoExpressEngine.destroyEngine {}
     }
 
     protected open fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
@@ -54,26 +72,9 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
         Log.d(TAG, "onRoomUserUpdate: userId=$userId updateType=$updateType")
     }
 
-    // 创建 ZegoExpress 实例，监听常用事件
-    protected open fun createEngine() {
-        // 创建引擎，通用场景接入，并注册 self 为 eventHandler 回调
-        // 不需要注册回调的话，eventHandler 参数可以传 null，后续可调用 "setEventHandler:" 方法设置回调
-        val profile = ZegoEngineProfile()
-        // TODO: 2023/7/15 密钥安全 gradle + xml + string + so + ...
-        profile.appID = 678281271L // 请通过官网注册获取，格式为：1234567890L
-        profile.appSign =
-            "a356faea31ad94234a560f61c7e4628659d27041846d7b22b239886af3e7e6a4" //请通过官网注册获取，格式为："0123456789012345678901234567890123456789012345678901234567890123"（共64个字符）
-        profile.scenario = ZegoScenario.STANDARD_VIDEO_CALL // 通用场景接入
-        profile.application = application
-        mEngine = ZegoExpressEngine.createEngine(profile, null)
-        // 使用预设置进行视频设置
-        val videoConfig = ZegoVideoConfig(ZegoVideoConfigPreset.PRESET_1080P)
-        mEngine?.videoConfig = videoConfig
-        mEngine?.setAppOrientationMode(ZegoOrientationMode.FIXED_RESOLUTION_RATIO)
-    }
-
     protected fun setEventHandler() {
-        mEngine!!.setEventHandler(object : IZegoEventHandler() {
+        engine.setEventHandler(null)
+        engine.setEventHandler(object : IZegoEventHandler() {
             // 房间内其他用户推流/停止推流时，我们会在这里收到相应用户的音视频流增减的通知
             override fun onRoomStreamUpdate(
                 roomID: String,
@@ -120,6 +121,7 @@ abstract class ZegoBaseActivity : com.lumostech.accessibilitycore.AccessibilityA
                 jsonObject: JSONObject
             ) {
                 super.onRoomStateChanged(roomID, reason, i, jsonObject)
+                Log.i(TAG, "onRoomStateChanged: roomID=$roomID reason=$reason errorCode=$i jsonObject=$jsonObject")
                 if (reason == ZegoRoomStateChangedReason.LOGINING) {
                     // 正在登录房间。当调用 [loginRoom] 登录房间或 [switchRoom] 切换到目标房间时，进入该状态，表示正在请求连接服务器。通常通过该状态进行应用界面的展示。
                 } else if (reason == ZegoRoomStateChangedReason.LOGINED) {
@@ -287,22 +289,61 @@ command = $command"""
                     throw RuntimeException(e)
                 }
             }
+
+            override fun onRoomTokenWillExpire(roomID: String?, remainTimeInSecond: Int) {
+                super.onRoomTokenWillExpire(roomID, remainTimeInSecond)
+                Log.i(TAG, "onRoomTokenWillExpire: roomID=$roomID")
+                notNull(loginUserId, roomID) {
+                    isToLoginRoom = false // 设置获取 token 后的更新动作
+                    viewModel.getZegoToken(loginUserId!!, roomID!!)
+                }
+            }
         })
     }
 
     //登录房间
     protected fun loginRoom(userId: String?, roomId: String?) {
+        notNull(userId, roomId) {
+            // 先设置 token 监听回调
+            collectToken(userId, roomId)
+            // 触发获取 zego token
+            viewModel.getZegoToken(userId!!, roomId!!)
+        }
+    }
+
+    private fun collectToken(userId: String?, roomId: String?) {
+        // 监听 zogo token 获取状态
+        lifecycleScope.launch {
+            viewModel.zegoTokenState.collect { zegoToken ->
+                zegoToken?.data?.let {
+                    Log.i(TAG, "collectToken:zegoToken.data=$it isToLoginRoom=$isToLoginRoom")
+                    if (isToLoginRoom) {
+                        // token 获取成功触发登录
+                        Log.i(TAG, "loginRoom:zegoToken.data=$it")
+                        execLoginRoom(userId, roomId, it)
+                    } else {
+                        // token 获取成功更新 token
+                        engine.renewToken(roomId, it)
+                    }
+                } ?: let {
+                    Log.e(TAG, "loginRoom:zegoToken.data null!")
+                }
+            }
+        }
+    }
+
+    private fun execLoginRoom(userId: String?, roomId: String?, token: String) {
         // ZegoUser 的构造方法 public ZegoUser(String userID) 会将 “userName” 设为与传的参数 “userID” 一样。“userID” 与 “userName” 不能为 “null” 否则会导致登录房间失败。
         val user = ZegoUser(userId)
 
         val roomConfig = ZegoRoomConfig()
         //如果您使用 appsign 的方式鉴权，token 参数不需填写；如果需要使用更加安全的 鉴权方式： token 鉴权，请参考[如何从 AppSign 鉴权升级为 Token 鉴权](https://doc-zh.zego.im/faq/token_upgrade?product=ExpressVideo&platform=all)
-        //roomConfig.token = ;
+        roomConfig.token = token
         // 只有传入 “isUserStatusNotify” 参数取值为 “true” 的 ZegoRoomConfig，才能收到 onRoomUserUpdate 回调。
         roomConfig.isUserStatusNotify = true
-
+        Log.i(TAG, "execLoginRoom: thread:${Thread.currentThread()}")
         // 登录房间
-        mEngine!!.loginRoom(
+        engine.loginRoom(
             roomId, user, roomConfig
         ) { error: Int, extendedData: JSONObject? ->
             // 登录房间结果，如果仅关注登录结果，关注此回调即可
@@ -319,6 +360,7 @@ command = $command"""
                 ).show()
             }
         }
+        Log.i(TAG, "execLoginRoom done: thread:${Thread.currentThread()}")
     }
 
     //请求摄像头、录音权限
@@ -339,6 +381,14 @@ command = $command"""
             requestPermissions(permissionNeeded, 101)
         }
     }
+
+    private inline fun <R> notNull(vararg args: Any?, block: () -> R) =
+        when {
+            args.filterNotNull().size == args.size -> block()
+            else -> null.also {
+                Log.w(TAG, "notNull check fail!")
+            }
+        }
 
     companion object {
         private const val TAG = "BaseActivity"

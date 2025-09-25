@@ -13,7 +13,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.Group
 import androidx.core.widget.addTextChangedListener
 import com.lumostech.remotecontrol.R
-import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.constants.ZegoUpdateType
 import java.util.Random
 import java.util.UUID
@@ -32,8 +31,6 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     private var tvCodeInput: EditText? = null
     private var tvCodeProjecting: TextView? = null
     private var tvWaiting: TextView? = null
-    private var loginUserId: String? = null
-
 
     @SuppressLint("CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,15 +160,18 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             return
         }
 
-        val code = tvCode!!.text.toString()
-
-        // 创建Express SDK 实例
-        createEngine()
         // 监听常用事件
         setEventHandler()
+        // 设置投屏
+        enableCustomVideoCapture()
         // 登录房间
         loginUserId = UUID.randomUUID().toString()
+        val code = tvCode!!.text.toString()
         loginRoom(loginUserId, code)
+    }
+
+    override fun onLoginRoomSuccess() {
+        super.onLoginRoomSuccess()
         // 开始预览及推流
         startPublish(loginUserId!!)
     }
@@ -186,10 +186,8 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     }
 
     private fun pauseCast() {
-        mEngine?.let {
-            it.logoutRoom()
-            ZegoExpressEngine.destroyEngine {}
-        }
+        engine.logoutRoom()
+        isToLoginRoom = true
         mMediaProjection = null
     }
 

@@ -12,7 +12,7 @@ class VideoCaptureScreen(
     private val mMediaProjection: MediaProjection?,
     private val mCaptureWidth: Int,
     private val mCaptureHeight: Int,
-    private val mZegoEngine: ZegoExpressEngine?
+    private val mZegoEngine: ZegoExpressEngine
 ) :
     ZegoVideoCaptureCallback() {
     private var mIsCapturing = false
@@ -21,7 +21,7 @@ class VideoCaptureScreen(
 
     //当收到onStart回调后，就可以通过MediaProjection创建VirtualDisplay，并给ZEGO SDK塞屏幕数据
     override fun onStart(channel: ZegoPublishChannel) {
-        if (mZegoEngine != null && !mIsCapturing && mMediaProjection != null) {
+        if (!mIsCapturing && mMediaProjection != null) {
             mIsCapturing = true
             //通过ZEGO API getCustomVideoCaptureSurfaceTexture获取SurfaceTexture，该接口默认使用主路通道进行推流
             val texture = mZegoEngine.customVideoCaptureSurfaceTexture

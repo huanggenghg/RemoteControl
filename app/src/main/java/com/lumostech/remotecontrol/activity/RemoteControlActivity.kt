@@ -44,8 +44,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         setContentView(R.layout.activity_remote_control)
         ImmersiveFullscreenUtil.enableTrueFullscreen(this)
         initViews()
-        createEngine()
-        mEngine?.setAppOrientationMode(ZegoOrientationMode.ADAPTION)
+        engine.setAppOrientationMode(ZegoOrientationMode.ADAPTION)
         setEventHandler()
         mRoomId = intent.getStringExtra(EXTRA_CODE)
         val uniqueID = UUID.randomUUID().toString()
@@ -108,7 +107,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         )
         val zegoCanvas = getScreenAdaptedCanvas()
         zegoCanvas?.let {
-            mEngine?.startPlayingStream(playStreamId, it)
+            engine.startPlayingStream(playStreamId, it)
         } ?: let {
             Log.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
         }
@@ -289,7 +288,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     private fun sendCustomCommand(command: String) {
-        mEngine?.sendCustomCommand(
+        engine.sendCustomCommand(
             mRoomId, command, null
         ) { errorCode: Int ->
             Log.d(
