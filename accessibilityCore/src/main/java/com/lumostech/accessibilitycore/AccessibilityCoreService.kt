@@ -28,6 +28,7 @@ import com.lumostech.accessibilitybase.AccessibilityBaseEvent
 import java.util.Objects.isNull
 
 
+@SuppressLint("AccessibilityPolicy")
 class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent, LifecycleOwner {
     private var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
 

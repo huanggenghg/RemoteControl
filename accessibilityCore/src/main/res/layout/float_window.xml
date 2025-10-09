@@ -4,9 +4,7 @@
     android:layout_width="50dp"
     android:layout_height="50dp">
 
-    <ImageView
+    <com.lumostech.accessibilitycore.ClickCounterIconView
         android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="@drawable/icon_float_window"
-        tools:ignore="ContentDescription,MissingConstraints" />
+        android:layout_height="50dp"/>
 </com.lumostech.accessibilitycore.SmallWindowView>
