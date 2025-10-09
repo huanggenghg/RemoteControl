@@ -99,6 +99,9 @@ class ClickCounterIconView @JvmOverloads constructor(
         canvas.drawCircle(centerX, centerY, centerRadius, centerCirclePaint)
 
         // --- 3. 在圆圈中心绘制点击次数 ---
+        if (clickCount > 99) {
+            clickCount = 99
+        }
         val textToShow = clickCount.toString()
         // 文字大小根据中心圆半径计算，确保不会超出
         textPaint.textSize = centerRadius * 1.2f
