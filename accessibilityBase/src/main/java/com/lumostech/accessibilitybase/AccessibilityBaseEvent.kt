@@ -10,4 +10,5 @@ interface AccessibilityBaseEvent {
     fun dispatchBack()
     fun dispatchHome()
     fun dispatchRecents()
+    fun dispatchGestureClick(x: Float, y: Float, onComplete: () -> Unit)
 }

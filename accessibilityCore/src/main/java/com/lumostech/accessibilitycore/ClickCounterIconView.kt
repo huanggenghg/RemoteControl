@@ -9,7 +9,6 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import kotlin.math.min
 
 /**
@@ -61,25 +60,10 @@ class ClickCounterIconView @JvmOverloads constructor(
     // 可复用的RectF对象，用于绘制圆角矩形
     private val markerRect = RectF()
 
+    private val clickPointList = ArrayList<ClickCounterPoint>()
+    private var startClickTimeMillis = 0L
+
     init {
-        // 设置点击监听器
-        setOnClickListener {
-            if (isViewDragging()) return@setOnClickListener.also {
-                Log.i("TAG", "setOnClickListener: isViewDragging")
-            }
-
-            clickCount++
-            invalidate() // 请求重绘View
-        }
-        setOnLongClickListener {
-            if (isViewDragging()) return@setOnLongClickListener true.also {
-                Log.i("TAG", "setOnLongClickListener: isViewDragging")
-            }
-
-            Toast.makeText(context, "长按了", Toast.LENGTH_SHORT).show()
-            true
-        }
-
         // 初始化时设置一个合适的默认尺寸 (e.g., 60dp)
         // 这样在WindowManager中用WRAP_CONTENT时，它会有一个默认大小
         val defaultSize = (60 * resources.displayMetrics.density).toInt()
@@ -87,7 +71,37 @@ class ClickCounterIconView @JvmOverloads constructor(
         minimumWidth = defaultSize
     }
 
-    private fun isViewDragging() = (parent as? SmallWindowView)?.isDragging() ?: false
+    public fun updateClickCountView() {
+        Log.i("TAG", "updateClickCountView: ")
+        val currentClickTimeMillis = System.currentTimeMillis()
+        (parent as? SmallWindowView)?.apply {
+            val clickCounterDelay =
+                if (startClickTimeMillis == 0L) 0L.also {
+                    startClickTimeMillis = currentClickTimeMillis
+                } else (currentClickTimeMillis - startClickTimeMillis)
+            clickPointList.add(
+                ClickCounterPoint(
+                    actionUpX.toFloat(),
+                    actionUpY.toFloat(),
+                    clickCounterDelay
+                )
+            )
+        }
+        clickCount++
+        invalidate()
+    }
+
+    public fun dispatchClickPointEvent() {
+        Log.i("TAG", "dispatchClickPointEvent: ")
+        for (clickPoint in clickPointList) {
+            postDelayed({
+                AccessibilityCoreService.accessibilityCoreService?.dispatchGestureClick(
+                    clickPoint.x,
+                    clickPoint.y
+                )
+            }, clickPoint.delay)
+        }
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)

@@ -15,11 +15,9 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -94,19 +92,34 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
 //        floatRootView?.setOnTouchListener(ItemViewTouchListener(layoutParam, windowManager))
         windowManager.addView(floatRootView, layoutParam)
-        floatRootView?.setOnClickListener { view ->
-            Toast.makeText(view.context, "将在10s后点击指定区域", Toast.LENGTH_SHORT).show()
-            view.postDelayed({
-                (view as SmallWindowView).let {
-                    Log.i("CLICK", "actionUpX = ${it.actionUpX}, actionUpY = ${view.actionUpY}")
-                    dispatchGestureClick(it.actionUpX.toFloat(), it.actionUpY.toFloat())
-                }
-            }, 10000)
-            view.visibility = View.GONE
-        }
+//        floatRootView?.setOnClickListener { view ->
+//            Toast.makeText(view.context, "将在10s后点击指定区域", Toast.LENGTH_SHORT).show()
+//            view.postDelayed({
+//                (view as SmallWindowView).let {
+//                    Log.i("CLICK", "actionUpX = ${it.actionUpX}, actionUpY = ${view.actionUpY}")
+//                    dispatchGestureClick(it.actionUpX.toFloat(), it.actionUpY.toFloat())
+//                }
+//            }, 10000)
+//            view.visibility = View.GONE
+//        }
     }
 
     override fun dispatchGestureClick(x: Float, y: Float) {
+        execDispatchGestureClick(x, y)
+    }
+
+
+    override fun dispatchGestureClick(
+        x: Float,
+        y: Float,
+        onComplete: () -> Unit
+    ) {
+        execDispatchGestureClick(x, y, onComplete)
+    }
+
+    private fun execDispatchGestureClick(x: Float,
+                                         y: Float,
+                                         onComplete: (() -> Unit)? = null) {
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
@@ -118,7 +131,12 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                     20
                 )
             ).build(),
-            null,
+            object : GestureResultCallback() {
+                override fun onCompleted(gestureDescription: GestureDescription) {
+                    super.onCompleted(gestureDescription)
+                    onComplete?.invoke()
+                }
+            },
             null
         )
     }
