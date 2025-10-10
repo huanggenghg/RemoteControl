@@ -7,7 +7,9 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import kotlin.math.min
 
 /**
@@ -62,8 +64,20 @@ class ClickCounterIconView @JvmOverloads constructor(
     init {
         // 设置点击监听器
         setOnClickListener {
+            if (isViewDragging()) return@setOnClickListener.also {
+                Log.i("TAG", "setOnClickListener: isViewDragging")
+            }
+
             clickCount++
             invalidate() // 请求重绘View
+        }
+        setOnLongClickListener {
+            if (isViewDragging()) return@setOnLongClickListener true.also {
+                Log.i("TAG", "setOnLongClickListener: isViewDragging")
+            }
+
+            Toast.makeText(context, "长按了", Toast.LENGTH_SHORT).show()
+            true
         }
 
         // 初始化时设置一个合适的默认尺寸 (e.g., 60dp)
@@ -72,6 +86,8 @@ class ClickCounterIconView @JvmOverloads constructor(
         minimumHeight = defaultSize
         minimumWidth = defaultSize
     }
+
+    private fun isViewDragging() = (parent as? SmallWindowView)?.isDragging() ?: false
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
