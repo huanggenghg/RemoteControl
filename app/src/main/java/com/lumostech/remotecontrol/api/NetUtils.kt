@@ -14,7 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 object NetUtils {
-    private const val HOST_URL = "http://47.95.23.228:8088"
+    private const val HOST_URL = "http://dachitech.xyz:8088"
     private var getZegoTokenService: GetZegoTokenService
 
     init {
