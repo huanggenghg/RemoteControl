@@ -59,4 +59,6 @@ dependencies {
 
 //    implementation(libs.accessibilityCore)
     implementation(project(":accessibilityCore"))
+
+    implementation("com.amulyakhare:com.amulyakhare.textdrawable:1.0.1")
 }

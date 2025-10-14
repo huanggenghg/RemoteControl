@@ -90,18 +90,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             format = PixelFormat.TRANSPARENT
         }
         floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
-//        floatRootView?.setOnTouchListener(ItemViewTouchListener(layoutParam, windowManager))
         windowManager.addView(floatRootView, layoutParam)
-//        floatRootView?.setOnClickListener { view ->
-//            Toast.makeText(view.context, "将在10s后点击指定区域", Toast.LENGTH_SHORT).show()
-//            view.postDelayed({
-//                (view as SmallWindowView).let {
-//                    Log.i("CLICK", "actionUpX = ${it.actionUpX}, actionUpY = ${view.actionUpY}")
-//                    dispatchGestureClick(it.actionUpX.toFloat(), it.actionUpY.toFloat())
-//                }
-//            }, 10000)
-//            view.visibility = View.GONE
-//        }
     }
 
     override fun dispatchGestureClick(x: Float, y: Float) {
