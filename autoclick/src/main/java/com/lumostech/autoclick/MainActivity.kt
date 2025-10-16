@@ -1,6 +1,8 @@
 package com.lumostech.autoclick
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -44,8 +45,10 @@ class MainActivity : AccessibilityActivity() {
 ////                }
 //
 //            }
-//            DialWithDialogExample({}, {})
-            CustomTimeInputLayout()
+            DialWithDialogExample({timePickerState, selectedDaysState ->
+                Log.i("MAIN", "timePickerState=${timePickerState.hour}:${timePickerState.hour}")
+                Log.i("MAIN", "selectedDaysState=${selectedDaysState.toIntArray().contentToString()}")
+            }, {})
         }
     }
 }
@@ -61,10 +64,11 @@ fun FilledButtonExample(onClick: () -> Unit) {
     }
 }
 
+@SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialWithDialogExample(
-    onConfirm: (TimePickerState) -> Unit,
+    onConfirm: (TimePickerState, List<Int>) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val currentTime = Calendar.getInstance()
@@ -74,14 +78,13 @@ fun DialWithDialogExample(
         initialMinute = currentTime.get(Calendar.MINUTE),
         is24Hour = true,
     )
+    val selectedDaysState by remember { mutableStateOf<MutableList<Int>>(mutableListOf()) }
 
     TimePickerDialog(
         onDismiss = { onDismiss() },
-        onConfirm = { onConfirm(timePickerState) }
+        onConfirm = { onConfirm(timePickerState, selectedDaysState) }
     ) {
-        TimeInput(
-            state = timePickerState,
-        )
+        CustomTimeInputLayout(timePickerState, selectedDaysState)
     }
 }
 
@@ -109,15 +112,11 @@ fun TimePickerDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTimeInputLayout() {
-    val timePickerState = rememberTimePickerState(is24Hour = true)
-
-    var selectedDaysState by remember { mutableStateOf<List<Int>>(emptyList()) }
-
+fun CustomTimeInputLayout(timePickerState: TimePickerState, selectedDaysState: MutableList<Int>) {
     // 使用 Column 作为布局容器
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -139,7 +138,8 @@ fun CustomTimeInputLayout() {
             WeekdaysPicker(context).apply {
                 setEditable(true)
                 setOnWeekdaysChangeListener { view, clickedDayOfWeek, selectedDays ->
-                    selectedDaysState = selectedDays
+                    selectedDaysState.clear()
+                    selectedDaysState.addAll(selectedDays)
                 }
             }
         }, modifier = Modifier.fillMaxWidth(), update = { view ->
@@ -151,15 +151,5 @@ fun CustomTimeInputLayout() {
             // Example of Compose -> View communication
             view.selectedDays = selectedDaysState
         })
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 在 TimeInput 下方添加自定义布局（如 Button）
-        Button(onClick = {
-            // 处理确认逻辑
-            println("已确认时间: ${timePickerState.hour}:${timePickerState.minute}")
-        }) {
-            Text("确认")
-        }
     }
 }
