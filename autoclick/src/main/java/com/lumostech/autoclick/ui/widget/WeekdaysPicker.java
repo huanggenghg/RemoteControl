@@ -65,11 +65,11 @@ public class WeekdaysPicker extends LinearLayout {
     private int unSelectedDayBackgroundColor;
     private int selectedTextColor;
     private int unSelectedTextColor;
-    private int mHighlightColor = Color.RED;
+    private int mHighlightColor = Color.parseColor("#FF6650a4");
     private TextDrawable.IBuilder selectedBuilder;
     private int mTextColor = Color.WHITE;
     private int mTextUnselectedColor = mHighlightColor;
-    private int mBackgroundColor = Color.LTGRAY;
+    private int mBackgroundColor = Color.parseColor("#FFCCC2DC");
     private TextDrawable.IBuilder unselectedBuilder;
     private TextDrawable.IBuilder unselectedWeekendBuilder;
     private boolean mEditable = false;
@@ -106,7 +106,7 @@ public class WeekdaysPicker extends LinearLayout {
     public WeekdaysPicker(Context context) {
         super(context);
         mContext = context;
-        mHighlightColor = Color.RED;
+        mHighlightColor = Color.parseColor("#FF6650a4");
         initView();
     }
 
@@ -182,8 +182,8 @@ public class WeekdaysPicker extends LinearLayout {
                 0, 0);
         try {
             mEditable = a.getBoolean(R.styleable.WeekdaysPicker_enabled, true);
-            mHighlightColor = a.getColor(R.styleable.WeekdaysPicker_highlight_color, Color.RED);
-            mBackgroundColor = a.getColor(R.styleable.WeekdaysPicker_background_color, Color.LTGRAY);
+            mHighlightColor = a.getColor(R.styleable.WeekdaysPicker_highlight_color, Color.parseColor("#FF6650a4"));
+            mBackgroundColor = a.getColor(R.styleable.WeekdaysPicker_background_color, Color.parseColor("#FFCCC2DC"));
             mWeekendColor = a.getColor(R.styleable.WeekdaysPicker_weekend_color, Color.GRAY);
             mTextColor = a.getColor(R.styleable.WeekdaysPicker_text_color, Color.WHITE);
             mTextUnselectedColor = a.getColor(R.styleable.WeekdaysPicker_text_unselected_color, mHighlightColor);
