@@ -91,7 +91,12 @@ class ClickCounterIconView @JvmOverloads constructor(
         invalidate()
     }
 
-    public fun dispatchClickPointEvent() {
+    fun dispatchLongClickEvent() {
+        Log.i("TAG", "dispatchLongClickEvent: ")
+        AccessibilityCoreService.accessibilityCoreService?.dispatchLongClick()
+    }
+
+    fun dispatchClickPointEvent() {
         Log.i("TAG", "dispatchClickPointEvent: ")
         for (clickPoint in clickPointList) {
             postDelayed({

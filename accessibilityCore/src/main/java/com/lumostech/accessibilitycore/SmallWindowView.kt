@@ -42,7 +42,7 @@ class SmallWindowView @JvmOverloads constructor(
 
     // --- 【新增】长按逻辑相关变量 ---
     private var longPressRunnable: Runnable? = null
-    private val longPressTimeout = 2000L // 获取系统默认的长按超时时间
+    private val longPressTimeout = 1000L // 获取系统默认的长按超时时间
     private var isLongPressed = false // 标志位，防止长按后还触发拖动或点击
 
     // --- 【新增】拖动判断相关变量 ---
@@ -151,7 +151,7 @@ class SmallWindowView @JvmOverloads constructor(
 
     override fun performLongClick(): Boolean {
         if (childCount == 1) {
-            (getChildAt(0) as? ClickCounterIconView)?.dispatchClickPointEvent()
+            (getChildAt(0) as? ClickCounterIconView)?.dispatchLongClickEvent()
             return true
         }
         return super.performLongClick()

@@ -2,7 +2,6 @@ package com.lumostech.autoclick
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,11 +24,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.lumostech.accessibilitycore.AccessibilityActivity
+import com.lumostech.accessibilitycore.AccessibilityCoreService
+import com.lumostech.accessibilitycore.Utils
+import com.lumostech.accessibilitycore.ViewModelMain
 import com.lumostech.autoclick.ui.widget.WeekdaysPicker
 import java.util.Calendar
 
@@ -38,19 +42,54 @@ class MainActivity : AccessibilityActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-//            FilledButtonExample {
-////                showAccessibilityDialog()
-////                Utils.checkSuspendedWindowPermission(this) {
-////                    ViewModelMain.isShowWindow.postValue(true)
-////                }
-//
-//            }
-            DialWithDialogExample({timePickerState, selectedDaysState ->
-                Log.i("MAIN", "timePickerState=${timePickerState.hour}:${timePickerState.hour}")
-                Log.i("MAIN", "selectedDaysState=${selectedDaysState.toIntArray().contentToString()}")
-            }, {})
+            FilledButtonExample {
+                showAccessibilityDialog()
+                Utils.checkSuspendedWindowPermission(this) {
+                    ViewModelMain.isShowWindow.postValue(true)
+                }
+            }
+
         }
     }
+
+    private lateinit var showDialog: (Boolean) -> Unit
+    private var dialogComposeView: ComposeView? = null
+
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    override fun onResume() {
+        super.onResume()
+        if (AccessibilityCoreService.isStart) {
+            if (dialogComposeView == null) {
+                dialogComposeView = ComposeView(this@MainActivity).apply {
+                    setContent {
+                        var isDialogVisible by remember { mutableStateOf(false) }
+                        showDialog = { isDialogVisible = it }
+                        if (isDialogVisible) {
+                            DialWithDialogExample(
+                                { timePickerState, selectedDaysState ->
+                                    {
+                                        isDialogVisible = false
+                                    }
+                                },
+                                {
+                                    isDialogVisible = false
+                                })
+                        }
+                    }
+                }
+                setContentView(dialogComposeView)
+            }
+
+            AccessibilityCoreService.accessibilityCoreService?.setOnPointLongClickListener(object :
+                AccessibilityCoreService.OnPointLongClickListener {
+                override fun onPointLongClick() {
+                    showDialog.invoke(true)
+                }
+            })
+        }
+    }
+
 }
 
 @Composable
@@ -94,20 +133,30 @@ fun TimePickerDialog(
     onConfirm: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("Dismiss")
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm() }) {
-                Text("OK")
-            }
-        },
-        text = { content() }
-    )
+    var showDialog by remember { mutableStateOf(true) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            dismissButton = {
+                TextButton(onClick = {
+                    onDismiss()
+                    showDialog = false
+                }) {
+                    Text("Dismiss")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onConfirm()
+                    showDialog = false
+                }) {
+                    Text("OK")
+                }
+            },
+            text = { content() }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,7 +172,7 @@ fun CustomTimeInputLayout(timePickerState: TimePickerState, selectedDaysState: M
     ) {
         // 在 TimeInput 上方添加自定义布局（如 Text）
         Text(
-            text = "设置一个提醒时间",
+            text = "设置一个触发时间和循环周期",
             style = MaterialTheme.typography.titleLarge
         )
 

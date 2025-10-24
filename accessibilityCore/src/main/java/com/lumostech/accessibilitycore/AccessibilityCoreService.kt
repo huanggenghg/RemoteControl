@@ -33,9 +33,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     private lateinit var windowManager: WindowManager
     private var floatRootView: SmallWindowView? = null//悬浮窗View
     private val lifecycleRegistry = LifecycleRegistry(this)
+    private var onPointLongClickListener: OnPointLongClickListener? = null
 
-    init {
-        Log.e(TAG, "MyService: ")
+    fun setOnPointLongClickListener(onPointLongClickListener: OnPointLongClickListener) {
+        this.onPointLongClickListener = onPointLongClickListener
     }
 
     override fun onCreate() {
@@ -95,6 +96,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     override fun dispatchGestureClick(x: Float, y: Float) {
         execDispatchGestureClick(x, y)
+    }
+
+    override fun dispatchLongClick() {
+        onPointLongClickListener?.onPointLongClick()
     }
 
 
@@ -189,7 +194,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun dispatchSoftInput(inputText: String) {
-        Log.e(TAG, "dispatchSoftInput: $inputText")
+        Log.i(TAG, "dispatchSoftInput: $inputText")
         execInputText(inputText)
     }
 
@@ -292,6 +297,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
+
+    interface OnPointLongClickListener {
+        fun onPointLongClick()
+    }
 
     companion object {
         const val TAG: String = "MyService"
