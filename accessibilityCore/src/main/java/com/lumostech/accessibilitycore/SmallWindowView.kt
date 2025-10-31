@@ -151,7 +151,7 @@ class SmallWindowView @JvmOverloads constructor(
 
     override fun performLongClick(): Boolean {
         if (childCount == 1) {
-            (getChildAt(0) as? ClickCounterIconView)?.dispatchLongClickEvent()
+            AccessibilityCoreService.onPointLongClickListener?.onPointLongClick()
             return true
         }
         return super.performLongClick()

@@ -91,23 +91,6 @@ class ClickCounterIconView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun dispatchLongClickEvent() {
-        Log.i("TAG", "dispatchLongClickEvent: ")
-        AccessibilityCoreService.accessibilityCoreService?.dispatchLongClick()
-    }
-
-    fun dispatchClickPointEvent() {
-        Log.i("TAG", "dispatchClickPointEvent: ")
-        for (clickPoint in clickPointList) {
-            postDelayed({
-                AccessibilityCoreService.accessibilityCoreService?.dispatchGestureClick(
-                    clickPoint.x,
-                    clickPoint.y
-                )
-            }, clickPoint.delay)
-        }
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 

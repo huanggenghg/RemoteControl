@@ -1,8 +1,9 @@
 package com.lumostech.accessibilitybase
 
+import android.view.View
+
 interface AccessibilityBaseEvent {
     fun dispatchGestureClick(x: Float, y: Float)
-    fun dispatchLongClick()
     fun dispatchScrollUp()
     fun dispatchScrollDown()
     fun dispatchScrollLeft()
@@ -12,4 +13,5 @@ interface AccessibilityBaseEvent {
     fun dispatchHome()
     fun dispatchRecents()
     fun dispatchGestureClick(x: Float, y: Float, onComplete: () -> Unit)
+    fun setFloatCustomView(floatCustomView: View)
 }

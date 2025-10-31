@@ -15,6 +15,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -32,12 +33,8 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     private lateinit var windowManager: WindowManager
     private var floatRootView: SmallWindowView? = null//悬浮窗View
+    private var floatCustomView: View? = null
     private val lifecycleRegistry = LifecycleRegistry(this)
-    private var onPointLongClickListener: OnPointLongClickListener? = null
-
-    fun setOnPointLongClickListener(onPointLongClickListener: OnPointLongClickListener) {
-        this.onPointLongClickListener = onPointLongClickListener
-    }
 
     override fun onCreate() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
@@ -49,7 +46,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
      * 打开关闭的订阅
      */
     private fun initObserve() {
-        ViewModelMain.isShowWindow.observe(this, {
+        ViewModelMain.isShowFloatWindow.observe(this, {
             if (it) {
                 showWindow()
             } else {
@@ -62,16 +59,39 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                 }
             }
         })
+        ViewModelMain.isShowCustomFloatWindow.observe(this, {
+            if (it) {
+                floatCustomView?.let { view ->
+                    showWindow(view)
+                }
+            } else {
+                if (!isNull(floatCustomView)) {
+                    if (!isNull(floatCustomView?.windowToken)) {
+                        if (!isNull(windowManager)) {
+                            windowManager.removeView(floatCustomView)
+                        }
+                    }
+                }
+            }
+        })
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    override fun setFloatCustomView(floatCustomView: View) {
+        this.floatCustomView = floatCustomView
+    }
+
     private fun showWindow() {
+        floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
+        showWindow(floatRootView!!)
+    }
+
+    private fun showWindow(view : View) {
         // 设置LayoutParam
         // 获取WindowManager服务
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val outMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(outMetrics)
-        var layoutParam = WindowManager.LayoutParams()
+        val layoutParam = WindowManager.LayoutParams()
         layoutParam.apply {
             //显示的位置
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -86,20 +106,15 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             }
             flags =
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            width = WindowManager.LayoutParams.WRAP_CONTENT
+            width = WindowManager.LayoutParams.MATCH_PARENT
             height = WindowManager.LayoutParams.WRAP_CONTENT
             format = PixelFormat.TRANSPARENT
         }
-        floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
-        windowManager.addView(floatRootView, layoutParam)
+        windowManager.addView(view, layoutParam)
     }
 
     override fun dispatchGestureClick(x: Float, y: Float) {
         execDispatchGestureClick(x, y)
-    }
-
-    override fun dispatchLongClick() {
-        onPointLongClickListener?.onPointLongClick()
     }
 
 
@@ -306,7 +321,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         const val TAG: String = "MyService"
         @SuppressLint("StaticFieldLeak")
         var accessibilityCoreService: AccessibilityCoreService? = null
-
+        var onPointLongClickListener: OnPointLongClickListener? = null
         val isStart: Boolean
             get() = accessibilityCoreService != null
     }

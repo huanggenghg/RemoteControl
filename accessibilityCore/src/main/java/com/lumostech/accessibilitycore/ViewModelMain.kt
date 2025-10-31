@@ -4,11 +4,9 @@ import androidx.lifecycle.MutableLiveData
 
 object ViewModelMain {
     //悬浮窗口创建 移除  基于无障碍服务
-    var isShowWindow = MutableLiveData<Boolean>()
+    var isShowFloatWindow = MutableLiveData<Boolean>()
     //悬浮窗口创建 移除
-
-    var isShowSuspendWindow = MutableLiveData<Boolean>()
-
+    var isShowCustomFloatWindow = MutableLiveData<Boolean>()
     //悬浮窗口显示 隐藏
     var isVisible = MutableLiveData<Boolean>()
 }
