@@ -11,6 +11,8 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
@@ -35,6 +37,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     private var floatRootView: SmallWindowView? = null//悬浮窗View
     private var floatCustomView: View? = null
     private val lifecycleRegistry = LifecycleRegistry(this)
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
@@ -86,8 +89,14 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             Log.i("TAG", "dispatchClickPointsEvent: getClickPointList isNullOrEmpty")
             return
         }
+        floatRootView?.getClickPointList()?.forEach { clickCounterPoint ->
+            Log.i(
+                "TAG",
+                "dispatchClickPointsEvent: clickCounterPoint:x:${clickCounterPoint.x} y:${clickCounterPoint.y} delay:${clickCounterPoint.delay}"
+            )
+        }
         for (clickPoint in floatRootView?.getClickPointList()!!) {
-            floatRootView?.postDelayed({
+            mainHandler.postDelayed({
                 dispatchGestureClick(
                     clickPoint.x,
                     clickPoint.y
@@ -97,11 +106,12 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     private fun showWindow() {
-        floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
+        floatRootView =
+            LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
         showWindow(floatRootView!!)
     }
 
-    private fun showWindow(view : View) {
+    private fun showWindow(view: View) {
         // 设置LayoutParam
         // 获取WindowManager服务
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -142,13 +152,16 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         execDispatchGestureClick(x, y, onComplete)
     }
 
-    private fun execDispatchGestureClick(x: Float,
-                                         y: Float,
-                                         onComplete: (() -> Unit)? = null) {
+    private fun execDispatchGestureClick(
+        x: Float,
+        y: Float,
+        onComplete: (() -> Unit)? = null
+    ) {
+        Log.i(TAG, "execDispatchGestureClick: x:$x y:$y")
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
-        dispatchGesture(
+        val result = dispatchGesture(
             GestureDescription.Builder().addStroke(
                 GestureDescription.StrokeDescription(
                     path,
@@ -160,10 +173,12 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                 override fun onCompleted(gestureDescription: GestureDescription) {
                     super.onCompleted(gestureDescription)
                     onComplete?.invoke()
+                    Log.i(TAG, "execDispatchGestureClick: onCompleted")
                 }
             },
             null
         )
+        Log.i(TAG, "execDispatchGestureClick: result:$result")
     }
 
     override fun dispatchScrollUp() {
@@ -335,6 +350,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     companion object {
         const val TAG: String = "MyService"
+
         @SuppressLint("StaticFieldLeak")
         var accessibilityCoreService: AccessibilityCoreService? = null
         var onPointLongClickListener: OnPointLongClickListener? = null
