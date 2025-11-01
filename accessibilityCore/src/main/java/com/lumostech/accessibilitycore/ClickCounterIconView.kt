@@ -71,6 +71,8 @@ class ClickCounterIconView @JvmOverloads constructor(
         minimumWidth = defaultSize
     }
 
+    public fun getClickPointList() = clickPointList
+
     public fun updateClickCountView() {
         Log.i("TAG", "updateClickCountView: ")
         val currentClickTimeMillis = System.currentTimeMillis()

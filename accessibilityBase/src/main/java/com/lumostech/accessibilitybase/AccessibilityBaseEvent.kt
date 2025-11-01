@@ -14,4 +14,5 @@ interface AccessibilityBaseEvent {
     fun dispatchRecents()
     fun dispatchGestureClick(x: Float, y: Float, onComplete: () -> Unit)
     fun setFloatCustomView(floatCustomView: View)
+    fun dispatchClickPointsEvent()
 }

@@ -80,6 +80,22 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         this.floatCustomView = floatCustomView
     }
 
+    override fun dispatchClickPointsEvent() {
+        Log.i("TAG", "dispatchClickPointsEvent: ")
+        if (floatRootView?.getClickPointList().isNullOrEmpty()) {
+            Log.i("TAG", "dispatchClickPointsEvent: getClickPointList isNullOrEmpty")
+            return
+        }
+        for (clickPoint in floatRootView?.getClickPointList()!!) {
+            floatRootView?.postDelayed({
+                dispatchGestureClick(
+                    clickPoint.x,
+                    clickPoint.y
+                )
+            }, clickPoint.delay)
+        }
+    }
+
     private fun showWindow() {
         floatRootView = LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
         showWindow(floatRootView!!)
@@ -106,7 +122,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             }
             flags =
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            width = WindowManager.LayoutParams.MATCH_PARENT
+            width = WindowManager.LayoutParams.WRAP_CONTENT
             height = WindowManager.LayoutParams.WRAP_CONTENT
             format = PixelFormat.TRANSPARENT
         }

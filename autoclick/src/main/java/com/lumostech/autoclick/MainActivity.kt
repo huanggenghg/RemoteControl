@@ -11,10 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.databinding.DataBindingUtil
 import com.lumostech.accessibilitycore.AccessibilityActivity
 import com.lumostech.accessibilitycore.AccessibilityCoreService
 import com.lumostech.accessibilitycore.Utils
 import com.lumostech.accessibilitycore.ViewModelMain
+import com.lumostech.autoclick.databinding.LayoutConfirmBinding
 
 
 class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLongClickListener {
@@ -41,8 +43,16 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
 
     override fun onPointLongClick() {
         if (AccessibilityCoreService.isStart) {
-            val confirmView = LayoutInflater.from(this).inflate(R.layout.layout_confirm, null)
-            AccessibilityCoreService.accessibilityCoreService?.setFloatCustomView(confirmView)
+            val layoutConfirmBinding = DataBindingUtil.inflate<LayoutConfirmBinding>(
+                LayoutInflater.from(this),
+                R.layout.layout_confirm,
+                null,
+                false
+            )
+            AccessibilityCoreService.accessibilityCoreService?.setFloatCustomView(
+                layoutConfirmBinding.root
+            )
+            layoutConfirmBinding.confirmEventHandler = ConfirmEventHandler(layoutConfirmBinding)
             ViewModelMain.isShowCustomFloatWindow.postValue(true)
         }
     }

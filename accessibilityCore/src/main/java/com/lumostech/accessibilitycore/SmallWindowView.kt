@@ -58,6 +58,12 @@ class SmallWindowView @JvmOverloads constructor(
         return curX >= location[0] && curX <= location[0] + width && curY >= location[1] && curY <= location[1] + height
     }
 
+    fun getClickPointList(): ArrayList<ClickCounterPoint> {
+        if (childCount == 1) {
+            return (getChildAt(0) as? ClickCounterIconView)?.getClickPointList() ?: ArrayList()
+        }
+        return ArrayList()
+    }
 
     var isRange: Boolean = false
 

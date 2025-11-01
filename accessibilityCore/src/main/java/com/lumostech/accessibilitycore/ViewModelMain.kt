@@ -7,6 +7,4 @@ object ViewModelMain {
     var isShowFloatWindow = MutableLiveData<Boolean>()
     //悬浮窗口创建 移除
     var isShowCustomFloatWindow = MutableLiveData<Boolean>()
-    //悬浮窗口显示 隐藏
-    var isVisible = MutableLiveData<Boolean>()
 }

@@ -1,69 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
-    android:background="@android:color/white"
-    android:orientation="vertical"
-    android:padding="20dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView
-        android:id="@+id/dialog_title"
+    <data>
+        <variable
+            name="confirmEventHandler"
+            type="com.lumostech.autoclick.ConfirmEventHandler" />
+    </data>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:gravity="center_horizontal"
-        android:text="确认时间"
-        android:textColor="#0f172a"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:visibility="visible" />
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <TextView
-        android:id="@+id/dialog_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_horizontal"
-        android:text="设置一个触发时间和循环周期"
-        android:textColor="#6b7280"
-        android:textSize="14sp" />
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
+            android:text="确认时间"
+            android:textColor="#0f172a"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="visible" />
 
-    <TimePicker
-        android:id="@+id/timePicker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:amPmTextColor="@android:color/holo_red_light"
-        android:timePickerMode="spinner" />
+        <TextView
+            android:id="@+id/dialog_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_horizontal"
+            android:text="设置一个触发时间和循环周期"
+            android:textColor="#6b7280"
+            android:textSize="14sp" />
 
-    <com.lumostech.autoclick.ui.widget.WeekdaysPicker
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        <TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:amPmTextColor="@android:color/holo_red_light"
+            android:timePickerMode="spinner" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/confirm"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/selector_dialog_confirm"
-        android:text="确认"
-        android:stateListAnimator="@null"
-        android:textColor="#f8fafc"
-        android:textSize="14sp" />
+        <com.lumostech.autoclick.ui.widget.WeekdaysPicker
+            android:id="@+id/weekdaysPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/cancel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/selector_dialog_cancel"
-        android:text="取消"
-        android:stateListAnimator="@null"
-        android:textColor="#0f172a"
-        android:textSize="14sp" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/confirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/selector_dialog_confirm"
+            android:stateListAnimator="@null"
+            android:text="确认"
+            android:onClick="@{confirmEventHandler.onConfirmClick}"
+            android:textColor="#f8fafc"
+            android:textSize="14sp" />
 
-</LinearLayout>
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_dialog_cancel"
+            android:stateListAnimator="@null"
+            android:text="取消"
+            android:textColor="#0f172a"
+            android:onClick="@{confirmEventHandler.onCancelClick}"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</layout>
