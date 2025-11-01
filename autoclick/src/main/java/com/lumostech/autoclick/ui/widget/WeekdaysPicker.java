@@ -256,11 +256,11 @@ public class WeekdaysPicker extends LinearLayout {
         if (sunday_first_day && weekend) {
             createDayView(SUNDAY, false);
         }
-        createDayView(MONDAY, true);
-        createDayView(TUESDAY, true);
-        createDayView(WEDNESDAY, true);
-        createDayView(THURSDAY, true);
-        createDayView(FRIDAY, true);
+        createDayView(MONDAY, false);
+        createDayView(TUESDAY, false);
+        createDayView(WEDNESDAY, false);
+        createDayView(THURSDAY, false);
+        createDayView(FRIDAY, false);
         if (weekend) {
             createDayView(SATURDAY, false);
             if (!sunday_first_day) {
