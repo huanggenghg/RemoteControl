@@ -8,12 +8,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.graphics.Path
-import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -26,7 +23,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
-import java.util.Objects.isNull
 
 
 @SuppressLint("AccessibilityPolicy")
@@ -51,29 +47,30 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     private fun initObserve() {
         ViewModelMain.isShowFloatWindow.observe(this, {
             if (it) {
-                showWindow()
+                if (floatRootView == null) {
+                    floatRootView =
+                        LayoutInflater.from(this)
+                            .inflate(R.layout.float_window, null) as SmallWindowView
+                }
+                ViewModelMain.isShowCustomFloatWindow.postValue(false)
+                FloatWindowUtils.showWindow(this, floatRootView!!)
             } else {
-                if (!isNull(floatRootView)) {
-                    if (!isNull(floatRootView?.windowToken)) {
-                        if (!isNull(windowManager)) {
-                            windowManager.removeView(floatRootView)
-                        }
-                    }
+                floatRootView?.let { view ->
+                    FloatWindowUtils.removeWindow(this, view)
+                    floatRootView = null
                 }
             }
         })
         ViewModelMain.isShowCustomFloatWindow.observe(this, {
             if (it) {
                 floatCustomView?.let { view ->
-                    showWindow(view)
+                    ViewModelMain.isShowFloatWindow.postValue(false)
+                    FloatWindowUtils.showWindow(this, view)
                 }
             } else {
-                if (!isNull(floatCustomView)) {
-                    if (!isNull(floatCustomView?.windowToken)) {
-                        if (!isNull(windowManager)) {
-                            windowManager.removeView(floatCustomView)
-                        }
-                    }
+                floatCustomView?.let { view ->
+                    FloatWindowUtils.removeWindow(this, view)
+                    floatCustomView = null
                 }
             }
         })
@@ -103,40 +100,6 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                 )
             }, clickPoint.delay)
         }
-    }
-
-    private fun showWindow() {
-        floatRootView =
-            LayoutInflater.from(this).inflate(R.layout.float_window, null) as SmallWindowView
-        showWindow(floatRootView!!)
-    }
-
-    private fun showWindow(view: View) {
-        // 设置LayoutParam
-        // 获取WindowManager服务
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        val outMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(outMetrics)
-        val layoutParam = WindowManager.LayoutParams()
-        layoutParam.apply {
-            //显示的位置
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
-                //刘海屏延伸到刘海里面
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    layoutInDisplayCutoutMode =
-                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                }
-            } else {
-                type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
-            }
-            flags =
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            width = WindowManager.LayoutParams.WRAP_CONTENT
-            height = WindowManager.LayoutParams.WRAP_CONTENT
-            format = PixelFormat.TRANSPARENT
-        }
-        windowManager.addView(view, layoutParam)
     }
 
     override fun dispatchGestureClick(x: Float, y: Float) {

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.databinding.DataBindingUtil
 import com.lumostech.accessibilitycore.AccessibilityActivity
 import com.lumostech.accessibilitycore.AccessibilityCoreService
-import com.lumostech.accessibilitycore.Utils
+import com.lumostech.accessibilitycore.FloatWindowUtils
 import com.lumostech.accessibilitycore.ViewModelMain
 import com.lumostech.autoclick.databinding.LayoutConfirmBinding
 
@@ -26,7 +26,7 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         setContent {
             FilledButtonExample {
                 showAccessibilityDialog()
-                Utils.checkSuspendedWindowPermission(this) {
+                FloatWindowUtils.checkSuspendedWindowPermission(this) {
                     ViewModelMain.isShowFloatWindow.postValue(true)
                 }
             }
