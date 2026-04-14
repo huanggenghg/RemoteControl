@@ -1,7 +1,8 @@
 package com.lumostech.autoclick
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.content.Context
-import android.util.Log
 import android.view.View
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -16,12 +17,12 @@ import java.util.concurrent.TimeUnit
 class ConfirmEventHandler(private val layoutConfirmBinding: LayoutConfirmBinding) {
     fun onConfirmClick(view: View) {
         removeFloatWindow()
-        Log.i(
+        Logger.i(
             "ConfirmEventHandler",
             "onConfirmClick: ${layoutConfirmBinding.timePicker.hour}:${layoutConfirmBinding.timePicker.minute}"
         )
         layoutConfirmBinding.weekdaysPicker.selectedDaysText.map {
-            Log.i(
+            Logger.i(
                 "ConfirmEventHandler",
                 "onConfirmClick: selectedDay: $it"
             )
@@ -57,7 +58,7 @@ class ConfirmEventHandler(private val layoutConfirmBinding: LayoutConfirmBinding
                 .addTag(ClickPeriodicWorker.TAG)
                 .setInputData(data)
                 .setInitialDelay(
-                    initialDelay, // 设置初始延迟，实现大致触发
+                    initialDelay, // 设置初始延迟，实现大致触�?
                     TimeUnit.MILLISECONDS
                 )
                 .build()

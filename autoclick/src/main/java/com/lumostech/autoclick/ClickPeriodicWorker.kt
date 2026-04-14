@@ -1,7 +1,8 @@
 package com.lumostech.autoclick
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.content.Context
-import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.lumostech.accessibilitycore.AccessibilityCoreService
@@ -15,18 +16,18 @@ class ClickPeriodicWorker(
 
     override fun doWork(): Result {
         // 执行后台任务逻辑
-        Log.d(TAG, "doWork:")
+        Logger.d(TAG, "doWork:")
         val targetDays = inputData.getIntArray(TARGET_DAYS_OF_WEEK)
         if (targetDays == null || targetDays.isEmpty()) {
-            Log.i(TAG, "doWork: targetDays is null or empty.")
+            Logger.i(TAG, "doWork: targetDays is null or empty.")
             return Result.success()
         }
 
         if (isInTargetDay(targetDays)) {
-            Log.i(TAG, "doWork: isInTargetDay.")
+            Logger.i(TAG, "doWork: isInTargetDay.")
             AccessibilityCoreService.accessibilityCoreService?.dispatchClickPointsEvent()
         } else {
-            Log.i(TAG, "doWork: is not inTargetDay.")
+            Logger.i(TAG, "doWork: is not inTargetDay.")
         }
         return Result.success()
     }
@@ -35,8 +36,8 @@ class ClickPeriodicWorker(
         val calendar: Calendar = Calendar.getInstance()
         val dayOfWeek: Int = calendar.get(Calendar.DAY_OF_WEEK)
         var isTargetDay = false
-        Log.i(TAG, "isInTargetDay: targetDays=${targetDays.contentToString()}")
-        Log.i(TAG, "isInTargetDay: dayOfWeek=$dayOfWeek")
+        Logger.i(TAG, "isInTargetDay: targetDays=${targetDays.contentToString()}")
+        Logger.i(TAG, "isInTargetDay: dayOfWeek=$dayOfWeek")
         for (targetDay in targetDays) {
             if (dayOfWeek == targetDay) {
                 isTargetDay = true
@@ -52,3 +53,4 @@ class ClickPeriodicWorker(
     }
 
 }
+

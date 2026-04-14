@@ -1,8 +1,9 @@
 package com.lumostech.remotecontrol.activity
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -33,8 +34,8 @@ import org.json.JSONObject
 abstract class ZegoBaseActivity : AccessibilityActivity() {
     protected var loginUserId: String? = null
     protected val engine: ZegoExpressEngine by lazy {
-        // 创建引擎，通用场景接入，并注册 self 为 eventHandler 回调
-        // 不需要注册回调的话，eventHandler 参数可以传 null，后续可调用 "setEventHandler:" 方法设置回调
+        // 创建引擎，通用场景接入，并注册 self �?eventHandler 回调
+        // 不需要注册回调的话，eventHandler 参数可以�?null，后续可调用 "setEventHandler:" 方法设置回调
         val profile = ZegoEngineProfile()
         profile.appID = 678281271L
         profile.scenario = ZegoScenario.HIGH_QUALITY_VIDEO_CALL // 通用场景接入
@@ -59,23 +60,23 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
     }
 
     protected open fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
-        Log.d(TAG, "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
+        Logger.d(TAG, "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
     }
 
     protected abstract fun onLoginRoomSuccess()
 
     protected open fun onPlayerPlaying() {
-        Log.d(TAG, "onPlayerPlaying")
+        Logger.d(TAG, "onPlayerPlaying")
     }
 
     protected open fun onRoomUserUpdate(userId: String, updateType: ZegoUpdateType) {
-        Log.d(TAG, "onRoomUserUpdate: userId=$userId updateType=$updateType")
+        Logger.d(TAG, "onRoomUserUpdate: userId=$userId updateType=$updateType")
     }
 
     protected fun setEventHandler() {
         engine.setEventHandler(null)
         engine.setEventHandler(object : IZegoEventHandler() {
-            // 房间内其他用户推流/停止推流时，我们会在这里收到相应用户的音视频流增减的通知
+            // 房间内其他用户推�?停止推流时，我们会在这里收到相应用户的音视频流增减的通知
             override fun onRoomStreamUpdate(
                 roomID: String,
                 updateType: ZegoUpdateType,
@@ -83,18 +84,18 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 extendedData: JSONObject
             ) {
                 super.onRoomStreamUpdate(roomID, updateType, streamList, extendedData)
-                //当 updateType 为 ZegoUpdateType.ADD 时，代表有音视频流新增，此时我们可以调用 startPlayingStream 接口拉取播放该音视频流
+                //�?updateType �?ZegoUpdateType.ADD 时，代表有音视频流新增，此时我们可以调用 startPlayingStream 接口拉取播放该音视频�?
                 if (updateType == ZegoUpdateType.ADD) {
-                    // 开始拉流，设置远端拉流渲染视图，视图模式采用 SDK 默认的模式，等比缩放填充整个 View
+                    // 开始拉流，设置远端拉流渲染视图，视图模式采�?SDK 默认的模式，等比缩放填充整个 View
                     val stream = streamList[0]
                     val playStreamID = stream.streamID
                     this@ZegoBaseActivity.onRoomStreamUpdate(stream, playStreamID)
                 }
             }
 
-            //同一房间内的其他用户进出房间时，您可通过此回调收到通知。回调中的参数 ZegoUpdateType 为 ZegoUpdateType.ADD 时，表示有用户进入了房间；ZegoUpdateType 为 ZegoUpdateType.DELETE 时，表示有用户退出了房间。
-            // 只有在登录房间 loginRoom 时传的配置 ZegoRoomConfig 中的 isUserStatusNotify 参数为 true 时，用户才能收到房间内其他用户的回调。
-            // 房间人数大于 500 人的情况下 onRoomUserUpdate 回调不保证有效。若业务场景存在房间人数大于 500 的情况，请联系 ZEGO 技术支持。
+            //同一房间内的其他用户进出房间时，您可通过此回调收到通知。回调中的参�?ZegoUpdateType �?ZegoUpdateType.ADD 时，表示有用户进入了房间；ZegoUpdateType �?ZegoUpdateType.DELETE 时，表示有用户退出了房间�?
+            // 只有在登录房�?loginRoom 时传的配�?ZegoRoomConfig 中的 isUserStatusNotify 参数�?true 时，用户才能收到房间内其他用户的回调�?
+            // 房间人数大于 500 人的情况�?onRoomUserUpdate 回调不保证有效。若业务场景存在房间人数大于 500 的情况，请联�?ZEGO 技术支持�?
             override fun onRoomUserUpdate(
                 roomID: String,
                 updateType: ZegoUpdateType,
@@ -113,7 +114,7 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 }
             }
 
-            // 房间连接状态改变
+            // 房间连接状态改�?
             override fun onRoomStateChanged(
                 roomID: String,
                 reason: ZegoRoomStateChangedReason,
@@ -121,31 +122,31 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 jsonObject: JSONObject
             ) {
                 super.onRoomStateChanged(roomID, reason, i, jsonObject)
-                Log.i(TAG, "onRoomStateChanged: roomID=$roomID reason=$reason errorCode=$i jsonObject=$jsonObject")
+                Logger.i(TAG, "onRoomStateChanged: roomID=$roomID reason=$reason errorCode=$i jsonObject=$jsonObject")
                 if (reason == ZegoRoomStateChangedReason.LOGINING) {
-                    // 正在登录房间。当调用 [loginRoom] 登录房间或 [switchRoom] 切换到目标房间时，进入该状态，表示正在请求连接服务器。通常通过该状态进行应用界面的展示。
+                    // 正在登录房间。当调用 [loginRoom] 登录房间�?[switchRoom] 切换到目标房间时，进入该状态，表示正在请求连接服务器。通常通过该状态进行应用界面的展示�?
                 } else if (reason == ZegoRoomStateChangedReason.LOGINED) {
-                    //登录房间成功。当登录房间或切换房间成功后，进入该状态，表示登录房间已经成功，用户可以正常收到房间内的其他用户和所有流信息增删的回调通知。
+                    //登录房间成功。当登录房间或切换房间成功后，进入该状态，表示登录房间已经成功，用户可以正常收到房间内的其他用户和所有流信息增删的回调通知�?
                     //只有当房间状态是登录成功或重连成功时，推流（startPublishingStream）、拉流（startPlayingStream）才能正常收发音视频
                 } else if (reason == ZegoRoomStateChangedReason.LOGIN_FAILED) {
-                    //登录房间失败。当登录房间或切换房间失败后，进入该状态，表示登录房间或切换房间已经失败，例如 AppID 或 Token 不正确等。
+                    //登录房间失败。当登录房间或切换房间失败后，进入该状态，表示登录房间或切换房间已经失败，例如 AppID �?Token 不正确等�?
                 } else if (reason == ZegoRoomStateChangedReason.RECONNECTING) {
-                    //房间连接临时中断。如果因为网络质量不佳产生的中断，SDK 会进行内部重试。
+                    //房间连接临时中断。如果因为网络质量不佳产生的中断，SDK 会进行内部重试�?
                 } else if (reason == ZegoRoomStateChangedReason.RECONNECTED) {
-                    //房间重新连接成功。如果因为网络质量不佳产生的中断，SDK 会进行内部重试，重连成功后进入该状态。
+                    //房间重新连接成功。如果因为网络质量不佳产生的中断，SDK 会进行内部重试，重连成功后进入该状态�?
                 } else if (reason == ZegoRoomStateChangedReason.RECONNECT_FAILED) {
-                    //房间重新连接失败。如果因为网络质量不佳产生的中断，SDK 会进行内部重试，重连失败后进入该状态。
+                    //房间重新连接失败。如果因为网络质量不佳产生的中断，SDK 会进行内部重试，重连失败后进入该状态�?
                 } else if (reason == ZegoRoomStateChangedReason.KICK_OUT) {
-                    //被服务器踢出房间。例如有相同用户名在其他地方登录房间导致本端被踢出房间，会进入该状态。
+                    //被服务器踢出房间。例如有相同用户名在其他地方登录房间导致本端被踢出房间，会进入该状态�?
                 } else if (reason == ZegoRoomStateChangedReason.LOGOUT) {
-                    //登出房间成功。没有登录房间前默认为该状态，当调用 [logoutRoom] 登出房间成功或 [switchRoom] 内部登出当前房间成功后，进入该状态。
+                    //登出房间成功。没有登录房间前默认为该状态，当调�?[logoutRoom] 登出房间成功�?[switchRoom] 内部登出当前房间成功后，进入该状态�?
                 } else if (reason == ZegoRoomStateChangedReason.LOGOUT_FAILED) {
-                    //登出房间失败。当调用 [logoutRoom] 登出房间失败或 [switchRoom] 内部登出当前房间失败后，进入该状态。
+                    //登出房间失败。当调用 [logoutRoom] 登出房间失败�?[switchRoom] 内部登出当前房间失败后，进入该状态�?
                 }
             }
 
             //用户推送音视频流的状态通知
-            //用户推送音视频流的状态发生变更时，会收到该回调。如果网络中断导致推流异常，SDK 在重试推流的同时也会通知状态变化。
+            //用户推送音视频流的状态发生变更时，会收到该回调。如果网络中断导致推流异常，SDK 在重试推流的同时也会通知状态变化�?
             override fun onPublisherStateUpdate(
                 streamID: String,
                 state: ZegoPublisherState,
@@ -154,19 +155,19 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
             ) {
                 super.onPublisherStateUpdate(streamID, state, errorCode, extendedData)
                 if (errorCode != 0) {
-                    //推流状态出错
+                    //推流状态出�?
                 }
                 if (state == ZegoPublisherState.PUBLISHING) {
-                    //正在推流中
+                    //正在推流�?
                 } else if (state == ZegoPublisherState.NO_PUBLISH) {
-                    //未推流
+                    //未推�?
                 } else if (state == ZegoPublisherState.PUBLISH_REQUESTING) {
-                    //正在请求推流中
+                    //正在请求推流�?
                 }
             }
 
             //用户拉取音视频流的状态通知
-            //用户拉取音视频流的状态发生变更时，会收到该回调。如果网络中断导致拉流异常，SDK 会自动进行重试。
+            //用户拉取音视频流的状态发生变更时，会收到该回调。如果网络中断导致拉流异常，SDK 会自动进行重试�?
             override fun onPlayerStateUpdate(
                 streamID: String,
                 state: ZegoPlayerState,
@@ -174,17 +175,17 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 extendedData: JSONObject
             ) {
                 super.onPlayerStateUpdate(streamID, state, errorCode, extendedData)
-                Log.i(TAG, "onPlayerStateUpdate: $streamID $state $errorCode $extendedData")
+                Logger.i(TAG, "onPlayerStateUpdate: $streamID $state $errorCode $extendedData")
                 if (errorCode != 0) {
-                    //拉流状态出错
+                    //拉流状态出�?
                 }
                 if (state == ZegoPlayerState.PLAYING) {
-                    //正在拉流中
+                    //正在拉流�?
                     onPlayerPlaying()
                 } else if (state == ZegoPlayerState.NO_PLAY) {
-                    //未拉流
+                    //未拉�?
                 } else if (state == ZegoPlayerState.PLAY_REQUESTING) {
-                    //正在请求拉流中
+                    //正在请求拉流�?
                 }
             }
 
@@ -196,8 +197,8 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 super.onNetworkQuality(userID, zegoStreamQualityLevel, zegoStreamQualityLevel1)
                 if (userID == null) {
                     // 代表本地用户（我）的网络质量
-                    //("我的上行网络质量是 %lu", (unsigned long)upstreamQuality);
-                    //("我的下行网络质量是 %lu", (unsigned long)downstreamQuality);
+                    //("我的上行网络质量�?%lu", (unsigned long)upstreamQuality);
+                    //("我的下行网络质量�?%lu", (unsigned long)downstreamQuality);
                 } else {
                     //代表房间内其他用户的网络质量
                     //("用户 %s 的上行网络质量是 %lu", userID, (unsigned long)upstreamQuality);
@@ -206,9 +207,9 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
 
                 /*
                 ZegoStreamQualityLevel.EXCELLENT, 网络质量极好
-                ZegoStreamQualityLevel.GOOD, 网络质量好
+                ZegoStreamQualityLevel.GOOD, 网络质量�?
                 ZegoStreamQualityLevel.MEDIUM, 网络质量正常
-                ZegoStreamQualityLevel.BAD, 网络质量差
+                ZegoStreamQualityLevel.BAD, 网络质量�?
                 ZegoStreamQualityLevel.DIE, 网络异常
                 ZegoStreamQualityLevel.UNKNOWN, 网络质量未知
                 */
@@ -220,7 +221,7 @@ abstract class ZegoBaseActivity : AccessibilityActivity() {
                 command: String
             ) {
                 super.onIMRecvCustomCommand(roomID, fromUser, command)
-                Log.d(
+                Logger.d(
                     TAG,
                     """onIMRecvCustomCommand: roomID = $roomID ZegoUser = ${fromUser.userID} 
 command = $command"""
@@ -229,19 +230,27 @@ command = $command"""
                     val jsonObject = JSONObject(command)
                     when (jsonObject.getString("action")) {
                         "scrollUp" -> {
-                            performScrollUp()
+                            val distance = jsonObject.optDouble("distance", 200.0).toFloat()
+                            val duration = jsonObject.optLong("duration", 300L)
+                            performScrollUp(distance, duration)
                         }
 
                         "scrollDown" -> {
-                            performScrollDown()
+                            val distance = jsonObject.optDouble("distance", 200.0).toFloat()
+                            val duration = jsonObject.optLong("duration", 300L)
+                            performScrollDown(distance, duration)
                         }
 
                         "scrollLeft" -> {
-                            performScrollLeft()
+                            val distance = jsonObject.optDouble("distance", 200.0).toFloat()
+                            val duration = jsonObject.optLong("duration", 300L)
+                            performScrollLeft(distance, duration)
                         }
 
                         "scrollRight" -> {
-                            performScrollRight()
+                            val distance = jsonObject.optDouble("distance", 200.0).toFloat()
+                            val duration = jsonObject.optLong("duration", 300L)
+                            performScrollRight(distance, duration)
                         }
 
                         "softInput" -> {
@@ -292,7 +301,7 @@ command = $command"""
 
             override fun onRoomTokenWillExpire(roomID: String?, remainTimeInSecond: Int) {
                 super.onRoomTokenWillExpire(roomID, remainTimeInSecond)
-                Log.i(TAG, "onRoomTokenWillExpire: roomID=$roomID")
+                Logger.i(TAG, "onRoomTokenWillExpire: roomID=$roomID")
                 notNull(loginUserId, roomID) {
                     isToLoginRoom = false // 设置获取 token 后的更新动作
                     viewModel.getZegoToken(loginUserId!!, roomID!!)
@@ -304,7 +313,7 @@ command = $command"""
     //登录房间
     protected fun loginRoom(userId: String?, roomId: String?) {
         notNull(userId, roomId) {
-            // 先设置 token 监听回调
+            // 先设�?token 监听回调
             collectToken(userId, roomId)
             // 触发获取 zego token
             viewModel.getZegoToken(userId!!, roomId!!)
@@ -312,58 +321,58 @@ command = $command"""
     }
 
     private fun collectToken(userId: String?, roomId: String?) {
-        // 监听 zogo token 获取状态
+        // 监听 zogo token 获取状�?
         lifecycleScope.launch {
             viewModel.zegoTokenState.collect { zegoToken ->
                 zegoToken?.data?.let {
-                    Log.i(TAG, "collectToken:zegoToken.data=$it isToLoginRoom=$isToLoginRoom")
+                    Logger.i(TAG, "collectToken:zegoToken.data=$it isToLoginRoom=$isToLoginRoom")
                     if (isToLoginRoom) {
                         // token 获取成功触发登录
-                        Log.i(TAG, "loginRoom:zegoToken.data=$it")
+                        Logger.i(TAG, "loginRoom:zegoToken.data=$it")
                         execLoginRoom(userId, roomId, it)
                     } else {
                         // token 获取成功更新 token
                         engine.renewToken(roomId, it)
                     }
                 } ?: let {
-                    Log.e(TAG, "loginRoom:zegoToken.data null!")
+                    Logger.e(TAG, "loginRoom:zegoToken.data null!")
                 }
             }
         }
     }
 
     private fun execLoginRoom(userId: String?, roomId: String?, token: String) {
-        // ZegoUser 的构造方法 public ZegoUser(String userID) 会将 “userName” 设为与传的参数 “userID” 一样。“userID” 与 “userName” 不能为 “null” 否则会导致登录房间失败。
+        // ZegoUser 的构造方�?public ZegoUser(String userID) 会将 “userName�?设为与传的参�?“userID�?一样。“userID�?�?“userName�?不能�?“null�?否则会导致登录房间失败�?
         val user = ZegoUser(userId)
 
         val roomConfig = ZegoRoomConfig()
-        //如果您使用 appsign 的方式鉴权，token 参数不需填写；如果需要使用更加安全的 鉴权方式： token 鉴权，请参考[如何从 AppSign 鉴权升级为 Token 鉴权](https://doc-zh.zego.im/faq/token_upgrade?product=ExpressVideo&platform=all)
+        //如果您使�?appsign 的方式鉴权，token 参数不需填写；如果需要使用更加安全的 鉴权方式�?token 鉴权，请参考[如何�?AppSign 鉴权升级�?Token 鉴权](https://doc-zh.zego.im/faq/token_upgrade?product=ExpressVideo&platform=all)
         roomConfig.token = token
-        // 只有传入 “isUserStatusNotify” 参数取值为 “true” 的 ZegoRoomConfig，才能收到 onRoomUserUpdate 回调。
+        // 只有传入 “isUserStatusNotify�?参数取值为 “true�?�?ZegoRoomConfig，才能收�?onRoomUserUpdate 回调�?
         roomConfig.isUserStatusNotify = true
-        Log.i(TAG, "execLoginRoom: thread:${Thread.currentThread()}")
+        Logger.i(TAG, "execLoginRoom: thread:${Thread.currentThread()}")
         // 登录房间
         engine.loginRoom(
             roomId, user, roomConfig
         ) { error: Int, extendedData: JSONObject? ->
             // 登录房间结果，如果仅关注登录结果，关注此回调即可
-            Log.d(TAG, "loginRoom: roomId=$roomId user=${user.userID} error=$error")
+            Logger.d(TAG, "loginRoom: roomId=$roomId user=${user.userID} error=$error")
             if (error == 0) {
                 // 登录成功
                 onLoginRoomSuccess()
             } else {
-                // 登录失败，请参考 errorCode 说明 https://doc-zh.zego.im/article/4378
+                // 登录失败，请参�?errorCode 说明 https://doc-zh.zego.im/article/4378
                 Toast.makeText(
                     this,
-                    "登录失败，请参考 errorCode 说明 https://doc-zh.zego.im/article/4378",
+                    "登录失败，请参�?errorCode 说明 https://doc-zh.zego.im/article/4378",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
-        Log.i(TAG, "execLoginRoom done: thread:${Thread.currentThread()}")
+        Logger.i(TAG, "execLoginRoom done: thread:${Thread.currentThread()}")
     }
 
-    //请求摄像头、录音权限
+    //请求摄像头、录音权�?
     private fun requestPermission() {
         val permissionNeeded = arrayOf(
             "android.permission.CAMERA",
@@ -386,7 +395,7 @@ command = $command"""
         when {
             args.filterNotNull().size == args.size -> block()
             else -> null.also {
-                Log.w(TAG, "notNull check fail!")
+                Logger.w(TAG, "notNull check fail!")
             }
         }
 
@@ -394,3 +403,4 @@ command = $command"""
         private const val TAG = "BaseActivity"
     }
 }
+

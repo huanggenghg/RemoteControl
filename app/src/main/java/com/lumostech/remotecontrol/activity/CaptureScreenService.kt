@@ -1,5 +1,7 @@
 package com.lumostech.remotecontrol.activity
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,7 +12,6 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.lumostech.remotecontrol.R
 
@@ -35,7 +36,7 @@ class CaptureScreenService : Service() {
                 // Define the callback
                 val mediaProjectionCallback = object : MediaProjection.Callback() {
                     override fun onStop() {
-                        Log.i("ScreenCapture", "MediaProjection stopped.")
+                        Logger.i("ScreenCapture", "MediaProjection stopped.")
                         // Clean up resources here (e.g., stop virtual display)
                     }
                 }

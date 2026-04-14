@@ -1,5 +1,7 @@
 package com.lumostech.accessibilitycore
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.app.Activity
 import android.content.Context
 import android.content.Context.WINDOW_SERVICE
@@ -8,7 +10,6 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.provider.Settings
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -18,7 +19,7 @@ object FloatWindowUtils {
     const val REQUEST_FLOAT_CODE = 1001
 
     /**
-     * 判断悬浮窗权限权限
+     * 判断悬浮窗权限权�?
      */
     private fun commonROMPermissionCheck(context: Context?): Boolean {
         var result = true
@@ -28,13 +29,13 @@ object FloatWindowUtils {
                 clazz.getDeclaredMethod("canDrawOverlays", Context::class.java)
             result = canDrawOverlays.invoke(null, context) as Boolean
         } catch (e: Exception) {
-            Log.e("ServiceUtils", Log.getStackTraceString(e))
+            Logger.e("ServiceUtils", Log.getStackTraceString(e))
         }
         return result
     }
 
     /**
-     * 检查悬浮窗权限是否开启
+     * 检查悬浮窗权限是否开�?
      */
     fun checkSuspendedWindowPermission(context: Activity, block: () -> Unit) {
         if (commonROMPermissionCheck(context)) {
@@ -50,7 +51,7 @@ object FloatWindowUtils {
 
     fun showWindow(context: Context, view: View) {
         if (view.isAttachedToWindow) {
-            Log.w(TAG, "showWindow: view.isAttachedToWindow, return.")
+            Logger.w(TAG, "showWindow: view.isAttachedToWindow, return.")
             return
         }
         val windowManager = context.getSystemService(WINDOW_SERVICE) as WindowManager
@@ -77,20 +78,20 @@ object FloatWindowUtils {
         try {
             windowManager.addView(view, layoutParam)
         } catch (e: Exception) {
-            Log.e(TAG, "showWindow: windowManager.addView exception: ${e.message}")
+            Logger.e(TAG, "showWindow: windowManager.addView exception: ${e.message}")
         }
     }
 
     fun removeWindow(context: Context, view: View) {
         if (!view.isAttachedToWindow) {
-            Log.w(TAG, "removeWindow: view.isAttachedToWindow false, return.")
+            Logger.w(TAG, "removeWindow: view.isAttachedToWindow false, return.")
             return
         }
         val windowManager = context.getSystemService(WINDOW_SERVICE) as WindowManager
         try {
             windowManager.removeView(view)
         } catch (e: Exception) {
-            Log.e(TAG, "removeWindow: windowManager.removeView exception: ${e.message}")
+            Logger.e(TAG, "removeWindow: windowManager.removeView exception: ${e.message}")
         }
     }
 

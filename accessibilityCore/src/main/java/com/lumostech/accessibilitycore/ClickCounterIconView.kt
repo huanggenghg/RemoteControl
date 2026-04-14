@@ -1,5 +1,7 @@
 package com.lumostech.accessibilitycore
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -7,18 +9,17 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import kotlin.math.min
 
 /**
- * 一个自定义的“瞄准镜”样式图标View，并包含点击计数功能。
+ * 一个自定义的“瞄准镜”样式图标View，并包含点击计数功能�?
  *
- * 功能：
- * 1. 绘制一个带四个方向圆角标记的黑色圆环。
- * 2. 内部绘制一个绿松石色的实心圆。
- * 3. 在中心圆上显示点击次数。
- * 4. 每次被点击时，计数器加一并刷新视图。
+ * 功能�?
+ * 1. 绘制一个带四个方向圆角标记的黑色圆环�?
+ * 2. 内部绘制一个绿松石色的实心圆�?
+ * 3. 在中心圆上显示点击次数�?
+ * 4. 每次被点击时，计数器加一并刷新视图�?
  */
 class ClickCounterIconView @JvmOverloads constructor(
     context: Context,
@@ -26,29 +27,29 @@ class ClickCounterIconView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    // 内部点击计数器
+    // 内部点击计数�?
     private var clickCount = 0
 
-    // 绘制黑色圆环的画笔
+    // 绘制黑色圆环的画�?
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.BLACK
-        style = Paint.Style.STROKE // 样式为描边
+        style = Paint.Style.STROKE // 样式为描�?
     }
 
-    // 绘制中心绿松石色圆圈的画笔
+    // 绘制中心绿松石色圆圈的画�?
     private val centerCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#1FFAA9") // 绿松石色
         style = Paint.Style.FILL
     }
 
-    // 绘制文字的画笔
+    // 绘制文字的画�?
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.BLACK // 文字颜色为黑色
+        color = Color.BLACK // 文字颜色为黑�?
         textAlign = Paint.Align.CENTER // 文字水平居中
         isFakeBoldText = true // 文字加粗，更清晰
     }
 
-    // 绘制圆环外侧圆角标记的画笔
+    // 绘制圆环外侧圆角标记的画�?
     private val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.BLACK
         style = Paint.Style.FILL // 实心填充
@@ -57,7 +58,7 @@ class ClickCounterIconView @JvmOverloads constructor(
     // 用于计算文字边界
     private val textBounds = Rect()
 
-    // 可复用的RectF对象，用于绘制圆角矩形
+    // 可复用的RectF对象，用于绘制圆角矩�?
     private val markerRect = RectF()
 
     private val clickPointList = ArrayList<ClickCounterPoint>()
@@ -65,7 +66,7 @@ class ClickCounterIconView @JvmOverloads constructor(
 
     init {
         // 初始化时设置一个合适的默认尺寸 (e.g., 60dp)
-        // 这样在WindowManager中用WRAP_CONTENT时，它会有一个默认大小
+        // 这样在WindowManager中用WRAP_CONTENT时，它会有一个默认大�?
         val defaultSize = (60 * resources.displayMetrics.density).toInt()
         minimumHeight = defaultSize
         minimumWidth = defaultSize
@@ -74,7 +75,7 @@ class ClickCounterIconView @JvmOverloads constructor(
     public fun getClickPointList() = clickPointList
 
     public fun updateClickCountView() {
-        Log.i("TAG", "updateClickCountView: ")
+        Logger.i("TAG", "updateClickCountView: ")
         val currentClickTimeMillis = System.currentTimeMillis()
         (parent as? SmallWindowView)?.apply {
             val clickCounterDelay =
@@ -101,24 +102,24 @@ class ClickCounterIconView @JvmOverloads constructor(
         val centerX = width / 2f
         val centerY = height / 2f
 
-        // 动态设置描边/标记宽度
-        val strokeWidth = size / 12f // 稍微加粗一点描边
+        // 动态设置描�?标记宽度
+        val strokeWidth = size / 12f // 稍微加粗一点描�?
         ringPaint.strokeWidth = strokeWidth
 
-        // **【关键修正 1】** 重新定义半径计算方式
+        // **【关键修�?1�?* 重新定义半径计算方式
         // 标记的长度也需要考虑在内，以防止标记被View边界裁剪
-        val markerLength = strokeWidth * 1.4f // 标记的长度
-        // 外半径需要为标记线留出空间
+        val markerLength = strokeWidth * 1.4f // 标记的长�?
+        // 外半径需要为标记线留出空�?
         val outerRadius = (size / 2f) - markerLength
         // 中心圆半径，确保它在黑色圆环内部
         val centerRadius = outerRadius - strokeWidth * 2
 
-        // **【关键修正 2】** 更改绘制顺序，先画中心内容，再画外部装饰
+        // **【关键修�?2�?* 更改绘制顺序，先画中心内容，再画外部装饰
 
-        // --- 2. 绘制中心的绿松石色圆圈 ---
+        // --- 2. 绘制中心的绿松石色圆�?---
         canvas.drawCircle(centerX, centerY, centerRadius, centerCirclePaint)
 
-        // --- 3. 在圆圈中心绘制点击次数 ---
+        // --- 3. 在圆圈中心绘制点击次�?---
         if (clickCount > 99) {
             clickCount = 99
         }
@@ -130,22 +131,22 @@ class ClickCounterIconView @JvmOverloads constructor(
         canvas.drawText(textToShow, centerX, textY, textPaint)
 
         // --- 4. 绘制黑色圆环 ---
-        // **【关键修正 3】** 圆环应该画在中心圆的外侧
+        // **【关键修�?3�?* 圆环应该画在中心圆的外侧
         val ringRadius = outerRadius - (strokeWidth / 2f)
         canvas.drawCircle(centerX, centerY, ringRadius, ringPaint)
 
         // --- 5. 绘制四个方向的凸起标记（带圆角） ---
-        val markerThickness = strokeWidth // 标记的厚度
+        val markerThickness = strokeWidth // 标记的厚�?
         val cornerRadius = markerThickness / 2f // 圆角半径，使其两端是完美的半圆形
 
-        // 向上 (270度) 的标记
+        // 向上 (270�? 的标�?
         markerRect.set(
             centerX - markerThickness / 2,
-            centerY - ringRadius - (strokeWidth/2), // 从圆环外边缘开始
+            centerY - ringRadius - (strokeWidth/2), // 从圆环外边缘开�?
             centerX + markerThickness / 2,
             centerY - ringRadius + markerLength - (strokeWidth/2) // 向上延伸
         )
-        // **【修正】** 坐标计算错误，应该是从圆环外边缘开始向上画，这里简化并修正了逻辑
+        // **【修正�?* 坐标计算错误，应该是从圆环外边缘开始向上画，这里简化并修正了逻辑
         markerRect.set(
             centerX - markerThickness / 2,
             centerY - ringRadius - markerLength,
@@ -155,7 +156,7 @@ class ClickCounterIconView @JvmOverloads constructor(
         canvas.drawRoundRect(markerRect, cornerRadius, cornerRadius, markerPaint)
 
 
-        // 向下 (90度) 的标记
+        // 向下 (90�? 的标�?
         markerRect.set(
             centerX - markerThickness / 2,
             centerY + ringRadius,
@@ -164,7 +165,7 @@ class ClickCounterIconView @JvmOverloads constructor(
         )
         canvas.drawRoundRect(markerRect, cornerRadius, cornerRadius, markerPaint)
 
-        // 向左 (180度) 的标记
+        // 向左 (180�? 的标�?
         markerRect.set(
             centerX - ringRadius - markerLength,
             centerY - markerThickness / 2,
@@ -173,7 +174,7 @@ class ClickCounterIconView @JvmOverloads constructor(
         )
         canvas.drawRoundRect(markerRect, cornerRadius, cornerRadius, markerPaint)
 
-        // 向右 (0度) 的标记
+        // 向右 (0�? 的标�?
         markerRect.set(
             centerX + ringRadius,
             centerY - markerThickness / 2,
@@ -184,10 +185,11 @@ class ClickCounterIconView @JvmOverloads constructor(
     }
 
     /**
-     * 公开方法，用于从外部重置计数器
+     * 公开方法，用于从外部重置计数�?
      */
     fun resetCount() {
         clickCount = 0
-        invalidate() // 请求重绘以显示 "0"
+        invalidate() // 请求重绘以显�?"0"
     }
 }
+

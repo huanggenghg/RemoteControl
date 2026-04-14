@@ -20,19 +20,23 @@ class AccessibilityHandler(accessibilityActivity: AccessibilityActivity?) : Hand
             }
 
             2 -> {
-                accessibilityActivityWf.get()!!.scrollUp()
+                val scrollData = msg.obj as ScrollData
+                accessibilityActivityWf.get()!!.scrollUp(scrollData.distance, scrollData.duration)
             }
 
             3 -> {
-                accessibilityActivityWf.get()!!.scrollDown()
+                val scrollData = msg.obj as ScrollData
+                accessibilityActivityWf.get()!!.scrollDown(scrollData.distance, scrollData.duration)
             }
 
             4 -> {
-                accessibilityActivityWf.get()!!.scrollLeft()
+                val scrollData = msg.obj as ScrollData
+                accessibilityActivityWf.get()!!.scrollLeft(scrollData.distance, scrollData.duration)
             }
 
             5 -> {
-                accessibilityActivityWf.get()!!.scrollRight()
+                val scrollData = msg.obj as ScrollData
+                accessibilityActivityWf.get()!!.scrollRight(scrollData.distance, scrollData.duration)
             }
 
             6 -> {

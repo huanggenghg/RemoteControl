@@ -8,21 +8,23 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.graphics.Path
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
+import com.lumostech.remotecontrol.utils.Logger
 
 
 @SuppressLint("AccessibilityPolicy")
@@ -42,7 +44,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     /**
-     * 打开关闭的订阅
+     * 打开关闭的订�?
      */
     private fun initObserve() {
         ViewModelMain.isShowFloatWindow.observe(this, {
@@ -81,13 +83,13 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun dispatchClickPointsEvent() {
-        Log.i("TAG", "dispatchClickPointsEvent: ")
+        Logger.i("TAG", "dispatchClickPointsEvent: ")
         if (floatRootView?.getClickPointList().isNullOrEmpty()) {
-            Log.i("TAG", "dispatchClickPointsEvent: getClickPointList isNullOrEmpty")
+            Logger.i("TAG", "dispatchClickPointsEvent: getClickPointList isNullOrEmpty")
             return
         }
         floatRootView?.getClickPointList()?.forEach { clickCounterPoint ->
-            Log.i(
+            Logger.i(
                 "TAG",
                 "dispatchClickPointsEvent: clickCounterPoint:x:${clickCounterPoint.x} y:${clickCounterPoint.y} delay:${clickCounterPoint.delay}"
             )
@@ -120,7 +122,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         y: Float,
         onComplete: (() -> Unit)? = null
     ) {
-        Log.i(TAG, "execDispatchGestureClick: x:$x y:$y")
+        Logger.i(TAG, "execDispatchGestureClick: x:$x y:$y")
         val path = Path()
         path.moveTo(x, y)
         path.lineTo(x + 1, y + 1)
@@ -136,74 +138,138 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                 override fun onCompleted(gestureDescription: GestureDescription) {
                     super.onCompleted(gestureDescription)
                     onComplete?.invoke()
-                    Log.i(TAG, "execDispatchGestureClick: onCompleted")
+                    Logger.i(TAG, "execDispatchGestureClick: onCompleted")
                 }
             },
             null
         )
-        Log.i(TAG, "execDispatchGestureClick: result:$result")
+        Logger.i(TAG, "execDispatchGestureClick: result:$result")
     }
 
-    override fun dispatchScrollUp() {
-        dispatchScroll(true)
+    override fun dispatchScrollUp(distance: Float, duration: Long) {
+        dispatchScroll(true, distance, duration)
     }
 
-    override fun dispatchScrollDown() {
-        dispatchScroll(false)
+    override fun dispatchScrollDown(distance: Float, duration: Long) {
+        dispatchScroll(false, distance, duration)
     }
 
-    override fun dispatchScrollLeft() {
-        dispatchXScroll(true)
+    override fun dispatchScrollLeft(distance: Float, duration: Long) {
+        dispatchXScroll(true, distance, duration)
     }
 
-    override fun dispatchScrollRight() {
-        dispatchXScroll(false)
+    override fun dispatchScrollRight(distance: Float, duration: Long) {
+        dispatchXScroll(false, distance, duration)
     }
 
-    private fun dispatchXScroll(isScrollingLeft: Boolean) {
-        val diff = if (isScrollingLeft) -50F else 50F
+    private fun dispatchXScroll(isScrollingLeft: Boolean, distance: Float, duration: Long) {
+        val diff = if (isScrollingLeft) -distance else distance
         val centerX = resources.displayMetrics.widthPixels / 2
-        val centerY = resources.displayMetrics.widthPixels / 2
+        val centerY = resources.displayMetrics.heightPixels / 2
 
-        val path = Path()
-        path.moveTo(centerX.toFloat(), centerY.toFloat())
-        path.lineTo(centerX + diff, centerY.toFloat())
-        dispatchGesture(
-            GestureDescription.Builder().addStroke(
-                GestureDescription.StrokeDescription(
-                    path,
-                    0,
-                    20
-                )
-            ).build(),
-            null,
-            null
+        dispatchSmoothGesture(
+            centerX.toFloat(), centerY.toFloat(),
+            centerX + diff, centerY.toFloat(),
+            duration
         )
     }
 
-    private fun dispatchScroll(isScrollingUp: Boolean) {
-        val diff = if (isScrollingUp) -50F else 50F
+    private fun dispatchScroll(isScrollingUp: Boolean, distance: Float, duration: Long) {
+        val diff = if (isScrollingUp) -distance else distance
         val centerX = resources.displayMetrics.widthPixels / 2
-        val centerY = resources.displayMetrics.widthPixels / 2
+        val centerY = resources.displayMetrics.heightPixels / 2
+
+        dispatchSmoothGesture(
+            centerX.toFloat(), centerY.toFloat(),
+            centerX.toFloat(), centerY + diff,
+            duration
+        )
+    }
+
+    private fun dispatchSmoothGesture(
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        duration: Long
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            val path = Path()
+            path.moveTo(startX, startY)
+            path.lineTo(endX, endY)
+            dispatchGesture(
+                GestureDescription.Builder().addStroke(
+                    GestureDescription.StrokeDescription(
+                        path,
+                        0,
+                        duration
+                    )
+                ).build(),
+                null,
+                null
+            )
+            return
+        }
+
+        // Split into segments (Calculus-like approach)
+        // 20ms per step seems reasonable for smooth animation (50fps)
+        val stepDuration = 20L
+        val steps = (duration / stepDuration).toInt().coerceAtLeast(1)
+        val stepX = (endX - startX) / steps
+        val stepY = (endY - startY) / steps
+
+        executeGestureStep(0, steps, startX, startY, stepX, stepY, stepDuration)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun executeGestureStep(
+        currentStep: Int,
+        totalSteps: Int,
+        lastX: Float,
+        lastY: Float,
+        stepX: Float,
+        stepY: Float,
+        stepDuration: Long
+    ) {
+        if (currentStep >= totalSteps) return
+
+        val nextX = lastX + stepX
+        val nextY = lastY + stepY
 
         val path = Path()
-        path.moveTo(centerX.toFloat(), centerY.toFloat())
-        path.lineTo(centerX.toFloat(), centerY + diff)
-        dispatchGesture(
-            GestureDescription.Builder().addStroke(
-                GestureDescription.StrokeDescription(
-                    path,
-                    0,
-                    20
+        path.moveTo(lastX, lastY)
+        path.lineTo(nextX, nextY)
+
+        val isLastStep = currentStep == totalSteps - 1
+        // If not the last step, continue the gesture
+        val willContinue = !isLastStep
+
+        val stroke = GestureDescription.StrokeDescription(path, 0, stepDuration, willContinue)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
+
+        dispatchGesture(gesture, object : GestureResultCallback() {
+            override fun onCompleted(gestureDescription: GestureDescription?) {
+                super.onCompleted(gestureDescription)
+                executeGestureStep(
+                    currentStep + 1,
+                    totalSteps,
+                    nextX,
+                    nextY,
+                    stepX,
+                    stepY,
+                    stepDuration
                 )
-            ).build(),
-            null,
-            null
-        )
+            }
+
+            override fun onCancelled(gestureDescription: GestureDescription?) {
+                super.onCancelled(gestureDescription)
+                Logger.w(TAG, "Gesture cancelled at step $currentStep")
+            }
+        }, null)
     }
 
     override fun dispatchSoftInput(inputText: String) {
-        Log.i(TAG, "dispatchSoftInput: $inputText")
+        Logger.i(TAG, "dispatchSoftInput: $inputText")
         execInputText(inputText)
     }
 
@@ -224,16 +290,16 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
      */
     private fun execInputText(text: String?) {
         if (rootInActiveWindow == null) {
-            Log.w(TAG, "inputText: $rootInActiveWindow, return")
+            Logger.w(TAG, "inputText: $rootInActiveWindow, return")
             return
         }
 
         val info = rootInActiveWindow.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
         if (info == null) {
-            Log.e(TAG, "execInputText: not focus node!")
+            Logger.e(TAG, "execInputText: not focus node!")
             return
         }
-        //粘贴板
+        //粘贴�?
         val clipboard: ClipboardManager =
             getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("label", text)
@@ -250,7 +316,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     override fun onRebind(intent: Intent) {
         super.onRebind(intent)
-        Log.e(TAG, "onRebind: ")
+        Logger.e(TAG, "onRebind: ")
     }
 
 
@@ -258,27 +324,27 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         super.onDestroy()
         accessibilityCoreService = null
-        Log.e(TAG, "onDestroy: ")
+        Logger.e(TAG, "onDestroy: ")
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        Log.e(TAG, "onStartCommand: ")
+        Logger.e(TAG, "onStartCommand: ")
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onUnbind(intent: Intent): Boolean {
-        Log.e(TAG, "onUnbind: ")
+        Logger.e(TAG, "onUnbind: ")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         return super.onUnbind(intent)
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        Log.e(TAG, "onKeyEvent: $event")
+        Logger.e(TAG, "onKeyEvent: $event")
         return super.onKeyEvent(event)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        Log.e(TAG, "onAccessibilityEvent: $event")
+        Logger.e(TAG, "onAccessibilityEvent: $event")
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (event.packageName != null && event.className != null) {
                 pkgNameMutableLiveData.value = event.packageName.toString()
@@ -287,13 +353,13 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun onInterrupt() {
-        Log.e(TAG, "onInterrupt: ")
+        Logger.e(TAG, "onInterrupt: ")
     }
 
     override fun onServiceConnected() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         super.onServiceConnected()
-        Log.d(TAG, "onServiceConnected: ")
+        Logger.d(TAG, "onServiceConnected: ")
         val config = AccessibilityServiceInfo()
         config.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
         config.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mcp__happy__change_title Android RemoteControl Project Analysis:*)"
+    ]
+  }
+}

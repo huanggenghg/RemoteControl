@@ -1,11 +1,12 @@
 package com.lumostech.remotecontrol.activity
 
+import com.lumostech.remotecontrol.utils.Logger
+
 import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
@@ -53,7 +54,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // 某些 ROM/场景下切回前台会丢失，需要重新应用
+        // 某些 ROM/场景下切回前台会丢失，需要重新应�?
         if (hasFocus) ImmersiveFullscreenUtil.enableTrueFullscreen(this)
     }
 
@@ -81,9 +82,9 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         moreVerBtn?.setOnClickListener(this)
     }
 
-    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一次
-        Log.d("REMOTE", "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
-        Log.d("REMOTE", "onRoomStreamUpdate: playStreamId = $playStreamId")
+    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一�?
+        Logger.d("REMOTE", "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
+        Logger.d("REMOTE", "onRoomStreamUpdate: playStreamId = $playStreamId")
         MyApp.remoteScreenAdaptedWidth = window.decorView.width
         val windowData = zegoStream?.extraInfo?.split(",")
         if (windowData?.isEmpty() == false) {
@@ -98,10 +99,10 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     private fun startPlayingStreamOnAdaptedCanvas() {
         if (playStreamId.isNullOrEmpty()) {
-            Log.w("REMOTE", "startPlayingStreamOnAdaptedCanvas: playStreamId isNullOrEmpty, return.")
+            Logger.w("REMOTE", "startPlayingStreamOnAdaptedCanvas: playStreamId isNullOrEmpty, return.")
             return
         }
-        Log.d(
+        Logger.d(
             "REMOTE",
             "startPlayingStreamOnAdaptedCanvas: MyApp.remoteScreenAdaptedWidth = $MyApp.remoteScreenAdaptedWidth, MyApp.remoteScreenAdaptedHeight = $MyApp.remoteScreenAdaptedHeight"
         )
@@ -109,13 +110,13 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         zegoCanvas?.let {
             engine.startPlayingStream(playStreamId, it)
         } ?: let {
-            Log.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
+            Logger.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
         }
     }
 
     private fun getScreenAdaptedCanvas(): ZegoCanvas? {
         if (MyApp.remoteScreenAdaptedWidth == -1 || MyApp.remoteScreenAdaptedHeight == -1) {
-            Log.w(
+            Logger.w(
                 "REMOTE",
                 "adaptScreenParams: remoteScreenWidth or remoteScreenHeight is not valid! check onRoomStreamUpdate."
             )
@@ -133,7 +134,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
     }
 
     private fun getStatusBarHeightPx(activity: Activity): Int {
-        // 优先用 WindowInsets（忽略可见性，沉浸式也能拿到真实高度）
+        // 优先�?WindowInsets（忽略可见性，沉浸式也能拿到真实高度）
         val insets = activity.window?.decorView?.rootWindowInsets
         if (insets != null) {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -143,14 +144,14 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                 insets.systemWindowInsetTop
             }
         }
-        // 资源兜底（大多数 ROM 提供）
+        // 资源兜底（大多数 ROM 提供�?
         val res = activity.resources
         val resId = res.getIdentifier("status_bar_height", "dimen", "android")
         return if (resId > 0) res.getDimensionPixelSize(resId) else 0
     }
 
     override fun onLoginRoomSuccess() {
-        Log.d("REMOTE", "onLoginRoomSuccess")
+        Logger.d("REMOTE", "onLoginRoomSuccess")
         sendCustomCommand(JSONObject().apply {
             put("action", "onRemoteControlLoginRoomSuccess")
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -169,7 +170,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (TextUtils.isEmpty(mRoomId)) {
-            Log.w("TAG", "onTouchEvent: mRoomId is empty!")
+            Logger.w("TAG", "onTouchEvent: mRoomId is empty!")
             return super.onTouchEvent(event)
         }
         when (event.action) {
@@ -291,7 +292,7 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         engine.sendCustomCommand(
             mRoomId, command, null
         ) { errorCode: Int ->
-            Log.d(
+            Logger.d(
                 "TAG",
                 "sendCustomCommand: error = $errorCode"
             )

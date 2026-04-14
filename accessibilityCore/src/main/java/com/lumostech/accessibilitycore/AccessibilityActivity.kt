@@ -24,27 +24,31 @@ open class AccessibilityActivity : ComponentActivity() {
         myHandler.sendMessage(message)
     }
 
-    protected fun performScrollUp() {
+    protected fun performScrollUp(distance: Float = 200f, duration: Long = 300L) {
         val message = Message()
         message.what = 2
+        message.obj = ScrollData(distance, duration)
         myHandler.sendMessage(message)
     }
 
-    protected fun performScrollDown() {
+    protected fun performScrollDown(distance: Float = 200f, duration: Long = 300L) {
         val message = Message()
         message.what = 3
+        message.obj = ScrollData(distance, duration)
         myHandler.sendMessage(message)
     }
 
-    protected fun performScrollLeft() {
+    protected fun performScrollLeft(distance: Float = 200f, duration: Long = 300L) {
         val message = Message()
         message.what = 4
+        message.obj = ScrollData(distance, duration)
         myHandler.sendMessage(message)
     }
 
-    protected fun performScrollRight() {
+    protected fun performScrollRight(distance: Float = 200f, duration: Long = 300L) {
         val message = Message()
         message.what = 5
+        message.obj = ScrollData(distance, duration)
         myHandler.sendMessage(message)
     }
 
@@ -77,20 +81,20 @@ open class AccessibilityActivity : ComponentActivity() {
         AccessibilityCoreService.accessibilityCoreService?.dispatchGestureClick(x, y)
     }
 
-    fun scrollUp() {
-        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollUp()
+    fun scrollUp(distance: Float, duration: Long) {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollUp(distance, duration)
     }
 
-    fun scrollDown() {
-        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollDown()
+    fun scrollDown(distance: Float, duration: Long) {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollDown(distance, duration)
     }
 
-    fun scrollLeft() {
-        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollLeft()
+    fun scrollLeft(distance: Float, duration: Long) {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollLeft(distance, duration)
     }
 
-    fun scrollRight() {
-        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollRight()
+    fun scrollRight(distance: Float, duration: Long) {
+        AccessibilityCoreService.accessibilityCoreService?.dispatchScrollRight(distance, duration)
     }
 
     fun softInput(inputText: String) {
