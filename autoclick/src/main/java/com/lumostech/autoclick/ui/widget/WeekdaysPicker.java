@@ -58,8 +58,8 @@ public class WeekdaysPicker extends LinearLayout {
     private final Context mContext;
     private final float dayViewPadding = 5;
     private final float layoutWeight = 1.0f;
-    private final int height = 30;
-    private final int width = 30;
+    private final int height = 36;
+    private final int width = 36;
     private final float fontSize = 14f;
     private int selectedDayBackgroundColor;
     private int unSelectedDayBackgroundColor;
@@ -276,7 +276,11 @@ public class WeekdaysPicker extends LinearLayout {
 
     private String getDayLetter(int dayOfWeek) {
         String weekday = new DateFormatSymbols().getShortWeekdays()[dayOfWeek];
-        return fullSize ? weekday : weekday.charAt(1) + "";
+        if (fullSize) return weekday;
+        if (Locale.getDefault().getLanguage().equals("zh")) {
+            return new String[]{"", "日", "一", "二", "三", "四", "五", "六"}[dayOfWeek];
+        }
+        return weekday.substring(0, 1);
     }
 
     private String getDayString(int dayOfWeek, Locale locale) {
@@ -330,6 +334,7 @@ public class WeekdaysPicker extends LinearLayout {
     private void createDayView(int tag, boolean selected) {
         ImageView dayView = new ImageView(mContext);
         dayView.setTag(tag);
+        dayView.setMinimumHeight(getDpFromPx(48));
         dayView.setLayoutParams(layoutParams);
         int padding = getDpFromPx(dayViewPadding);
         dayView.setPadding(padding, padding, padding, padding);
@@ -364,6 +369,7 @@ public class WeekdaysPicker extends LinearLayout {
 
     private void setDaySelected(ImageView dayView, boolean b) {
         dayView.setSelected(b);
+        dayView.setContentDescription(getDayString((int) dayView.getTag(), Locale.getDefault()) + (b ? "，已选择" : "，未选择"));
         String dayText = getDayText(dayView);
         int tag = (int) dayView.getTag();
         if (b) {

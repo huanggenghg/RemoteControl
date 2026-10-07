@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.MyApp" parent="BaseAutoclickTheme">
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/ac_background</item>
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

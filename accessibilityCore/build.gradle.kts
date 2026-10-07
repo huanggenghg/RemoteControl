@@ -63,4 +63,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     api(project(":accessibilityBase"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }

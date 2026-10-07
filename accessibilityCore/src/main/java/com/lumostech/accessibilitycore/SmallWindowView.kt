@@ -1,9 +1,10 @@
 package com.lumostech.accessibilitycore
 
-import com.lumostech.remotecontrol.utils.Logger
+import com.lumostech.accessibilitybase.utils.Logger
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -23,7 +24,7 @@ class SmallWindowView @JvmOverloads constructor(
     private val screenWidth: Int
     private val statusHeight: Int //状态栏高度
 
-    //MotionEvent.ACTION_DOWN的开始坐�?
+    //MotionEvent.ACTION_DOWN的开始坐�?
     private var mTouchStartX = 0f
     private var mTouchStartY = 0f
 
@@ -39,16 +40,16 @@ class SmallWindowView @JvmOverloads constructor(
     private var wm: WindowManager? = null
     var wmParams: WindowManager.LayoutParams? = null
 
-    private val location = IntArray(2) // 小窗口位置坐�?
+    private val location = IntArray(2) // 小窗口位置坐�?
 
     // --- 【新增】长按逻辑相关变量 ---
     private var longPressRunnable: Runnable? = null
-    private val longPressTimeout = 1000L // 获取系统默认的长按超时时�?
-    private var isLongPressed = false // 标志位，防止长按后还触发拖动或点�?
+    private val longPressTimeout = 1000L // 获取系统默认的长按超时时�?
+    private var isLongPressed = false // 标志位，防止长按后还触发拖动或点�?
 
-    // --- 【新增】拖动判断相关变�?---
+    // --- 【新增】拖动判断相关变�?---
     private var isDragging = false
-    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop // 系统建议的最小滑动距�?
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop // 系统建议的最小滑动距�?
 
     private fun calcPointRange(event: MotionEvent): Boolean {
         this.getLocationOnScreen(location)
@@ -80,7 +81,7 @@ class SmallWindowView @JvmOverloads constructor(
         y = event.rawY
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                // 重置所有状态标�?
+                // 重置所有状态标�?
                 isDragging = false
                 isLongPressed = false
 
@@ -94,14 +95,14 @@ class SmallWindowView @JvmOverloads constructor(
                     "lastWmParamsX$lastWmParamsX====lastWmParamsY$lastWmParamsY"
                 )
 
-                // 【新增】启动长按检�?
+                // 【新增】启动长按检�?
                 longPressRunnable = Runnable {
-                    isLongPressed = true // 标记已经触发了长�?
-                    Logger.d(TAG, "长按事件触发�?)
+                    isLongPressed = true // 标记已经触发了长�?
+                    Logger.d(TAG, "Long press detected")
                     // 在这里执行你的长按逻辑
                     performLongClick()
                 }
-                // 延迟 longPressTimeout 毫秒后执行长按任�?
+                // 延迟 longPressTimeout 毫秒后执行长按任�?
                 postDelayed(longPressRunnable, longPressTimeout)
             }
 
@@ -109,10 +110,10 @@ class SmallWindowView @JvmOverloads constructor(
                 val dx = x - mTouchStartX
                 val dy = y - mTouchStartY
 
-                // 检查是否超过滑动阈�?
+                // 检查是否超过滑动阈�?
                 if (!isDragging && (abs(dx) > touchSlop || abs(dy) > touchSlop)) {
-                    isDragging = true // 判定为拖�?
-                    // 【新增】一旦开始拖动，就取消长按检�?
+                    isDragging = true // 判定为拖�?
+                    // 【新增】一旦开始拖动，就取消长按检�?
                     removeCallbacks(longPressRunnable)
                 }
 
@@ -123,7 +124,7 @@ class SmallWindowView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_UP -> {
-                // 【新增】手指抬起时，无论如何都要取消长按检�?
+                // 【新增】手指抬起时，无论如何都要取消长按检�?
                 removeCallbacks(longPressRunnable)
 
                 if (isLongPressed) {
@@ -131,17 +132,17 @@ class SmallWindowView @JvmOverloads constructor(
                     // just reset the flag
                     isLongPressed = false
                 } else if (isDragging) {
-                    // 如果是拖动结�?
+                    // 如果是拖动结�?
                     handleEdgeAdsorption(event)
                 } else {
-                    // 如果既不是长按，也不是拖动，那就是一次“点击�?
-                    Logger.d(TAG, "点击事件触发�?)
-                    // 如果有子View，最好调�?performClick() 来确保无障碍服务能识�?
+                    // 如果既不是长按，也不是拖动，那就是一次“点击�?
+                    Logger.d(TAG, "Click detected")
+                    // 如果有子View，最好调�?performClick() 来确保无障碍服务能识�?
                     performClick()
                 }
             }
             MotionEvent.ACTION_CANCEL -> {
-                // 【新增】事件被取消时（例如被父View拦截），也要取消长按检�?
+                // 【新增】事件被取消时（例如被父View拦截），也要取消长按检�?
                 removeCallbacks(longPressRunnable)
             }
         }
@@ -158,7 +159,13 @@ class SmallWindowView @JvmOverloads constructor(
 
     override fun performLongClick(): Boolean {
         if (childCount == 1) {
-            AccessibilityCoreService.onPointLongClickListener?.onPointLongClick()
+            val listener = AccessibilityCoreService.onPointLongClickListener
+            if (listener != null) listener.onPointLongClick()
+            else context.packageManager.getLaunchIntentForPackage(context.packageName)?.let { intent ->
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                intent.putExtra(AccessibilityCoreService.CONFIGURE_CLICKS, true)
+                context.startActivity(intent)
+            }
             return true
         }
         return super.performLongClick()
@@ -230,7 +237,7 @@ class SmallWindowView @JvmOverloads constructor(
 
     private fun isHorizontalScreen(windowManager: WindowManager): Boolean {
         val angle = windowManager.defaultDisplay.rotation
-        //如果屏幕旋转90°或�?70°是判断为横屏，横屏规避不展示
+        //如果屏幕旋转90°或�?70°是判断为横屏，横屏规避不展示
         return angle == Surface.ROTATION_90 || angle == Surface.ROTATION_270
     }
 
@@ -239,7 +246,7 @@ class SmallWindowView @JvmOverloads constructor(
         private const val TAG = "SmallWindowView"
 
         /**
-         * 获得状态栏的高�?
+         * 获得状态栏的高�?
          *
          * @param context
          * @return
@@ -261,4 +268,3 @@ class SmallWindowView @JvmOverloads constructor(
         }
     }
 }
-

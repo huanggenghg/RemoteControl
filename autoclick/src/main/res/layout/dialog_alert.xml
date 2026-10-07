@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="24dp" android:fillViewport="true">
+    <LinearLayout style="@style/AutoclickPanel" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:id="@+id/dialog_title" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="开启无障碍服务" android:textColor="@color/ac_text" android:textSize="22sp" android:textStyle="bold" />
+        <TextView android:id="@+id/dialog_message" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="录制悬浮按钮和点击回放需要无障碍服务。请在系统设置中找到 AutoClick 并开启。"
+            android:textColor="@color/ac_text_secondary" android:textSize="15sp" android:lineSpacingExtra="4dp" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/confirm" style="@style/AutoclickButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp"
+            android:background="@drawable/selector_dialog_confirm" android:text="前往设置" android:textColor="@color/ac_button_text" />
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/cancel" style="@style/AutoclickButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:background="@drawable/selector_dialog_cancel" android:text="暂不开启" android:textColor="@color/ac_primary_pressed" />
+    </LinearLayout>
+</ScrollView>

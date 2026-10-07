@@ -1,0 +1,11 @@
+# Autoclick background recovery and service status
+
+The user approved prioritizing background recovery and service status. Task editing remains deferred. Continue inline on the existing branch, preserving unrelated changes and original emulator data.
+
+The periodic worker currently fails immediately when its process exists but the system has not yet connected its accessibility service. Replace this with a cancellable wait of at most ten seconds, polling every 100 ms only when the service is enabled in system settings. A disabled service fails immediately. Before every probe, validate the current task identity/enabled state, the original day's start window and wall/elapsed clock agreement. Task replacement, stop, clock changes and window expiry prevent dispatch. Claim the scheduled occurrence only after connection and the existing preflight checks; preserve at-most-once execution. Do not add automatic gesture retries or attempt to bypass force-stop.
+
+The home screen distinguishes disabled, enabled-but-disconnected and connected status. Refresh while the Activity is visible and immediately after returning from settings. Provide an explicit system-accessibility-settings button; never enable permissions programmatically in production. Explain that connection alone does not guarantee execution: the target page must be open, the screen unlocked and the trigger may be delayed.
+
+Prefer a bounded reconnect wait over a permanent foreground service or WorkManager retry: a foreground service does not establish the accessibility connection or bypass force-stop, while automatic retries complicate occurrence ownership and do not solve the initialization race directly. Keep the shared accessibility library unchanged; Autoclick reads its existing live reference on Main.
+
+Test the absent-reference window before real Android gestures, stopping while waiting, disabled-service exit, timeout/cancellation, live UI states, and actual app-process restart. Process recovery must distinguish actual system rebinding from an instrumentation process manually relaunching the app. Snapshot/restore emulator app data and accessibility settings for destructive fixtures. Continue skipping real-device/ROM power-management acceptance.

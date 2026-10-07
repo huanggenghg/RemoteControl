@@ -1,6 +1,6 @@
 package com.lumostech.accessibilitycore
 
-import com.lumostech.remotecontrol.utils.Logger
+import com.lumostech.accessibilitybase.utils.Logger
 
 import android.app.Activity
 import android.content.Context
@@ -29,7 +29,7 @@ object FloatWindowUtils {
                 clazz.getDeclaredMethod("canDrawOverlays", Context::class.java)
             result = canDrawOverlays.invoke(null, context) as Boolean
         } catch (e: Exception) {
-            Logger.e("ServiceUtils", Log.getStackTraceString(e))
+            Logger.e("ServiceUtils", "Overlay permission check failed", e)
         }
         return result
     }
@@ -49,7 +49,7 @@ object FloatWindowUtils {
     }
 
 
-    fun showWindow(context: Context, view: View) {
+    fun showWindow(context: Context, view: View, widthPixels: Int? = null) {
         if (view.isAttachedToWindow) {
             Logger.w(TAG, "showWindow: view.isAttachedToWindow, return.")
             return
@@ -71,7 +71,7 @@ object FloatWindowUtils {
             }
             flags =
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            width = WindowManager.LayoutParams.WRAP_CONTENT
+            width = widthPixels?.coerceIn(1, outMetrics.widthPixels) ?: WindowManager.LayoutParams.WRAP_CONTENT
             height = WindowManager.LayoutParams.WRAP_CONTENT
             format = PixelFormat.TRANSPARENT
         }

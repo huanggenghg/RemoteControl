@@ -1,77 +1,60 @@
 package com.lumostech.autoclick
 
-import com.lumostech.remotecontrol.utils.Logger
-
-import android.content.Context
 import android.view.View
-import androidx.work.Data
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
+import android.widget.Toast
+import com.lumostech.accessibilitycore.AccessibilityCoreService
 import com.lumostech.accessibilitycore.ViewModelMain
 import com.lumostech.autoclick.databinding.LayoutConfirmBinding
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.util.UUID
 
-
-class ConfirmEventHandler(private val layoutConfirmBinding: LayoutConfirmBinding) {
+class ConfirmEventHandler(
+    private val binding: LayoutConfirmBinding,
+    private val scope: CoroutineScope,
+    private val controller: ClickTaskController
+) {
     fun onConfirmClick(view: View) {
-        removeFloatWindow()
-        Logger.i(
-            "ConfirmEventHandler",
-            "onConfirmClick: ${layoutConfirmBinding.timePicker.hour}:${layoutConfirmBinding.timePicker.minute}"
-        )
-        layoutConfirmBinding.weekdaysPicker.selectedDaysText.map {
-            Logger.i(
-                "ConfirmEventHandler",
-                "onConfirmClick: selectedDay: $it"
-            )
+        val days = binding.weekdaysPicker.selectedDays.toSet()
+        val service = AccessibilityCoreService.accessibilityCoreService
+        val points = service?.getRecordedClickPoints().orEmpty()
+        if (days.isEmpty() || points.isEmpty()) {
+            Toast.makeText(view.context, if (days.isEmpty()) "请至少选择一个执行星期" else "请先录制点击位置", Toast.LENGTH_SHORT).show()
+            return
         }
-        setClickPeriodicWorker(view.context)
+        val protection = service?.getRecordedProtection()
+        if (protection == null) {
+            Toast.makeText(view.context, ClickTaskOutcome.NEEDS_RECORDING.message, Toast.LENGTH_LONG).show()
+            return
+        }
+        val task = ClickTask(UUID.randomUUID().toString(), binding.timePicker.hour, binding.timePicker.minute, days, points,
+            protection = protection)
+        if (!task.isValid()) {
+            Toast.makeText(view.context, "录制最多 200 个点击，时长不超过 8 分钟", Toast.LENGTH_LONG).show()
+            return
+        }
+        binding.confirm.isEnabled = false
+        binding.cancel.isEnabled = false
+        scope.launch {
+            try {
+                controller.save(task)
+                ViewModelMain.isShowFloatWindow.value = false
+                ViewModelMain.isShowCustomFloatWindow.value = false
+                Toast.makeText(view.context, "任务已保存，延后超过 15 分钟将跳过", Toast.LENGTH_LONG).show()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(view.context, "保存失败：${e.message}", Toast.LENGTH_LONG).show()
+            } finally {
+                binding.confirm.isEnabled = true
+                binding.cancel.isEnabled = true
+            }
+        }
     }
 
     fun onCancelClick(view: View) {
-        removeFloatWindow()
-    }
-
-    private fun setClickPeriodicWorker(context: Context) {
-        val data = Data.Builder()
-            .putIntArray(
-                ClickPeriodicWorker.TARGET_DAYS_OF_WEEK,
-                layoutConfirmBinding.weekdaysPicker.selectedDays.toIntArray()
-            )
-            .build()
-
-        val currentDate: Calendar = Calendar.getInstance()
-        val dueDate: Calendar = currentDate.clone() as Calendar
-
-        dueDate.set(Calendar.HOUR_OF_DAY, layoutConfirmBinding.timePicker.hour)
-        dueDate.set(Calendar.MINUTE, layoutConfirmBinding.timePicker.minute)
-        dueDate.set(Calendar.SECOND, 0)
-        // 如果当前时间已经过了今天的设置的时刻，则将执行日期设置为明天
-        if (dueDate.before(currentDate)) {
-            dueDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-        val initialDelay = dueDate.getTimeInMillis() - currentDate.getTimeInMillis()
-        val build: PeriodicWorkRequest =
-            PeriodicWorkRequest.Builder(ClickPeriodicWorker::class.java, 1, TimeUnit.DAYS)
-                .addTag(ClickPeriodicWorker.TAG)
-                .setInputData(data)
-                .setInitialDelay(
-                    initialDelay, // 设置初始延迟，实现大致触�?
-                    TimeUnit.MILLISECONDS
-                )
-                .build()
-        val instance = WorkManager.getInstance(context)
-        instance.enqueueUniquePeriodicWork(
-            ClickPeriodicWorker.TAG,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            build
-        )
-    }
-
-    private fun removeFloatWindow() {
-        ViewModelMain.isShowFloatWindow.postValue(false)
-        ViewModelMain.isShowCustomFloatWindow.postValue(false)
+        ViewModelMain.isShowCustomFloatWindow.value = false
+        ViewModelMain.isShowFloatWindow.value = true
     }
 }

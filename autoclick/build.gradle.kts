@@ -37,6 +37,7 @@ android {
     buildFeatures {
         compose = true
         dataBinding = true
+        buildConfig = true
     }
 }
 
@@ -64,4 +65,5 @@ dependencies {
 
     implementation("com.amulyakhare:com.amulyakhare.textdrawable:1.0.1")
     implementation("androidx.work:work-runtime-ktx:2.11.0")
+    androidTestImplementation("androidx.work:work-testing:2.11.0")
 }

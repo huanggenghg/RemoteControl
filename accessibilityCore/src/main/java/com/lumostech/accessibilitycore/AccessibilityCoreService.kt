@@ -8,11 +8,18 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.graphics.Path
+import android.graphics.Rect
+import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.SystemClock
+import android.util.DisplayMetrics
+import android.widget.Toast
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlin.coroutines.resume
 import android.view.KeyEvent
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -24,7 +31,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.lumostech.accessibilitybase.AccessibilityBaseEvent
-import com.lumostech.remotecontrol.utils.Logger
+import com.lumostech.accessibilitybase.utils.Logger
 
 
 @SuppressLint("AccessibilityPolicy")
@@ -32,19 +39,61 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     private var pkgNameMutableLiveData: MutableLiveData<String> = MutableLiveData()
 
     private lateinit var windowManager: WindowManager
+    private var customWindowWidthPixels: Int? = null
     private var floatRootView: SmallWindowView? = null//悬浮窗View
     private var floatCustomView: View? = null
     private val lifecycleRegistry = LifecycleRegistry(this)
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val sequenceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val sequenceMutex = Mutex()
+    private lateinit var recording: ClickRecording
+    private lateinit var sequenceStore: ClickSequenceStore
+    private var recordingProtection: ClickRecordingProtection? = null
+    private var protectedRecording = false
+    private var executionControlView: View? = null
+
+    /** Independent from recording/confirmation windows, so replay cannot hide its stop control. */
+    fun showExecutionControl(view: View, x: Int, y: Int, width: Int, height: Int): Boolean {
+        if (executionControlView != null) return false
+        val parameters = WindowManager.LayoutParams(width, height,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, PixelFormat.TRANSLUCENT).apply {
+            gravity = Gravity.TOP or Gravity.LEFT
+            this.x = x
+            this.y = y
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+        return try {
+            (getSystemService(WINDOW_SERVICE) as WindowManager).addView(view, parameters)
+            executionControlView = view
+            true
+        } catch (e: Exception) {
+            Logger.e(TAG, "Unable to show execution control", e)
+            false
+        }
+    }
+
+    fun hideExecutionControl(view: View) {
+        if (executionControlView !== view) return
+        FloatWindowUtils.removeWindow(this, view)
+        executionControlView = null
+    }
 
     override fun onCreate() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         super.onCreate()
+        sequenceStore = ClickSequenceStore(this)
+        recording = ClickRecording(sequenceStore.load())
+        recordingProtection = sequenceStore.loadProtection()
+        protectedRecording = recordingProtection != null
+        ViewModelMain.recordedPointCount.value = recording.snapshot().size
         initObserve()
     }
 
     /**
-     * 打开关闭的订�?
+     * 打开关闭的订�?
      */
     private fun initObserve() {
         ViewModelMain.isShowFloatWindow.observe(this, {
@@ -54,7 +103,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                         LayoutInflater.from(this)
                             .inflate(R.layout.float_window, null) as SmallWindowView
                 }
-                ViewModelMain.isShowCustomFloatWindow.postValue(false)
+                ViewModelMain.isShowCustomFloatWindow.value = false
                 FloatWindowUtils.showWindow(this, floatRootView!!)
             } else {
                 floatRootView?.let { view ->
@@ -66,8 +115,8 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         ViewModelMain.isShowCustomFloatWindow.observe(this, {
             if (it) {
                 floatCustomView?.let { view ->
-                    ViewModelMain.isShowFloatWindow.postValue(false)
-                    FloatWindowUtils.showWindow(this, view)
+                    ViewModelMain.isShowFloatWindow.value = false
+                    FloatWindowUtils.showWindow(this, view, customWindowWidthPixels)
                 }
             } else {
                 floatCustomView?.let { view ->
@@ -79,30 +128,134 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun setFloatCustomView(floatCustomView: View) {
+        setFloatCustomView(floatCustomView, null)
+    }
+
+    fun setFloatCustomView(floatCustomView: View, widthPixels: Int?) {
+        this.floatCustomView?.takeIf { it !== floatCustomView }?.let { FloatWindowUtils.removeWindow(this, it) }
         this.floatCustomView = floatCustomView
+        customWindowWidthPixels = widthPixels
+    }
+
+    fun getRecordedClickPoints(): List<ClickCounterPoint> = recording.snapshot()
+
+    fun enableProtectedRecording() {
+        protectedRecording = true
+        val config = serviceInfo
+        config.flags = config.flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        serviceInfo = config
+    }
+
+    fun getRecordedProtection(): ClickRecordingProtection? = recordingProtection
+        ?.let { it.copy(packages = it.packages.toList()) }
+
+    /** Do not use cached accessibility events: they can describe a window that is no longer active. */
+    @Suppress("DEPRECATION")
+    fun currentClickEnvironment(): ClickEnvironment? {
+        val root = rootInActiveWindow ?: return null
+        val manager = getSystemService(WINDOW_SERVICE) as WindowManager
+        val display = manager.defaultDisplay
+        val metrics = DisplayMetrics().also { display.getRealMetrics(it) }
+        return try {
+            val foregroundPackage = root.packageName?.toString()?.takeIf { it.isNotBlank() } ?: return null
+            val window = root.window
+            val displayId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) window?.displayId ?: return null else 0
+            val bounds = Rect().also { root.getBoundsInScreen(it) }
+            ClickEnvironment(metrics.widthPixels, metrics.heightPixels, display.rotation, foregroundPackage, displayId,
+                bounds.left, bounds.top, bounds.right, bounds.bottom)
+        } finally { root.recycle() }
+    }
+
+    fun startRecording() {
+        recording.clear()
+        recordingProtection = null
+        sequenceStore.save(emptyList())
+        ViewModelMain.recordedPointCount.value = 0
+    }
+
+    fun recordClick(x: Float, y: Float) {
+        val points = recording.snapshot()
+        if (points.size >= ClickSequenceCodec.MAX_POINTS) {
+            Toast.makeText(this, "最多录制 ${ClickSequenceCodec.MAX_POINTS} 个点击", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val environment = if (protectedRecording) currentClickEnvironment() else null
+        if (protectedRecording) {
+            val message = when {
+                points.isNotEmpty() && recordingProtection == null -> "旧录制缺少环境信息，请清空并重新录制"
+                environment == null -> "无法确认当前应用，未记录点击"
+                environment.displayId != 0 -> "请在设备主屏幕录制，未记录点击"
+                recordingProtection?.hasSameDisplay(environment) == false -> "屏幕尺寸或方向已改变，请清空并重新录制"
+                x < 0 || y < 0 || x >= environment.width || y >= environment.height || !environment.contains(x, y) -> "点击位置不在目标应用窗口内，未记录"
+                else -> null
+            }
+            if (message != null) {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                return
+            }
+        }
+        recording.record(x, y, SystemClock.elapsedRealtime())
+        val updated = recording.snapshot()
+        if (!ClickSequenceCodec.isValid(updated)) {
+            recording = ClickRecording(points)
+            Toast.makeText(this, "录制时长不能超过 8 分钟，请重新录制", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (environment != null) {
+            recordingProtection = ClickRecordingProtection(environment.width, environment.height, environment.rotation,
+                recordingProtection?.packages.orEmpty() + environment.packageName)
+        }
+        sequenceStore.save(updated, recordingProtection)
+        ViewModelMain.recordedPointCount.value = updated.size
     }
 
     override fun dispatchClickPointsEvent() {
-        Logger.i("TAG", "dispatchClickPointsEvent: ")
-        if (floatRootView?.getClickPointList().isNullOrEmpty()) {
-            Logger.i("TAG", "dispatchClickPointsEvent: getClickPointList isNullOrEmpty")
-            return
-        }
-        floatRootView?.getClickPointList()?.forEach { clickCounterPoint ->
-            Logger.i(
-                "TAG",
-                "dispatchClickPointsEvent: clickCounterPoint:x:${clickCounterPoint.x} y:${clickCounterPoint.y} delay:${clickCounterPoint.delay}"
-            )
-        }
-        for (clickPoint in floatRootView?.getClickPointList()!!) {
-            mainHandler.postDelayed({
-                dispatchGestureClick(
-                    clickPoint.x,
-                    clickPoint.y
-                )
-            }, clickPoint.delay)
+        val snapshot = getRecordedClickPoints()
+        sequenceScope.launch {
+            if (!executeClickSequence(snapshot)) Logger.w(TAG, "Click sequence did not complete")
         }
     }
+
+    suspend fun executeClickSequence(
+        points: List<ClickCounterPoint>,
+        canContinue: () -> Boolean = { true }
+    ): Boolean =
+        withContext(Dispatchers.Main.immediate) {
+            if (!sequenceMutex.tryLock()) return@withContext false
+            try {
+                ViewModelMain.isShowFloatWindow.value = false
+                ViewModelMain.isShowCustomFloatWindow.value = false
+                delay(50)
+                ClickSequenceExecutor.execute(
+                    points,
+                    now = { SystemClock.elapsedRealtime() },
+                    wait = { delay(it) },
+                    click = { point ->
+                        if (!canContinue() || accessibilityCoreService !== this@AccessibilityCoreService) return@execute false
+                        withTimeoutOrNull(2_000L) {
+                            suspendCancellableCoroutine { continuation ->
+                                val path = Path().apply { moveTo(point.x, point.y) }
+                                val gesture = GestureDescription.Builder().addStroke(
+                                    GestureDescription.StrokeDescription(path, 0, 20)
+                                ).build()
+                                val accepted = dispatchGesture(gesture, object : GestureResultCallback() {
+                                    override fun onCompleted(gestureDescription: GestureDescription) {
+                                        if (continuation.isActive) continuation.resume(true)
+                                    }
+
+                                    override fun onCancelled(gestureDescription: GestureDescription) {
+                                        if (continuation.isActive) continuation.resume(false)
+                                    }
+                                }, null)
+                                if (!accepted && continuation.isActive) continuation.resume(false)
+                            }
+                        } ?: false
+                    }
+                )
+            } finally {
+                sequenceMutex.unlock()
+            }
+        }
 
     override fun dispatchGestureClick(x: Float, y: Float) {
         execDispatchGestureClick(x, y)
@@ -299,7 +452,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             Logger.e(TAG, "execInputText: not focus node!")
             return
         }
-        //粘贴�?
+        //粘贴�?
         val clipboard: ClipboardManager =
             getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("label", text)
@@ -322,6 +475,13 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     override fun onDestroy() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        sequenceScope.cancel()
+        floatRootView?.let { FloatWindowUtils.removeWindow(this, it) }
+        floatCustomView?.let { FloatWindowUtils.removeWindow(this, it) }
+        executionControlView?.let { FloatWindowUtils.removeWindow(this, it) }
+        executionControlView = null
+        floatRootView = null
+        floatCustomView = null
         super.onDestroy()
         accessibilityCoreService = null
         Logger.e(TAG, "onDestroy: ")
@@ -333,6 +493,8 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     }
 
     override fun onUnbind(intent: Intent): Boolean {
+        accessibilityCoreService = null
+        sequenceScope.coroutineContext.cancelChildren()
         Logger.e(TAG, "onUnbind: ")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         return super.onUnbind(intent)
@@ -365,6 +527,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         config.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
 
         config.flags = AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+        if (protectedRecording) config.flags = config.flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
 
         serviceInfo = config
         accessibilityCoreService = this
@@ -379,8 +542,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     companion object {
         const val TAG: String = "MyService"
+        const val CONFIGURE_CLICKS = "configure_clicks"
 
         @SuppressLint("StaticFieldLeak")
+        @Volatile
         var accessibilityCoreService: AccessibilityCoreService? = null
         var onPointLongClickListener: OnPointLongClickListener? = null
         val isStart: Boolean
