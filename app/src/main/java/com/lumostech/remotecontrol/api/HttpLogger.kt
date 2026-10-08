@@ -4,8 +4,8 @@ import android.util.Log
 import okhttp3.logging.HttpLoggingInterceptor
 
 class HttpLogger : HttpLoggingInterceptor.Logger {
-    override fun log(message: String?) {
-        Log.i(TAG, message ?: "")
+    override fun log(message: String) {
+        Log.i(TAG, message)
     }
 
     companion object {

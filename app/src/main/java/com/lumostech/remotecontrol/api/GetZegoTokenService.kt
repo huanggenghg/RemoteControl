@@ -7,5 +7,5 @@ import retrofit2.http.POST
 
 interface GetZegoTokenService {
     @POST("/getZegoToken")
-    suspend fun getZegoToken(@Body body: RequestBody?): ZegoToken
+    suspend fun getZegoToken(@Body request: ZegoTokenRequest): ZegoToken
 }

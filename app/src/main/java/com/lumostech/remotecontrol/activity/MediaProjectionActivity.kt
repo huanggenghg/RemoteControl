@@ -1,90 +1,83 @@
 package com.lumostech.remotecontrol.activity
 
-import com.lumostech.remotecontrol.utils.Logger
-
-import android.content.Intent
+import android.app.Activity
+import android.content.*
 import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionConfig
 import android.media.projection.MediaProjectionManager
 import android.os.Build
-import android.view.WindowManager
-import im.zego.zegoexpress.constants.ZegoPublishChannel
-import im.zego.zegoexpress.constants.ZegoVideoBufferType
-import im.zego.zegoexpress.entity.ZegoCustomVideoCaptureConfig
-import im.zego.zegoexpress.entity.ZegoStream
+import android.os.IBinder
+import androidx.activity.result.contract.ActivityResultContracts
+import com.lumostech.communication.ScreenGeometry
 
-
-open class MediaProjectionActivity : ZegoBaseActivity() {
-
-    protected fun enableCustomVideoCapture() {
-        //VideoCaptureScreen继承IZegoCustomVideoCaptureHandler，用于监听自定义采集onStart和onStop回调
-        val wm = this.getSystemService(WINDOW_SERVICE) as WindowManager
-        val width = wm.defaultDisplay.width
-        val height = wm.defaultDisplay.height
-        val videoCapture = VideoCaptureScreen(mMediaProjection, width, height, engine)
-        //传递投屏的长宽
-        engine.setStreamExtraInfo("$width,$height", null)
-        //监听自定义采集开始停止回�?
-        engine.setCustomVideoCaptureHandler(videoCapture)
-        val videoCaptureConfig = ZegoCustomVideoCaptureConfig()
-        //使用SurfaceTexture类型进行自定义采�?
-        videoCaptureConfig.bufferType = ZegoVideoBufferType.SURFACE_TEXTURE
-        //开始自定义采集
-        engine.enableCustomVideoCapture(true, videoCaptureConfig, ZegoPublishChannel.MAIN)
-    }
-
-    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) {
-        // 通知推流已成�?
-        Logger.d("MAIN", "onRoomStreamUpdate: playStreamId = $playStreamId")
-    }
-
-    override fun onLoginRoomSuccess() {
-        // 通知已登录房�?
-        Logger.d("MAIN", "onLoginRoomSuccess")
-    }
-
-    @Deprecated("later update")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                //Target版本高于等于10.0需要使用前台服务，并在前台服务的onStartCommand方法中创建MediaProjection
-                val service = Intent(
-                    this@MediaProjectionActivity,
-                    CaptureScreenService::class.java
-                )
-                service.putExtra("code", resultCode)
-                service.putExtra("data", data)
-                startForegroundService(service)
-            } else {
-                //Target版本低于10.0直接获取MediaProjection
-                mMediaProjection = mMediaProjectionManager!!.getMediaProjection(
-                    resultCode,
-                    data!!
-                )
-            }
+open class MediaProjectionActivity : CommunicationActivity() {
+    protected var projection: MediaProjection? = null
+        private set
+    protected var captureGeometry: ScreenGeometry? = null
+        private set
+    private var bound = false
+    private var capture: CaptureScreenService.LocalBinder? = null
+    private var awaitingProjection = false
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+            capture = binder as CaptureScreenService.LocalBinder
+            capture?.listen({ value, geometry ->
+                if (awaitingProjection && !isDestroyed) {
+                    awaitingProjection = false
+                    projection = value
+                    captureGeometry = geometry
+                    onProjectionReady()
+                }
+            }, {
+                projection = null
+                captureGeometry = null
+                if (!isDestroyed) onProjectionStopped()
+            })
+        }
+        override fun onServiceDisconnected(name: ComponentName) {
+            capture = null
+            projection = null
+            captureGeometry = null
+            if (!isDestroyed) onProjectionStopped()
         }
     }
 
-    protected fun startPublish(streamId: String) {
-        // 开始推�?
-        // 用户调用 loginRoom 之后再调用此接口进行推流
-        // 在同一�?AppID �? 开发者需要保证“streamID�?全局唯一，如果不同用户各推了一�?“streamID�?相同的流，后推流的用户会推流失败�?
-        engine.startPublishingStream(streamId)
+    private val requestCapture = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (!awaitingProjection) return@registerForActivityResult
+        if (result.resultCode != Activity.RESULT_OK || result.data == null) {
+            awaitingProjection = false
+            onProjectionStopped()
+            return@registerForActivityResult
+        }
+        val intent = Intent(this, CaptureScreenService::class.java)
+            .putExtra(CaptureScreenService.RESULT_CODE, result.resultCode)
+            .putExtra(CaptureScreenService.RESULT_DATA, result.data)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        if (!bound) bound = bindService(Intent(this, CaptureScreenService::class.java), connection, Context.BIND_AUTO_CREATE)
     }
 
     protected fun requestMediaProjection() {
-        // 5.0及以上版�?
-        // 请求录屏权限，等待用户授�?
-        mMediaProjectionManager =
-            getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        startActivityForResult(mMediaProjectionManager!!.createScreenCaptureIntent(), REQUEST_CODE)
-        Logger.d("TAG", "init: mMediaProjectionManager = $mMediaProjectionManager")
+        if (awaitingProjection) return
+        awaitingProjection = true
+        val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val intent = if (Build.VERSION.SDK_INT >= 34) {
+            manager.createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay())
+        } else manager.createScreenCaptureIntent()
+        requestCapture.launch(intent)
     }
 
-    companion object {
-        var mMediaProjectionManager: MediaProjectionManager? = null
-        var mMediaProjection: MediaProjection? = null
-        private const val REQUEST_CODE = 111
+    protected open fun onProjectionReady() = Unit
+    protected open fun onProjectionStopped() { stopSession() }
+
+    protected fun releaseProjection() {
+        awaitingProjection = false
+        capture?.detach()
+        capture = null
+        if (bound) { unbindService(connection); bound = false }
+        stopService(Intent(this, CaptureScreenService::class.java))
+        projection = null
+        captureGeometry = null
     }
+
+    override fun onDestroy() { releaseProjection(); super.onDestroy() }
 }
-

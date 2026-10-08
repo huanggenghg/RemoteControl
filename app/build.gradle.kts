@@ -18,6 +18,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "provider"
+    productFlavors {
+        create("zego") { dimension = "provider" }
+        create("agora") { dimension = "provider" }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -36,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,17 +63,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.zego.express.video)
+    implementation(project(":communication-api"))
+    add("zegoImplementation", project(":communication-zego"))
+    add("agoraImplementation", project(":communication-agora"))
     implementation(libs.android.material)
 //    implementation(libs.accessibilityCore)
     api(project(":accessibilityCore"))
 
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
-    implementation("com.squareup.okhttp3:logging-interceptor:3.5.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-alpha03")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
+    implementation("com.squareup.okio:okio:3.6.0")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

@@ -11,8 +11,8 @@ import java.net.SocketTimeoutException
  * 协程异常处理器
  * 用于ViewModel、Repository等协程作用域
  */
-val AppCoroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
-    Logger.e(context, "协程异常: ${throwable.message}", throwable)
+val AppCoroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    Logger.e("Coroutine", "协程异常", throwable)
     handleCoroutineError(throwable)
 }
 

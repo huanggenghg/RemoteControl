@@ -2,33 +2,23 @@ package com.lumostech.remotecontrol.activity
 
 import com.lumostech.remotecontrol.utils.Logger
 
-import android.app.Activity
-import android.content.Context
-import android.os.Build
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.MotionEvent
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
+import android.view.ViewGroup
+import com.lumostech.communication.*
+import com.lumostech.remotecontrol.protocol.RemoteCommand
+import com.lumostech.remotecontrol.protocol.ScreenCoordinateMapper
 import android.widget.ImageButton
 import androidx.constraintlayout.widget.Group
 import com.lumostech.remotecontrol.AnimUtils
 import com.lumostech.remotecontrol.ImmersiveFullscreenUtil
-import com.lumostech.remotecontrol.MyApp
 import com.lumostech.remotecontrol.R
-import im.zego.zegoexpress.constants.ZegoOrientationMode
-import im.zego.zegoexpress.constants.ZegoViewMode
-import im.zego.zegoexpress.entity.ZegoCanvas
-import im.zego.zegoexpress.entity.ZegoStream
-import org.json.JSONObject
-import java.util.UUID
 
 
-class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
+class RemoteControlActivity : CommunicationActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
     private var groupMonitor: Group? = null
-    private var playStreamId: String? = null
     private var scrollUpView: View? = null
     private var scrollDownView: View? = null
     private var scrollLeftView: View? = null
@@ -45,16 +35,29 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         setContentView(R.layout.activity_remote_control)
         ImmersiveFullscreenUtil.enableTrueFullscreen(this)
         initViews()
-        engine.setAppOrientationMode(ZegoOrientationMode.ADAPTION)
-        setEventHandler()
+        val container = findViewById<ViewGroup>(R.id.remoteUserView)
+        bindRemote(container)
+        container.setOnTouchListener { view, event ->
+            if (event.action == MotionEvent.ACTION_UP && controlReady) {
+                val geometry = remoteGeometry
+                if (geometry != null) {
+                    ScreenCoordinateMapper.map(event.x, event.y, geometry.width, geometry.height,
+                        view.width, view.height)?.let { (x, y) ->
+                        sendCommand(RemoteCommand("click", x / geometry.width, y / geometry.height))
+                    }
+                }
+                view.performClick()
+            }
+            true
+        }
         mRoomId = intent.getStringExtra(EXTRA_CODE)
-        val uniqueID = UUID.randomUUID().toString()
-        loginRoom(uniqueID, mRoomId)
+        if (mRoomId?.matches(Regex("[0-9]{6}")) == true) startSession(mRoomId!!, SessionRole.CONTROLLER)
+        else finish()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // 某些 ROM/场景下切回前台会丢失，需要重新应�?
+        // 某些 ROM/场景下切回前台会丢失，需要重新应�?
         if (hasFocus) ImmersiveFullscreenUtil.enableTrueFullscreen(this)
     }
 
@@ -82,142 +85,31 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
         moreVerBtn?.setOnClickListener(this)
     }
 
-    override fun onRoomStreamUpdate(zegoStream: ZegoStream?, playStreamId: String?) { // 应用启动只会调用一�?
-        Logger.d("REMOTE", "onRoomStreamUpdate: ${zegoStream?.extraInfo}")
-        Logger.d("REMOTE", "onRoomStreamUpdate: playStreamId = $playStreamId")
-        MyApp.remoteScreenAdaptedWidth = window.decorView.width
-        val windowData = zegoStream?.extraInfo?.split(",")
-        if (windowData?.isEmpty() == false) {
-            MyApp.remoteScreenAdaptedHeight =
-                (MyApp.remoteScreenAdaptedWidth * (windowData[1].toFloat() / windowData[0].toFloat())).toInt() + getStatusBarHeightPx(
-                    this
-                )
+    override fun onCommunicationState(state: ConnectionState, ready: Boolean, geometry: ScreenGeometry?) {
+        groupMonitor?.visibility = if (ready) View.GONE else View.VISIBLE
+        findViewById<android.widget.TextView>(R.id.tv_monitor).text = when (state) {
+            ConnectionState.FAILED -> "连接失败，请返回后重试"
+            ConnectionState.RECONNECTING -> "网络中断，正在重新连接"
+            else -> "正在等待远程画面与控制授权"
         }
-        this.playStreamId = playStreamId
-        startPlayingStreamOnAdaptedCanvas()
-    }
-
-    private fun startPlayingStreamOnAdaptedCanvas() {
-        if (playStreamId.isNullOrEmpty()) {
-            Logger.w("REMOTE", "startPlayingStreamOnAdaptedCanvas: playStreamId isNullOrEmpty, return.")
-            return
-        }
-        Logger.d(
-            "REMOTE",
-            "startPlayingStreamOnAdaptedCanvas: MyApp.remoteScreenAdaptedWidth = $MyApp.remoteScreenAdaptedWidth, MyApp.remoteScreenAdaptedHeight = $MyApp.remoteScreenAdaptedHeight"
-        )
-        val zegoCanvas = getScreenAdaptedCanvas()
-        zegoCanvas?.let {
-            engine.startPlayingStream(playStreamId, it)
-        } ?: let {
-            Logger.w("REMOTE", "onRoomStreamUpdate: getScreenAdaptedCanvas is null!")
-        }
-    }
-
-    private fun getScreenAdaptedCanvas(): ZegoCanvas? {
-        if (MyApp.remoteScreenAdaptedWidth == -1 || MyApp.remoteScreenAdaptedHeight == -1) {
-            Logger.w(
-                "REMOTE",
-                "adaptScreenParams: remoteScreenWidth or remoteScreenHeight is not valid! check onRoomStreamUpdate."
-            )
-            return null;
-        }
-
-        val canvasView: View = findViewById(R.id.remoteUserView)
-        val lp = canvasView.layoutParams
-        lp.width = MyApp.remoteScreenAdaptedWidth
-        lp.height = MyApp.remoteScreenAdaptedHeight
-        canvasView.layoutParams = lp
-        val zegoCanvas = ZegoCanvas(canvasView)
-        zegoCanvas.viewMode = ZegoViewMode.SCALE_TO_FILL
-        return zegoCanvas
-    }
-
-    private fun getStatusBarHeightPx(activity: Activity): Int {
-        // 优先�?WindowInsets（忽略可见性，沉浸式也能拿到真实高度）
-        val insets = activity.window?.decorView?.rootWindowInsets
-        if (insets != null) {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                insets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
-            } else {
-                // R 以下没有 Type.statusBars 常量的便捷获取，使用已存在的 top inset
-                insets.systemWindowInsetTop
-            }
-        }
-        // 资源兜底（大多数 ROM 提供�?
-        val res = activity.resources
-        val resId = res.getIdentifier("status_bar_height", "dimen", "android")
-        return if (resId > 0) res.getDimensionPixelSize(resId) else 0
-    }
-
-    override fun onLoginRoomSuccess() {
-        Logger.d("REMOTE", "onLoginRoomSuccess")
-        sendCustomCommand(JSONObject().apply {
-            put("action", "onRemoteControlLoginRoomSuccess")
-            val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            put("windowWidth", window.decorView.width)
-            put("windowHeight", window.decorView.height)
-        }.toString())
-        startPlayingStreamOnAdaptedCanvas()
-    }
-
-    override fun onPlayerPlaying() {
-        super.onPlayerPlaying()
-        groupMonitor?.visibility = View.GONE
-    }
-
-    private var isClicked = false;
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (TextUtils.isEmpty(mRoomId)) {
-            Logger.w("TAG", "onTouchEvent: mRoomId is empty!")
-            return super.onTouchEvent(event)
-        }
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                isClicked = true
-            }
-
-            MotionEvent.ACTION_UP -> {
-                if (isClicked) {
-                    sendCustomCommand(JSONObject().apply {
-                        put("action", event.action)
-                        put("x", event.x.toString())
-                        put("y", event.y.toString())
-                        put("rawX", event.rawX.toDouble())
-                        put("rawY", event.rawY.toDouble())
-                    }.toString())
-                }
-                isClicked = false
-            }
-        }
-        return super.onTouchEvent(event)
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.scrollUp -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "scrollUp")
-                }.toString())
+                sendCommand(RemoteCommand("scrollUp"))
             }
 
             R.id.scrollDown -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "scrollDown")
-                }.toString())
+                sendCommand(RemoteCommand("scrollDown"))
             }
 
             R.id.scrollLeft -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "scrollLeft")
-                }.toString())
+                sendCommand(RemoteCommand("scrollLeft"))
             }
 
             R.id.scrollRight -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "scrollRight")
-                }.toString())
+                sendCommand(RemoteCommand("scrollRight"))
             }
 
             R.id.exit -> {
@@ -225,21 +117,15 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
             }
 
             R.id.back -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "back")
-                }.toString())
+                sendCommand(RemoteCommand("back"))
             }
 
             R.id.home -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "home")
-                }.toString())
+                sendCommand(RemoteCommand("home"))
             }
 
             R.id.recents -> {
-                sendCustomCommand(JSONObject().apply {
-                    put("action", "recents")
-                }.toString())
+                sendCommand(RemoteCommand("recents"))
             }
 
             R.id.more_hor -> {
@@ -285,17 +171,6 @@ class RemoteControlActivity : ZegoBaseActivity(), View.OnClickListener {
                     recents!!
                 )
             }
-        }
-    }
-
-    private fun sendCustomCommand(command: String) {
-        engine.sendCustomCommand(
-            mRoomId, command, null
-        ) { errorCode: Int ->
-            Logger.d(
-                "TAG",
-                "sendCustomCommand: error = $errorCode"
-            )
         }
     }
 

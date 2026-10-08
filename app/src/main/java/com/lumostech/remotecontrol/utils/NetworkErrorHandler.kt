@@ -1,6 +1,7 @@
 package com.lumostech.remotecontrol.utils
 
 import retrofit2.HttpException
+import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException

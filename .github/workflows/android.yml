@@ -25,9 +25,11 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
     - name: Build apk
-      run: ./gradlew :app:assembleDebug
+      run: ./gradlew :app:assembleZegoDebug :app:assembleAgoraDebug :app:testZegoDebugUnitTest :app:testAgoraDebugUnitTest :app:lintZegoDebug :app:lintAgoraDebug
 
     - uses: actions/upload-artifact@v4
       with:
         name: Package
-        path: app/build/outputs/apk/debug/
+        path: |
+          app/build/outputs/apk/zego/debug/
+          app/build/outputs/apk/agora/debug/

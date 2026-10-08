@@ -13,9 +13,10 @@ import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.Group
 import androidx.core.widget.addTextChangedListener
 import com.lumostech.remotecontrol.R
-import im.zego.zegoexpress.constants.ZegoUpdateType
+import com.lumostech.communication.ConnectionState
+import com.lumostech.communication.ScreenGeometry
+import com.lumostech.communication.SessionRole
 import java.util.Random
-import java.util.UUID
 
 
 class MainActivity : MediaProjectionActivity(), View.OnClickListener {
@@ -40,14 +41,21 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         initCode()
     }
 
-    override fun onRoomUserUpdate(userId: String, updateType: ZegoUpdateType) {
-        super.onRoomUserUpdate(userId, updateType)
-        if (userId == loginUserId) return // 房间登录的回调是自己，不需要更新页面状态
+    override fun onCommunicationState(state: ConnectionState, ready: Boolean, geometry: ScreenGeometry?) {
+        tvWaiting?.text = when {
+            state == ConnectionState.FAILED -> "连接失败，请返回重试"
+            state == ConnectionState.RECONNECTING -> "网络中断，正在重新连接"
+            ready -> getString(R.string.remote_controlling)
+            else -> getString(R.string.remote_control_waiting)
+        }
+        if (state == ConnectionState.FAILED) releaseProjection()
+    }
 
-        tvWaiting?.text =
-            if (updateType == ZegoUpdateType.ADD) getString(R.string.remote_controlling) else getString(
-                R.string.remote_control_waiting
-            )
+    override fun onProjectionReady() { switchStatus(Status.ASSIST) }
+    override fun onProjectionStopped() {
+        stopSession()
+        releaseProjection()
+        switchStatus(Status.MAIN)
     }
 
     private fun initViews() {
@@ -90,7 +98,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             if (!checkCode()) {
                 return
             }
-            if (mMediaProjection == null) {
+            if (projection == null) {
                 requestMediaProjection()
                 showAccessibilityDialog()
                 return
@@ -160,20 +168,9 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             return
         }
 
-        // 监听常用事件
-        setEventHandler()
-        // 设置投屏
-        enableCustomVideoCapture()
-        // 登录房间
-        loginUserId = UUID.randomUUID().toString()
-        val code = tvCode!!.text.toString()
-        loginRoom(loginUserId, code)
-    }
-
-    override fun onLoginRoomSuccess() {
-        super.onLoginRoomSuccess()
-        // 开始预览及推流
-        startPublish(loginUserId!!)
+        val granted = projection ?: return
+        val geometry = captureGeometry ?: return
+        startSession(tvCode!!.text.toString(), SessionRole.HOST, granted, geometry)
     }
 
     private fun checkCode(): Boolean {
@@ -186,17 +183,16 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     }
 
     private fun pauseCast() {
-        engine.logoutRoom()
-        isToLoginRoom = true
-        mMediaProjection = null
+        stopSession()
+        releaseProjection()
     }
 
     private fun assist() {
-        if (!checkCode()) {
+        val code = tvCodeInput!!.text.toString()
+        if (!code.matches(Regex("[0-9]{6}"))) {
+            Toast.makeText(this, "协助码必须是六位数字", Toast.LENGTH_SHORT).show()
             return
         }
-
-        val code = tvCodeInput!!.text.toString()
         val intent = Intent(
             this@MainActivity,
             RemoteControlActivity::class.java

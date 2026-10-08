@@ -50,6 +50,10 @@ dependencyResolutionManagement {
         maven { url = uri("https://storage.zego.im/maven") }
         google()
         mavenCentral()
+        maven {
+            url = uri("https://download.agora.io/maven/")
+            content { includeGroupByRegex("io\\.agora.*") }
+        }
     }
 }
 
@@ -58,3 +62,6 @@ include(":app")
 include(":accessibilityCore")
 include(":accessibilityBase")
 include(":autoclick")
+include(":communication-api")
+include(":communication-zego")
+include(":communication-agora")
