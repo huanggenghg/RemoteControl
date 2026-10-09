@@ -1,0 +1,24 @@
+{
+  "autoclick": {
+    "tests": 87,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "accessibilityCore": {
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "Error": 0,
+    "Warning": 34
+  },
+  "apks": {
+    "autoclick/build/outputs/apk/debug/autoclick-debug.apk": "06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d",
+    "autoclick/build/outputs/apk/androidTest/debug/autoclick-debug-androidTest.apk": "046cc36cbf68fc06e49a7374c385a1fec1e0eed4fa1c755c677cfae055786852"
+  },
+  "test_apk_build_log": "environment-diagnostic-build.log",
+  "production_unchanged_since_final_build": true
+}

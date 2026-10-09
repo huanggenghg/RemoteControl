@@ -2,6 +2,7 @@ package com.lumostech.autoclick
 
 import android.content.SharedPreferences
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
@@ -19,8 +20,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.ViewModelProvider
 import com.lumostech.autoclick.ui.AccessibilityGateDialog
+import com.lumostech.autoclick.ui.ExactTimingPermissionDialog
 import com.lumostech.accessibilitybase.utils.Logger
 import com.lumostech.accessibilitycore.*
+import com.lumostech.autoclick.ui.EditScheduleDialog
 import com.lumostech.autoclick.ui.AutoclickScreen
 import com.lumostech.autoclick.ui.theme.AutoclickTheme
 import com.lumostech.autoclick.databinding.LayoutConfirmBinding
@@ -39,7 +42,9 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
     private var foreground by mutableStateOf(false)
     private var pointCount by mutableIntStateOf(0)
     private var busy by mutableStateOf(false)
+    private var timingPrompt by mutableStateOf(false)
     private var serviceReadiness by mutableStateOf(ClickServiceReadiness.DISABLED)
+    private lateinit var editViewModel: EditScheduleViewModel
     private lateinit var gateViewModel: AccessibilityGateViewModel
     private var gatePhase by mutableStateOf(AccessibilityGatePhase.CHECKING)
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refreshTask() }
@@ -51,6 +56,7 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         store = ClickTaskStore(this)
         controller = ClickTaskController(this)
         gateViewModel = ViewModelProvider(this)[AccessibilityGateViewModel::class.java]
+        editViewModel = ViewModelProvider(this)[EditScheduleViewModel::class.java]
         store.observe(preferenceListener)
         refreshTask()
         lifecycleScope.launch {
@@ -82,6 +88,20 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                 val runState by ClickExecutionSession.state.collectAsState()
                 var trialCandidate by remember { mutableStateOf<ClickTask?>(null) }
                 LaunchedEffect(gatePhase) { if (gatePhase != AccessibilityGatePhase.READY) trialCandidate = null }
+                LaunchedEffect(gatePhase, task?.id, presentation.editingBlocked, editViewModel.saving) {
+                    val candidate = editViewModel.candidate
+                    if (candidate != null && !editViewModel.saving &&
+                        (gatePhase != AccessibilityGatePhase.READY || candidate.id != task?.id || presentation.editingBlocked)) {
+                        editViewModel.dismiss("任务状态已变化，请重新打开时间设置")
+                    }
+                }
+                LaunchedEffect(editViewModel.resultMessage) {
+                    editViewModel.resultMessage?.let {
+                        Toast.makeText(this@MainActivity, it, Toast.LENGTH_LONG).show()
+                        editViewModel.clearResult()
+                        refreshTask()
+                    }
+                }
                 if (gatePhase != AccessibilityGatePhase.READY) {
                     if (foreground) {
                         AccessibilityGateDialog(gatePhase, ::openAccessibilitySettings, ::finish)
@@ -93,16 +113,34 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                     task = task,
                     outcome = outcome,
                     presentation = presentation,
-                    busy = busy,
+                    busy = busy || editViewModel.saving,
                     runState = runState,
                     serviceReadiness = serviceReadiness,
                     onAccessibilitySettings = ::openAccessibilitySettings,
                     onRecord = ::showRecording,
-                    onToggleTask = { if (requireReady()) task?.let { current -> mutateTask { controller.setEnabled(!current.enabled) } } },
+                    onToggleTask = { if (requireReady()) task?.let { mutateTask {
+                        val enabling = !presentation.scheduledEnabled
+                        controller.setEnabled(enabling)
+                        if (enabling && !AndroidClickAlarmPlatform(this@MainActivity).canSchedule()) requestTimingPermission()
+                    } } },
+                    onTimingSettings = ::requestTimingPermission,
                     onDeleteTask = { if (requireReady()) mutateTask { controller.delete() } },
                     onTrial = { if (requireReady()) trialCandidate = task },
-                    onEmergencyStop = { ClickExecutionSession.emergencyStop(this@MainActivity) }
+                    onEmergencyStop = { ClickExecutionSession.emergencyStop(this@MainActivity) },
+                    onEditSchedule = {
+                        if (requireReady() && !busy && !editViewModel.saving && !presentation.editingBlocked)
+                            task?.let { if (it.protection != null) editViewModel.open(it) }
+                    }
                 )
+                editViewModel.candidate?.let { candidate ->
+                    EditScheduleDialog(candidate, editViewModel.saving, editViewModel.error,
+                        onDismiss = { editViewModel.dismiss() },
+                        onSave = { hour, minute, days ->
+                            if (requireReady()) editViewModel.save(controller, hour, minute, days)
+                        })
+                }
+                if (timingPrompt && foreground) ExactTimingPermissionDialog(
+                    onSettings = { timingPrompt = false; openTimingSettings() }, onDismiss = { timingPrompt = false })
                 trialCandidate?.let { candidate ->
                     AlertDialog(
                         onDismissRequest = { trialCandidate = null },
@@ -124,7 +162,7 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                 }
             }
         }
-        mutateTask { controller.reconcile() }
+        mutateTask { (application as AutoclickApp).awaitStartup() }
         handleConfigureIntent()
     }
 
@@ -197,7 +235,7 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
             binding.timePicker.minute = saved.minute
             binding.weekdaysPicker.setSelectedDays(saved.days.sorted())
         }
-        binding.confirmEventHandler = ConfirmEventHandler(binding, lifecycleScope, controller)
+        binding.confirmEventHandler = ConfirmEventHandler(binding, lifecycleScope, controller, ::requestTimingPermission)
         val density = resources.displayMetrics.density
         val panelWidth = minOf(resources.displayMetrics.widthPixels - (32 * density).toInt(), (560 * density).toInt())
         service.setFloatCustomView(binding.root, panelWidth)
@@ -226,6 +264,19 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
     private fun requireReady(): Boolean {
         refreshGate()
         return gatePhase == AccessibilityGatePhase.READY
+    }
+
+    private fun requestTimingPermission() {
+        if (foreground && gatePhase == AccessibilityGatePhase.READY) timingPrompt = true
+    }
+
+    private fun openTimingSettings() {
+        if (Build.VERSION.SDK_INT < 31) return
+        try { startActivity(exactTimingSettingsIntent(this)) }
+        catch (error: Exception) {
+            Logger.e("MainActivity", "Cannot open exact timing settings", error)
+            Toast.makeText(this, "请在系统设置中开启闹钟和提醒权限", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun openAccessibilitySettings() {

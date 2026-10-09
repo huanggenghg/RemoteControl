@@ -33,8 +33,9 @@ class ClickTaskIntegrationTest {
     @Before
     @After
     fun clearTask() {
+        runBlocking { (context.applicationContext as AutoclickApp).awaitStartup() }
         WorkManager.getInstance(context).cancelUniqueWork(ClickPeriodicWorker.TAG).result.get(10, TimeUnit.SECONDS)
-        store.clear()
+        runBlocking { ClickTaskController(context).delete() }
         ClickSequenceStore(context).save(emptyList())
     }
 
@@ -92,34 +93,21 @@ class ClickTaskIntegrationTest {
         assertNull(record.occurrenceAt)
     }
 
-    @Test
-    fun adapterReadsActualFutureQueueWhenTodaysTimeHasPassed() = runBlocking {
+    @Test fun adapterReadsActualFutureAlarmWhenTodaysTimeHasPassed() = runBlocking {
         val past = Calendar.getInstance().apply { add(Calendar.MINUTE, -1) }
         val saved = task.copy(hour = past.get(Calendar.HOUR_OF_DAY), minute = past.get(Calendar.MINUTE))
-        ClickTaskController(context).save(saved)
-        val infos = WorkManager.getInstance(context).getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get()
-        val snapshot = scheduledWorkSnapshot(saved, infos)
-        assertEquals(ScheduledWorkState.ENQUEUED, snapshot.state)
-        assertTrue(snapshot.plannedAt!! > System.currentTimeMillis())
-        assertEquals(ClickSchedulePolicy.nextOccurrence(saved, System.currentTimeMillis()), snapshot.plannedAt)
-        assertTrue(present(saved, snapshot, ClickRunState(), false, null, System.currentTimeMillis(), saved.timeZoneId).title.startsWith("下次："))
-        val replaced = saved.copy(id = "replacement", scheduleId = "replacement")
-        assertEquals(ScheduledWorkState.MISSING, scheduledWorkSnapshot(replaced, infos).state)
+        assertEquals(ClickTaskSaveResult.ENABLED, ClickTaskController(context).save(saved))
+        val state = store.alarmState()!!
+        assertEquals(ClickAlarmStatus.ARMED, state.status)
+        assertTrue(state.next!!.scheduledAt > System.currentTimeMillis())
+        assertEquals(ClickSchedulePolicy.nextOccurrence(saved, System.currentTimeMillis()), state.next.scheduledAt)
+        assertTrue(presentExact(saved, state, ClickRunState(), null, true, System.currentTimeMillis(), saved.timeZoneId).title.startsWith("下次："))
     }
 
-    @Test
-    fun runningOrUncertainWorkNeverInventsNextTime() {
-        fun info(state: WorkInfo.State, tags: Set<String> = setOf(task.id, ClickPeriodicWorker.TAG)) = WorkInfo(
-            java.util.UUID.randomUUID(), state, tags,
-            periodicityInfo = WorkInfo.PeriodicityInfo(86_400_000, 86_400_000))
-        val running = scheduledWorkSnapshot(task, listOf(info(WorkInfo.State.RUNNING)))
-        assertEquals(ScheduledWorkState.RUNNING, running.state)
-        assertNull(running.plannedAt)
-        assertEquals("执行准备中", present(task, running, ClickRunState(), false, null,
-            System.currentTimeMillis(), task.timeZoneId).title)
-        assertEquals(ScheduledWorkState.UNKNOWN, scheduledWorkSnapshot(task, listOf(info(WorkInfo.State.ENQUEUED))).state)
-        assertEquals(ScheduledWorkState.MISSING, scheduledWorkSnapshot(task, listOf(info(WorkInfo.State.RUNNING, setOf("old-task", ClickPeriodicWorker.TAG)))).state)
-        assertEquals(ScheduledWorkState.UNKNOWN, scheduledWorkSnapshot(task, listOf(info(WorkInfo.State.RUNNING), info(WorkInfo.State.RUNNING))).state)
+    @Test fun uncertainAlarmNeverInventsNextTime() {
+        val pending = ClickAlarmState(task.id, task.scheduleId, ClickAlarmStatus.ARMING)
+        assertNull(presentExact(task, pending, ClickRunState(), null, true, System.currentTimeMillis(), task.timeZoneId).nextAt)
+        assertNull(presentExact(task, pending.copy(taskId = "old"), ClickRunState(), null, true, System.currentTimeMillis(), task.timeZoneId).nextAt)
     }
 
     @Test
@@ -201,7 +189,9 @@ class ClickTaskIntegrationTest {
             }
         }
         try {
-            ClickTaskController(ClickTaskStore(failingPreferences), manager).emergencyStop()
+            ClickTaskController(ClickTaskStore(failingPreferences), AndroidClickAlarmPlatform(context), {
+                manager.cancelUniqueWork(ClickPeriodicWorker.TAG).result.get()
+            }).emergencyStop()
             fail("A failed disable commit must be reported")
         } catch (_: IllegalStateException) { }
         assertTrue("Work must still be cancelled after the failed commit",
@@ -261,18 +251,18 @@ class ClickTaskIntegrationTest {
         assertEquals(record, store.lastExecutionRecord())
     }
 
-    @Test
-    fun periodicReanchorUpdatesExactWorkAndPreservesWorkerAndScheduleIdentity() = runBlocking {
+    @Test fun disableCancelsExactPendingIntentAndResumeUsesNewIdentity() = runBlocking {
         val controller = ClickTaskController(context)
         controller.save(task)
-        val manager = WorkManager.getInstance(context)
-        val original = manager.getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get().single { !it.state.isFinished }
-        val afterLongExecution = currentOccurrence() + 8 * 60_000L
-        controller.alignNextOccurrence(task.id, original.id, afterLongExecution)
-        val updated = manager.getWorkInfoById(original.id).get()!!
-        assertEquals(original.id, updated.id)
-        assertEquals(task.scheduleId, store.load()!!.scheduleId)
-        assertEquals(ClickSchedulePolicy.nextOccurrence(task, afterLongExecution), updated.nextScheduleTimeMillis)
+        val original = store.alarmState()!!.next!!
+        controller.setEnabled(false)
+        val pending = android.app.PendingIntent.getBroadcast(context, 0, AndroidClickAlarmPlatform(context).eventIntent(original),
+            android.app.PendingIntent.FLAG_NO_CREATE or android.app.PendingIntent.FLAG_IMMUTABLE)
+        assertNull(pending)
+        controller.setEnabled(true)
+        val next = store.alarmState()!!.next!!
+        assertEquals(task.scheduleId, next.scheduleId)
+        assertNotEquals(original.taskId, next.taskId)
     }
 
     @Test
@@ -284,33 +274,28 @@ class ClickTaskIntegrationTest {
         assertEquals("任务已停用", store.lastOutcome())
     }
 
-    @Test
-    fun missingServiceReportsFailureInsteadOfSuccess() = runBlocking {
-        val now = Calendar.getInstance()
-        assertTrue(store.save(task.copy(hour = now.get(Calendar.HOUR_OF_DAY), minute = now.get(Calendar.MINUTE))))
-        val worker = TestListenableWorkerBuilder<ClickPeriodicWorker>(context)
-            .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
-        val result = worker.doWork()
-        assertTrue(result is ListenableWorker.Result.Failure)
-        assertEquals(ClickTaskOutcome.SERVICE_UNAVAILABLE.message, store.lastOutcome())
-    }
-
-    @Test
-    fun nonTargetDayIsRecordedAsSkipped() = runBlocking {
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-        val otherDay = if (today == 7) 1 else today + 1
-        assertTrue(store.save(task.copy(days = setOf(otherDay))))
+    @Test fun legacyWorkerNeverExecutesOrOverwritesHistory() = runBlocking {
+        store.save(task)
+        store.recordOccurrenceOutcome(task.id, currentOccurrence(), false, "preserved", ClickOutcomeReason.COMPLETED)
         val worker = TestListenableWorkerBuilder<ClickPeriodicWorker>(context)
             .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
         assertTrue(worker.doWork() is ListenableWorker.Result.Success)
-        assertEquals(ClickTaskOutcome.SKIPPED_DAY.message, store.lastOutcome())
+        assertEquals("preserved", store.lastExecutionResult()!!.message)
+        assertFalse(store.wasConsumed(task.id, currentOccurrence()))
+    }
+
+    @Test fun invalidOccurrenceCannotBeReservedOrConsume() {
+        store.save(task)
+        val event = ClickAlarmOccurrence("old", task.scheduleId, currentOccurrence())
+        assertFalse(store.reserveAlarm(event, System.currentTimeMillis()))
+        assertEquals(0L, store.closedThrough())
     }
 
     @Test
     fun savedTaskCanBeDisabledResumedAndDeleted() = runBlocking {
         val controller = ClickTaskController(context)
         controller.save(task)
-        assertEquals(1, WorkManager.getInstance(context).getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get().count { it.state == WorkInfo.State.ENQUEUED })
+        assertEquals(ClickAlarmStatus.ARMED, store.alarmState()!!.status)
         controller.setEnabled(false)
         assertFalse(store.load()!!.enabled)
         assertTrue(WorkManager.getInstance(context).getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get().all { it.state == WorkInfo.State.CANCELLED })
@@ -322,18 +307,13 @@ class ClickTaskIntegrationTest {
         assertNull(store.load())
     }
 
-    @Test
-    fun openingAppRepairsMissingScheduleAfterInterruptedSave() {
-        assertTrue(store.save(task))
-        ActivityScenario.launch(MainActivity::class.java).use {
-            val end = System.currentTimeMillis() + 10_000
-            var scheduled = false
-            while (!scheduled && System.currentTimeMillis() < end) {
-                scheduled = WorkManager.getInstance(context).getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get()
-                    .any { !it.state.isFinished && task.id in it.tags }
-                if (!scheduled) Thread.sleep(100)
-            }
-            assertTrue("Opening the app must repair the persisted enabled task", scheduled)
-        }
+    @Test fun startupRequiresEnableInsteadOfSilentlyRepairingUnknownSchedule() = runBlocking {
+        store.save(task)
+        ClickTaskController(context).reconcile()
+        assertFalse(store.load()!!.enabled)
+        assertEquals(ClickAlarmStatus.NEEDS_ENABLE, store.alarmState()!!.status)
+        assertNull(store.alarmState()!!.next)
     }
+
+
 }

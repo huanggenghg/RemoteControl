@@ -1,0 +1,2 @@
+--------- beginning of main
+10-09 21:05:54.568 11423 11423 I AutoclickQuickCheck: environment=ClickEnvironment(width=1080, height=2424, rotation=0, packageName=android, displayId=0, left=28, top=991, right=1052, bottom=1512) rootPackage=android window=AccessibilityWindowInfo[title=进程“system”没有响应, displayId=0, id=85, taskId=-1, type=TYPE_SYSTEM, layer=0, region=SkRegion((28,991,1052,1512)), bounds=Rect(28, 991 - 1052, 1512), focused=true, active=true, pictureInPicture=false, transitionTime=77110605, hasParent=false, isAnchored=false, hasChildren=false] serviceFlags=66

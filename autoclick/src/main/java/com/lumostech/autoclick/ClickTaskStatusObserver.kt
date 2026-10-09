@@ -2,60 +2,29 @@ package com.lumostech.autoclick
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import java.util.Calendar
+import kotlinx.coroutines.flow.*
 import java.util.TimeZone
 
-/** Only reads state; collection is owned and cancelled by the foreground Activity. */
+/** Reads only; the foreground Activity owns collection and unregisters on cancellation. */
 internal class ClickTaskStatusObserver(context: Context) {
     private val store = ClickTaskStore(context.applicationContext)
-    private val manager = WorkManager.getInstance(context.applicationContext)
-
+    private val platform = AndroidClickAlarmPlatform(context.applicationContext)
     suspend fun observe(onUpdate: (ClickTaskPresentation, ClickExecutionRecord?) -> Unit) {
         val changes = callbackFlow {
             val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(Unit) }
-            store.observe(listener)
-            trySend(Unit)
+            store.observe(listener); trySend(Unit)
             awaitClose { store.stopObserving(listener) }
         }
-        val clock = flow {
-            while (true) { emit(System.currentTimeMillis()); delay(1_000) }
-        }
-        combine(manager.getWorkInfosForUniqueWorkFlow(ClickPeriodicWorker.TAG), changes,
-            ClickExecutionSession.state, clock) { infos, _, run, now ->
-            val task = store.load()
-            val work = task?.let { scheduledWorkSnapshot(it, infos) }
-            val consumed = task != null && work?.plannedAt != null && store.wasConsumed(task.id, work.plannedAt)
-            val record = store.lastExecutionRecord()
-            present(task, work, run, consumed, record, now, TimeZone.getDefault().id) to record
-        }.collect { (presentation, record) -> onUpdate(presentation, record) }
+        val clock = flow { while (true) { emit(System.currentTimeMillis()); delay(1000) } }
+        combine(changes, ClickExecutionSession.state, clock) { _, run, now ->
+            val task = store.load(); val alarm = store.alarmState(); val record = store.lastExecutionResult()
+            var view = presentExact(task, alarm, run, record, platform.canSchedule(), now, TimeZone.getDefault().id)
+            if (alarm?.status == ClickAlarmStatus.NEEDS_ENABLE && view.title == "请启用定时任务" &&
+                store.lastOutcome() == "定时方式已更新，请启用任务") view = view.copy(title = store.lastOutcome())
+            view = view.copy(editingBlocked = run.active || alarm?.active != null)
+            view to record
+        }.collect { (view, record) -> onUpdate(view, record) }
     }
-}
-
-internal fun scheduledWorkSnapshot(task: ClickTask, infos: List<WorkInfo>): ScheduledWorkSnapshot {
-    val matches = infos.filter { !it.state.isFinished && it.periodicityInfo != null &&
-        task.id in it.tags && ClickPeriodicWorker.TAG in it.tags }
-    if (matches.isEmpty()) return ScheduledWorkSnapshot(task.id, ScheduledWorkState.MISSING)
-    val info = matches.singleOrNull() ?: return ScheduledWorkSnapshot(task.id, ScheduledWorkState.UNKNOWN)
-    if (info.state == WorkInfo.State.RUNNING) return ScheduledWorkSnapshot(task.id, ScheduledWorkState.RUNNING)
-    val hint = info.nextScheduleTimeMillis
-    if (info.state != WorkInfo.State.ENQUEUED || hint <= 0 || hint == Long.MAX_VALUE)
-        return ScheduledWorkSnapshot(task.id, ScheduledWorkState.UNKNOWN)
-    val date = Calendar.getInstance(TimeZone.getTimeZone(task.timeZoneId)).apply {
-        timeInMillis = hint
-        set(Calendar.HOUR_OF_DAY, task.hour)
-        set(Calendar.MINUTE, task.minute)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }
-    if (date.get(Calendar.DAY_OF_WEEK) !in task.days)
-        return ScheduledWorkSnapshot(task.id, ScheduledWorkState.UNKNOWN)
-    return ScheduledWorkSnapshot(task.id, ScheduledWorkState.ENQUEUED, date.timeInMillis)
 }

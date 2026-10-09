@@ -1,0 +1,9 @@
+--------- beginning of main
+10-09 21:23:37.752  3983  3983 I AutoclickQuickCheck: environment=ClickEnvironment(width=1080, height=2424, rotation=0, packageName=com.lumostech.autoclick, displayId=0, left=0, top=0, right=1080, bottom=2424) rootPackage=com.lumostech.autoclick window=AccessibilityWindowInfo[title=AutoClick, displayId=0, id=55, taskId=235, type=TYPE_APPLICATION, layer=0, region=SkRegion((0,0,1080,2424)), bounds=Rect(0, 0 - 1080, 2424), focused=true, active=true, pictureInPicture=false, transitionTime=229274, hasParent=false, isAnchored=false, hasChildren=false] serviceFlags=66
+10-09 21:23:41.359  3983  3999 I AutoclickQuickCheck: edit scheduledAt=1791552240000, replacedAlarm=1791552480000
+10-09 21:24:03.557  3983  3999 I AutoclickQuickCheck: edit realClicks=1, firstDispatchLateMs=217, buttonLateMs=360, consumedDateBlocked=true, staleWorkerRejected=true
+10-09 21:25:27.469  4988  5003 I AutoclickQuickCheck: gestureCompleteButtonCount=1 actualButtonCount=1 deliveryWaitMs=0
+10-09 21:25:55.440  4988  4988 I AutoclickQuickCheck: trialButtonClicks=1
+10-09 21:25:55.529  4988  5003 I AutoclickQuickCheck: stage=trial-finished, buttonClicks=1, state=ClickRunState(active=false, manual=true, message=试运行：全部点击手势已完成, lastTrialResult=试运行：全部点击手势已完成, stopError=null, taskId=manual-trial, scheduleId=manual-trial), environment=ClickEnvironment(width=1080, height=2424, rotation=0, packageName=com.lumostech.autoclick, displayId=0, left=0, top=0, right=1080, bottom=2424)
+10-09 21:25:56.034  4988  4988 I AutoclickQuickCheck: trialButtonClicks=2
+10-09 21:27:02.282  4988  5003 I AutoclickQuickCheck: scheduledAt=1791552420000 receivedAt=1791552420024 firstDispatchAt=1791552420196 buttonReceivedAt=1791552420271 firstLateMs=196 buttonLateMs=271 realClicks=1 duplicateClicks=0

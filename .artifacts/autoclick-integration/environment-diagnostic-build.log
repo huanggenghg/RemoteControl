@@ -1,0 +1,117 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :accessibilityBase:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityBase:preBuild UP-TO-DATE
+> Task :accessibilityBase:preDebugBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugResValues UP-TO-DATE
+> Task :accessibilityBase:generateDebugResources UP-TO-DATE
+> Task :accessibilityBase:packageDebugResources UP-TO-DATE
+> Task :accessibilityBase:parseDebugLocalResources UP-TO-DATE
+> Task :accessibilityBase:generateDebugRFile UP-TO-DATE
+> Task :accessibilityBase:compileDebugKotlin UP-TO-DATE
+> Task :accessibilityBase:javaPreCompileDebug UP-TO-DATE
+> Task :accessibilityBase:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityBase:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :accessibilityCore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityCore:preBuild UP-TO-DATE
+> Task :accessibilityCore:preDebugBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugResValues UP-TO-DATE
+> Task :accessibilityCore:generateDebugResources UP-TO-DATE
+> Task :accessibilityCore:packageDebugResources UP-TO-DATE
+> Task :accessibilityCore:parseDebugLocalResources UP-TO-DATE
+> Task :accessibilityCore:generateDebugRFile UP-TO-DATE
+> Task :accessibilityCore:compileDebugKotlin UP-TO-DATE
+> Task :accessibilityCore:javaPreCompileDebug UP-TO-DATE
+> Task :accessibilityCore:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :autoclick:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :autoclick:preBuild UP-TO-DATE
+> Task :autoclick:preDebugBuild UP-TO-DATE
+> Task :autoclick:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :autoclick:generateDebugResValues UP-TO-DATE
+> Task :autoclick:generateDebugResources UP-TO-DATE
+> Task :autoclick:mergeDebugResources UP-TO-DATE
+> Task :autoclick:packageDebugResources UP-TO-DATE
+> Task :autoclick:parseDebugLocalResources UP-TO-DATE
+> Task :autoclick:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :autoclick:dataBindingTriggerDebug UP-TO-DATE
+> Task :autoclick:generateDebugBuildConfig UP-TO-DATE
+> Task :accessibilityBase:compileDebugLibraryResources UP-TO-DATE
+> Task :accessibilityCore:compileDebugLibraryResources UP-TO-DATE
+> Task :accessibilityBase:writeDebugAarMetadata UP-TO-DATE
+> Task :accessibilityCore:writeDebugAarMetadata UP-TO-DATE
+> Task :autoclick:checkDebugAarMetadata UP-TO-DATE
+> Task :autoclick:mapDebugSourceSetPaths UP-TO-DATE
+> Task :autoclick:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :accessibilityBase:extractDeepLinksDebug UP-TO-DATE
+> Task :accessibilityBase:processDebugManifest UP-TO-DATE
+> Task :accessibilityCore:extractDeepLinksDebug UP-TO-DATE
+> Task :accessibilityCore:processDebugManifest UP-TO-DATE
+> Task :autoclick:extractDeepLinksDebug UP-TO-DATE
+> Task :autoclick:processDebugMainManifest UP-TO-DATE
+> Task :autoclick:processDebugManifest UP-TO-DATE
+> Task :autoclick:processDebugManifestForPackage UP-TO-DATE
+> Task :autoclick:processDebugResources UP-TO-DATE
+> Task :autoclick:compileDebugKotlin UP-TO-DATE
+> Task :autoclick:javaPreCompileDebug UP-TO-DATE
+> Task :autoclick:compileDebugJavaWithJavac UP-TO-DATE
+> Task :autoclick:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :autoclick:preDebugAndroidTestBuild SKIPPED
+> Task :autoclick:processDebugAndroidTestManifest UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestBuildConfig UP-TO-DATE
+> Task :autoclick:checkDebugAndroidTestAarMetadata UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :autoclick:mapDebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:processDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:javaPreCompileDebugAndroidTest UP-TO-DATE
+> Task :accessibilityBase:mergeDebugShaders UP-TO-DATE
+> Task :accessibilityBase:compileDebugShaders NO-SOURCE
+> Task :accessibilityBase:generateDebugAssets UP-TO-DATE
+> Task :accessibilityBase:mergeDebugAssets UP-TO-DATE
+> Task :accessibilityCore:mergeDebugShaders UP-TO-DATE
+> Task :accessibilityCore:compileDebugShaders NO-SOURCE
+> Task :accessibilityCore:generateDebugAssets UP-TO-DATE
+> Task :accessibilityCore:mergeDebugAssets UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestShaders UP-TO-DATE
+> Task :autoclick:compileDebugAndroidTestShaders NO-SOURCE
+> Task :autoclick:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:compressDebugAndroidTestAssets UP-TO-DATE
+> Task :accessibilityBase:processDebugJavaRes UP-TO-DATE
+> Task :accessibilityCore:processDebugJavaRes UP-TO-DATE
+> Task :autoclick:checkDebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :autoclick:desugarDebugAndroidTestFileDependencies UP-TO-DATE
+> Task :autoclick:mergeExtDexDebugAndroidTest UP-TO-DATE
+> Task :accessibilityCore:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :accessibilityBase:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :autoclick:mergeLibDexDebugAndroidTest UP-TO-DATE
+> Task :accessibilityBase:mergeDebugJniLibFolders UP-TO-DATE
+> Task :accessibilityBase:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityBase:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :accessibilityCore:mergeDebugJniLibFolders UP-TO-DATE
+> Task :accessibilityCore:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityCore:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :autoclick:mergeDebugJniLibFolders UP-TO-DATE
+> Task :autoclick:mergeDebugNativeLibs UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :autoclick:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :autoclick:validateSigningDebugAndroidTest UP-TO-DATE
+> Task :autoclick:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+
+> Task :autoclick:compileDebugAndroidTestKotlin
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/autoclick/src/androidTest/java/com/lumostech/autoclick/EditScheduleUiTest.kt:234:39 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+
+> Task :autoclick:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+> Task :autoclick:processDebugAndroidTestJavaRes UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestJavaResource UP-TO-DATE
+> Task :autoclick:dexBuilderDebugAndroidTest
+> Task :autoclick:mergeProjectDexDebugAndroidTest
+> Task :autoclick:packageDebugAndroidTest
+> Task :autoclick:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :autoclick:assembleDebugAndroidTest
+
+BUILD SUCCESSFUL in 59s
+86 actionable tasks: 4 executed, 82 up-to-date

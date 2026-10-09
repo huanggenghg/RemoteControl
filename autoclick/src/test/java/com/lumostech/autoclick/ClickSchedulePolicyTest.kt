@@ -17,11 +17,11 @@ class ClickSchedulePolicyTest {
         }.timeInMillis
 
     @Test
-    fun permitsOnlyTheInclusiveFifteenMinuteStartWindow() {
+    fun permitsOnlyTheExclusiveFiveSecondStartWindow() {
         assertEquals(ClickScheduleStatus.EARLY, ClickSchedulePolicy.evaluate(task, time(minute = 29), zone).status)
         assertEquals(ClickScheduleStatus.READY, ClickSchedulePolicy.evaluate(task, time(), zone).status)
-        assertEquals(ClickScheduleStatus.READY, ClickSchedulePolicy.evaluate(task, time(minute = 45), zone).status)
-        assertEquals(ClickScheduleStatus.LATE, ClickSchedulePolicy.evaluate(task, time(minute = 45, second = 1), zone).status)
+        assertEquals(ClickScheduleStatus.READY, ClickSchedulePolicy.evaluate(task, time(second = 4), zone).status)
+        assertEquals(ClickScheduleStatus.LATE, ClickSchedulePolicy.evaluate(task, time(second = 5), zone).status)
     }
 
     @Test
@@ -74,5 +74,30 @@ class ClickSchedulePolicyTest {
             set(Calendar.MILLISECOND, 0)
         }
         assertEquals(expected.timeInMillis, ClickSchedulePolicy.nextOccurrence(dstTask, now.timeInMillis))
+    }
+    @Test fun movingAnExecutedTaskLaterStillSkipsTheConsumedDate() {
+        val edited = task.copy(hour = 16, minute = 0, days = (1..7).toSet())
+        assertEquals(time(day = 6, hour = 16, minute = 0),
+            ClickSchedulePolicy.nextOccurrence(edited, time(hour = 11), time(hour = 9)))
+        assertEquals(time(day = 12, hour = 16, minute = 0),
+            ClickSchedulePolicy.nextOccurrence(edited.copy(days = setOf(Calendar.MONDAY)), time(hour = 11), time(hour = 9)))
+    }
+
+    @Test fun unconsumedFutureTimeCanRunTodayButEqualOrPastTimeCannot() {
+        val edited = task.copy(hour = 16, minute = 0, days = (1..7).toSet())
+        assertEquals(time(hour = 16, minute = 0), ClickSchedulePolicy.nextOccurrence(edited, time(hour = 11), null))
+        assertEquals(time(day = 6, hour = 16, minute = 0),
+            ClickSchedulePolicy.nextOccurrence(edited, time(hour = 16, minute = 0), null))
+    }
+
+    @Test fun consumedDateUsesSavedZoneAndBlocksClockRollback() {
+        val consumed = time(hour = 23, minute = 59)
+        assertTrue(ClickSchedulePolicy.isConsumedDate(time(hour = 23, minute = 59, second = 59), consumed, zone))
+        assertTrue(ClickSchedulePolicy.isConsumedDate(time(day = 4), consumed, zone))
+        assertFalse(ClickSchedulePolicy.isConsumedDate(time(day = 6, hour = 0, minute = 0), consumed, zone))
+        assertFalse(ClickSchedulePolicy.isConsumedDate(consumed, null, zone))
+        val edited = task.copy(hour = 1, minute = 0, days = (1..7).toSet())
+        assertEquals(time(day = 6, hour = 1, minute = 0),
+            ClickSchedulePolicy.nextOccurrence(edited, time(day = 4), consumed))
     }
 }

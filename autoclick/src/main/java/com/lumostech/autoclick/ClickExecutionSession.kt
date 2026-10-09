@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class ClickRunState(
     val active: Boolean = false, val manual: Boolean = false, val message: String = "尚未执行",
-    val lastTrialResult: String = "", val stopError: String? = null
+    val lastTrialResult: String = "", val stopError: String? = null,
+    val taskId: String? = null, val scheduleId: String? = null
 )
 
 /** Main-thread UI/job ownership; the gate itself also protects starts on worker threads. */
@@ -39,12 +40,26 @@ object ClickExecutionSession {
 
     fun allowScheduled() = gate.allowScheduled()
 
-    suspend fun acquire(service: AccessibilityCoreService, task: ClickTask, manual: Boolean): Handle? {
+    internal class ScheduleEdit internal constructor(private val lease: Long) {
+        fun isActive() = gate.canEdit(lease)
+        fun checkActive() = check(isActive()) { "修改期间已停止，请重新打开任务设置" }
+        fun allowScheduled() = check(gate.allowScheduledAfterEdit(lease)) { "修改期间已停止，任务未启用" }
+        fun halt() = gate.stop()
+    }
+
+    internal suspend fun <T> withScheduleEdit(block: suspend (ScheduleEdit) -> T): T {
+        val lease = checkNotNull(gate.tryBeginEdit()) { "任务正在执行，请结束后再修改" }
+        return try { block(ScheduleEdit(lease)) } finally { gate.finishEdit(lease) }
+    }
+
+    suspend fun acquire(service: AccessibilityCoreService, task: ClickTask, manual: Boolean, readyTimeoutMs: Long? = null): Handle? {
         val job = checkNotNull(currentCoroutineContext()[Job])
         return withContext(Dispatchers.Main.immediate) {
             val handle = acquireOnMain(service, task, manual, job) ?: return@withContext null
             try {
-                if (handle.overlay.awaitReady()) handle else {
+                val ready = if (readyTimeoutMs == null) handle.overlay.awaitReady()
+                    else if (readyTimeoutMs <= 0) false else withTimeoutOrNull(readyTimeoutMs) { handle.overlay.awaitReady() } == true
+                if (ready) handle else {
                     release(handle, "停止按钮不可用，未执行点击")
                     null
                 }
@@ -65,6 +80,7 @@ object ClickExecutionSession {
         }
         return Handle(lease, job, overlay, manual).also { handle ->
             active = handle
+            mutableState.value = mutableState.value.copy(taskId = task.id, scheduleId = task.scheduleId)
             handle.update(handle.message)
             // Own cleanup before handing the lease back across dispatchers. A
             // cancelled withContext return can discard the caller's result.
@@ -84,6 +100,10 @@ object ClickExecutionSession {
         active = null
         mutableState.value = mutableState.value.copy(active = false, manual = handle.manual, message = message,
             lastTrialResult = if (handle.manual) message else mutableState.value.lastTrialResult)
+    }
+
+    suspend fun cancelScheduled(reason: String) = withContext(Dispatchers.Main.immediate) {
+        active?.takeIf { !it.manual }?.let { it.message = reason; it.job.cancel(CancellationException(reason)) }
     }
 
     /** Invoked by explicit home/overlay actions; cancellation precedes asynchronous persistence. */

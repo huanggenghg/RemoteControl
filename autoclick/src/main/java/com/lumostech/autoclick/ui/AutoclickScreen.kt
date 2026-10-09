@@ -34,7 +34,9 @@ fun AutoclickScreen(
     onToggleTask: () -> Unit,
     onDeleteTask: () -> Unit,
     onTrial: () -> Unit,
-    onEmergencyStop: () -> Unit
+    onEditSchedule: () -> Unit,
+    onEmergencyStop: () -> Unit,
+    onTimingSettings: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(color = colors.background, modifier = Modifier.fillMaxSize()) {
@@ -66,7 +68,7 @@ fun AutoclickScreen(
                     TextButton(onClick = onAccessibilitySettings, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("无障碍设置")
                     }
-                    Text("强行停止应用后，需要重新打开应用才能恢复后台调度。", color = colors.onSurfaceVariant,
+                    Text("强行停止应用后，请重新打开应用并检查任务，必要时重新启用。", color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall)
                 }
 
@@ -96,8 +98,8 @@ fun AutoclickScreen(
                     } else {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             Text(String.format(Locale.getDefault(), "%02d:%02d", task.hour, task.minute), style = MaterialTheme.typography.headlineLarge)
-                            Surface(color = if (task.enabled) colors.primaryContainer else colors.background, shape = MaterialTheme.shapes.small) {
-                                Text(if (task.enabled) "已启用" else "已停用", color = if (task.enabled) colors.primary else colors.onSurfaceVariant,
+                            Surface(color = if (presentation.scheduledEnabled) colors.primaryContainer else colors.background, shape = MaterialTheme.shapes.small) {
+                                Text(if (presentation.scheduledEnabled) "已启用" else "已停用", color = if (presentation.scheduledEnabled) colors.primary else colors.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
                             }
                         }
@@ -106,21 +108,27 @@ fun AutoclickScreen(
                         Text(orderedDays.filter { it in task.days }.joinToString("、") { labels[it].orEmpty() }, style = MaterialTheme.typography.bodyMedium)
                         Text("${task.points.size} 个点击 · 使用保存时的录制", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         Text(if (task.protection == null) "旧任务缺少环境信息，请清空并重新录制。" else
-                            "已保护应用与屏幕方向 · ${task.timeZoneId} · 延后超过 15 分钟跳过", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            "已保护应用与屏幕方向 · ${task.timeZoneId} · 5 秒内未开始则跳过", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         HorizontalDivider(color = colors.outlineVariant)
                         Text("当前状态", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         Text(presentation.title, style = MaterialTheme.typography.titleMedium)
                         if (presentation.detail.isNotBlank()) {
                             Text(presentation.detail, color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                         }
+                        if (presentation.timingPermissionRequired) {
+                            TextButton(onClick = onTimingSettings, modifier = Modifier.heightIn(min = 48.dp)) { Text("去开启") }
+                        }
                         HorizontalDivider(color = colors.outlineVariant)
                         Text("最近结果", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         Text(outcome.ifBlank { "尚无执行结果" }, style = MaterialTheme.typography.bodyMedium)
                         RecoveryExplanation(task.scheduleId, presentation.recoveryHelp)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            OutlinedButton(onClick = onEditSchedule, enabled = !busy && !presentation.editingBlocked && task.protection != null,
+                                shape = MaterialTheme.shapes.medium, border = BorderStroke(1.dp, colors.outline),
+                                modifier = Modifier.heightIn(min = 48.dp)) { Text("修改时间") }
                             OutlinedButton(onClick = onToggleTask, enabled = !busy && !runState.active && (task.enabled || task.protection != null), shape = MaterialTheme.shapes.medium,
                                 border = BorderStroke(1.dp, colors.outline), modifier = Modifier.heightIn(min = 48.dp)) {
-                                Text(if (task.enabled) "停用任务" else "启用任务")
+                                Text(if (presentation.scheduledEnabled) "停用任务" else "启用任务")
                             }
                             TextButton(onClick = onDeleteTask, enabled = !busy && !runState.active,
                                 colors = ButtonDefaults.textButtonColors(contentColor = colors.error), modifier = Modifier.heightIn(min = 48.dp)) {
@@ -159,7 +167,7 @@ fun AutoclickScreen(
                     Text("执行前请确认", style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
                     Text("屏幕亮起并解锁，目标页面已打开，无障碍服务已开启。", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                     Text("每次点击前核对应用、屏幕方向和锁屏状态；同一应用内的页面变化仍需自行确认。", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
-                    Text("定时为大致触发，延后超过 15 分钟或跨日将跳过。已开始的当天计划不会自动重放。最多 200 个点击，录制时长不超过 8 分钟。", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                    Text("计划时间后 5 秒内未开始则跳过；请保持亮屏解锁并打开目标页面。已开始的计划不会自动重放。最多 200 个点击，录制时长不超过 8 分钟。", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                 }
             }
         }

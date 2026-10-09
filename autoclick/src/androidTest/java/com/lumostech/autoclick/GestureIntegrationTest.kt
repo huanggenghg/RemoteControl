@@ -11,11 +11,6 @@ import android.provider.Settings
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.lumostech.accessibilitycore.AccessibilityCoreService
 import com.lumostech.accessibilitycore.ClickCounterPoint
@@ -33,6 +28,7 @@ import java.util.Calendar
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -44,6 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue
 /** Runs real Android accessibility gestures on a dedicated emulator/test device. */
 @RunWith(AndroidJUnit4::class)
 class GestureIntegrationTest {
+    private enum class ScheduledResult { COMPLETED, STOPPED }
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private lateinit var automation: UiAutomation
@@ -84,7 +81,7 @@ class GestureIntegrationTest {
             AccessibilityCoreService.accessibilityCoreService?.startRecording()
         }
         WorkManager.getInstance(context).cancelUniqueWork(ClickPeriodicWorker.TAG).result.get(10, TimeUnit.SECONDS)
-        ClickTaskStore(context).clear()
+        runBlocking { ClickTaskController(context).delete() }
         shell("input keyevent KEYCODE_WAKEUP")
         shell("wm dismiss-keyguard")
         if (originalServices == "null" || originalServices.isBlank()) shell("settings --user 0 delete secure enabled_accessibility_services")
@@ -135,66 +132,44 @@ class GestureIntegrationTest {
         }
     }
 
-    @Test
-    fun scheduledWorkerWaitsForReconnectionBeforeRealClick() {
+    @Test fun scheduledAlarmWaitsWithinRemainingBudgetForConnection() {
         val count = AtomicInteger()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { activity -> activity.setContentView(Button(activity).apply {
-                setOnClickListener { count.incrementAndGet() }
-            }) }
-            val task = protectedTask("reconnect-worker", listOf(ClickCounterPoint(300f, 300f, 0)))
-            val service = AccessibilityCoreService.accessibilityCoreService!!
-            assertTrue(ClickTaskStore(context).save(task))
-            val manager = WorkManager.getInstance(context)
-            val work = OneTimeWorkRequestBuilder<ClickPeriodicWorker>()
-                .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
+            scenario.onActivity { activity -> activity.setContentView(Button(activity).apply { setOnClickListener { count.incrementAndGet() } }) }
+            val task = protectedTask("reconnect", listOf(ClickCounterPoint(300f, 300f, 0)))
+            val fixture = ExactTimingFixture(); val due = fixture.due(task); val event = fixture.seed(task, due)
+            val clock = fixture.clock(due); val service = AccessibilityCoreService.accessibilityCoreService!!
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             try {
                 instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = null }
-                manager.enqueue(work).result.get(10, TimeUnit.SECONDS)
-                awaitCondition("Worker must start before measuring its reconnect wait", 10_000) {
-                    manager.getWorkInfoById(work.id).get()?.state != WorkInfo.State.ENQUEUED
-                }
-                Thread.sleep(1_500)
-                assertFalse("Enabled service must have time to reconnect", manager.getWorkInfoById(work.id).get()!!.state.isFinished)
-                assertEquals(0, count.get())
-                assertFalse(ClickTaskStore(context).wasConsumed(task.id,
-                    ClickSchedulePolicy.evaluate(task, System.currentTimeMillis()).scheduledAt))
-            } finally {
+                val job = scope.launch { ClickAlarmDispatcher.dispatch(context, event, clock) }
+                Thread.sleep(500); assertTrue(job.isActive); assertEquals(0, count.get())
+                assertFalse(ClickTaskStore(context).wasConsumed(task.id, due))
                 instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = service }
-            }
-            awaitCondition("Reconnected service must deliver a real button click") {
-                manager.getWorkInfoById(work.id).get()?.state == WorkInfo.State.SUCCEEDED && count.get() == 1
-            }
-            assertEquals(ClickTaskOutcome.COMPLETED.message, ClickTaskStore(context).lastOutcome())
+                awaitCondition("reconnected service must deliver actual click", 5000) {
+                    count.get() == 1 && ClickTaskStore(context).lastExecutionResult()?.reason == ClickOutcomeReason.COMPLETED
+                }
+            } finally { instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = service }; scope.cancel() }
         }
     }
 
-    @Test
-    fun stoppingTaskDuringReconnectWaitDispatchesNothing() {
-        ActivityScenario.launch(MainActivity::class.java).use {
+    @Test fun stoppingTaskDuringReconnectWaitDispatchesNothing() {
+        val count = AtomicInteger()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity -> activity.setContentView(Button(activity).apply { setOnClickListener { count.incrementAndGet() } }) }
             val task = protectedTask("stop-reconnect", listOf(ClickCounterPoint(300f, 300f, 0)))
-            val service = AccessibilityCoreService.accessibilityCoreService!!
-            val manager = WorkManager.getInstance(context)
-            assertTrue(ClickTaskStore(context).save(task))
-            val work = OneTimeWorkRequestBuilder<ClickPeriodicWorker>()
-                .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
+            val fixture = ExactTimingFixture(); val due = fixture.due(task); val event = fixture.seed(task, due)
+            val clock = fixture.clock(due); val service = AccessibilityCoreService.accessibilityCoreService!!
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             try {
                 instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = null }
-                manager.enqueue(work).result.get(10, TimeUnit.SECONDS)
-                awaitCondition("Worker should wait for connection") {
-                    manager.getWorkInfoById(work.id).get()?.state == WorkInfo.State.RUNNING
-                }
+                val job = scope.launch { ClickAlarmDispatcher.dispatch(context, event, clock) }
+                awaitCondition("event must be preparing") { ClickTaskStore(context).alarmState()?.active == event }
                 runBlocking { ClickTaskController(context).emergencyStop() }
-                awaitCondition("Stopped task must exit the reconnect wait promptly", 3_000) {
-                    manager.getWorkInfoById(work.id).get()?.state?.isFinished == true
-                }
-                assertEquals("已紧急停止，任务已停用", ClickTaskStore(context).lastOutcome())
-                assertFalse(ClickTaskStore(context).wasConsumed(task.id,
-                    ClickSchedulePolicy.evaluate(task, System.currentTimeMillis()).scheduledAt))
+                awaitCondition("disabled event must stop waiting promptly", 3000) { job.isCompleted }
+                assertEquals(0, count.get()); assertFalse(ClickTaskStore(context).wasConsumed(task.id, due))
                 assertFalse(ClickExecutionSession.state.value.active)
-            } finally {
-                instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = service }
-            }
+            } finally { instrumentation.runOnMainSync { AccessibilityCoreService.accessibilityCoreService = service }; scope.cancel() }
         }
     }
 
@@ -212,7 +187,7 @@ class GestureIntegrationTest {
                 ClickServiceConnection.readiness(context) == ClickServiceReadiness.DISABLED
             }
             val started = System.currentTimeMillis()
-            assertEquals(WorkInfo.State.FAILED, runWorker(task).state)
+            assertEquals(ScheduledResult.STOPPED, runScheduled(task))
             assertTrue("Disabled service must not use the ten-second reconnect window", System.currentTimeMillis() - started < 5_000)
             assertEquals(ClickTaskOutcome.SERVICE_UNAVAILABLE.message, ClickTaskStore(context).lastOutcome())
             assertFalse(ClickTaskStore(context).wasConsumed(task.id,
@@ -220,23 +195,11 @@ class GestureIntegrationTest {
         }
     }
 
-    @Test
-    fun scheduledWorkerCompletesRealAndroidGestures() {
+    @Test fun scheduledExecutorCompletesRealAndroidGestures() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            val points = listOf(ClickCounterPoint(120f, 200f, 0), ClickCounterPoint(360f, 200f, 100))
-            val task = protectedTask("real-gestures", points)
+            val task = protectedTask("real-gestures", listOf(ClickCounterPoint(120f, 200f, 0), ClickCounterPoint(360f, 200f, 100)))
             assertTrue(ClickTaskStore(context).save(task))
-            val work = OneTimeWorkRequestBuilder<ClickPeriodicWorker>()
-                .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
-            val manager = WorkManager.getInstance(context)
-            manager.enqueue(work).result.get(10, TimeUnit.SECONDS)
-            val end = System.currentTimeMillis() + 20_000
-            var info = checkNotNull(manager.getWorkInfoById(work.id).get())
-            while (!info.state.isFinished && System.currentTimeMillis() < end) {
-                Thread.sleep(100)
-                info = checkNotNull(manager.getWorkInfoById(work.id).get())
-            }
-            assertEquals(WorkInfo.State.SUCCEEDED, info.state)
+            assertEquals(ScheduledResult.COMPLETED, runScheduled(task))
             assertEquals(ClickTaskOutcome.COMPLETED.message, ClickTaskStore(context).lastOutcome())
         }
     }
@@ -260,18 +223,15 @@ class GestureIntegrationTest {
             protection = ClickRecordingProtection(env.width, env.height, env.rotation, List(points.size) { env.packageName }))
     }
 
-    private fun runWorker(task: ClickTask): WorkInfo {
-        val work = OneTimeWorkRequestBuilder<ClickPeriodicWorker>()
-            .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build()).build()
-        val manager = WorkManager.getInstance(context)
-        manager.enqueue(work).result.get(10, TimeUnit.SECONDS)
-        val end = System.currentTimeMillis() + 20_000
-        var info = manager.getWorkInfoById(work.id).get()!!
-        while (!info.state.isFinished && System.currentTimeMillis() < end) {
-            Thread.sleep(100)
-            info = manager.getWorkInfoById(work.id).get()!!
-        }
-        return info
+    /** Fixed wall anchor exercises real gestures and protections, not real alarm timeliness. */
+    private fun runScheduled(task: ClickTask): ScheduledResult {
+        val fixture = ExactTimingFixture(); val due = fixture.due(task)
+        val event = if (ClickTaskStore(context).alarmState() == null) fixture.seed(task, due)
+            else ClickAlarmOccurrence(task.id, task.scheduleId, due)
+        runBlocking { ClickAlarmDispatcher.dispatch(context, event, fixture.clock(due)) }
+        awaitCondition("scheduled execution must terminate", 20000) { ClickTaskStore(context).alarmState()?.active == null }
+        return if (ClickTaskStore(context).lastExecutionResult()?.reason == ClickOutcomeReason.COMPLETED)
+            ScheduledResult.COMPLETED else ScheduledResult.STOPPED
     }
 
     @Test
@@ -304,9 +264,11 @@ class GestureIntegrationTest {
             }
             val task = protectedTask("duplicate", listOf(ClickCounterPoint(300f, 300f, 0)))
             assertTrue(ClickTaskStore(context).save(task))
-            assertEquals(WorkInfo.State.SUCCEEDED, runWorker(task).state)
+            assertEquals(ScheduledResult.COMPLETED, runScheduled(task))
+            awaitCondition("The actual button must receive the completed gesture", 5_000) { count.get() == 1 }
             assertEquals(1, count.get())
-            assertEquals(WorkInfo.State.SUCCEEDED, runWorker(task).state)
+            assertEquals(ScheduledResult.COMPLETED, runScheduled(task))
+            awaitCondition("The actual button must receive the completed gesture", 5_000) { count.get() == 1 }
             assertEquals(1, count.get())
             assertEquals(ClickTaskOutcome.COMPLETED.message, ClickTaskStore(context).lastOutcome())
         }
@@ -326,7 +288,7 @@ class GestureIntegrationTest {
             }
             val task = protectedTask("app-change", listOf(ClickCounterPoint(300f, 300f, 0), ClickCounterPoint(300f, 300f, 5000)))
             assertTrue(ClickTaskStore(context).save(task))
-            assertEquals(WorkInfo.State.FAILED, runWorker(task).state)
+            assertEquals(ScheduledResult.STOPPED, runScheduled(task))
             assertEquals(1, count.get())
             assertTrue(ClickTaskStore(context).lastOutcome().contains("当前应用与录制时不一致"))
             assertTrue(ClickTaskStore(context).lastOutcome().contains("已完成 1 个点击"))
@@ -344,7 +306,7 @@ class GestureIntegrationTest {
             }
             val task = protectedTask("screen-off", listOf(ClickCounterPoint(300f, 300f, 0), ClickCounterPoint(300f, 300f, 1500)))
             assertTrue(ClickTaskStore(context).save(task))
-            assertEquals(WorkInfo.State.FAILED, runWorker(task).state)
+            assertEquals(ScheduledResult.STOPPED, runScheduled(task))
             assertEquals(1, count.get())
             assertTrue(ClickTaskStore(context).lastOutcome().contains("屏幕关闭或锁定"))
         }
@@ -356,90 +318,29 @@ class GestureIntegrationTest {
             val task = protectedTask("display-change", listOf(ClickCounterPoint(300f, 300f, 0)))
             val changed = task.copy(protection = task.protection!!.copy(rotation = (task.protection.rotation + 1) % 4))
             assertTrue(ClickTaskStore(context).save(changed))
-            assertEquals(WorkInfo.State.FAILED, runWorker(changed).state)
+            assertEquals(ScheduledResult.STOPPED, runScheduled(changed))
             assertTrue(ClickTaskStore(context).lastOutcome().contains("屏幕尺寸或方向已改变"))
             assertFalse(ClickTaskStore(context).wasConsumed(changed.id,
                 ClickSchedulePolicy.evaluate(changed, System.currentTimeMillis()).scheduledAt))
         }
     }
 
-    @Test
-    fun quickScheduledTaskFiresAtNextMinute() {
-        org.junit.Assume.assumeTrue("Opt-in quick acceptance run",
-            InstrumentationRegistry.getArguments().getString("quickSchedule") == "true")
-        val count = AtomicInteger()
-        val clickedAt = AtomicLong()
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                activity.setContentView(Button(activity).apply {
-                    text = "定时验证：等待点击"
-                    setOnClickListener {
-                        clickedAt.set(System.currentTimeMillis())
-                        text = "定时验证：已点击 ${count.incrementAndGet()} 次"
-                    }
-                })
-            }
-            val recorded = protectedTask("quick-next-minute", listOf(ClickCounterPoint(300f, 300f, 0)))
-            val target = Calendar.getInstance().apply {
-                add(Calendar.MINUTE, 1)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-                // Leave enough time for saving near the end of a minute.
-                if (timeInMillis - System.currentTimeMillis() < 5_000) add(Calendar.MINUTE, 1)
-            }
-            val task = recorded.copy(hour = target.get(Calendar.HOUR_OF_DAY), minute = target.get(Calendar.MINUTE))
-            val started = System.currentTimeMillis()
-            runBlocking { ClickTaskController(context).save(task) }
-            val manager = WorkManager.getInstance(context)
-            val work = manager.getWorkInfosForUniqueWork(ClickPeriodicWorker.TAG).get().single { !it.state.isFinished }
-            assertNotNull(work.periodicityInfo)
-            assertTrue("Normal initial delay should be within one minute plus save margin",
-                work.nextScheduleTimeMillis - started in 1..65_000)
-            assertEquals("No early click", 0, count.get())
-            android.util.Log.i("AutoclickQuickCheck", "scheduledAt=${target.timeInMillis}, waitMs=${target.timeInMillis - started}")
-            awaitCondition("The normal saved periodic schedule must click without a test timing override", 90_000) {
-                count.get() == 1 && ClickTaskStore(context).lastOutcome() == ClickTaskOutcome.COMPLETED.message &&
-                    manager.getWorkInfoById(work.id).get()?.state == WorkInfo.State.ENQUEUED
-            }
-            assertTrue(ClickTaskStore(context).wasConsumed(task.id, target.timeInMillis))
-            assertTrue("The actual gesture must not arrive before the selected minute", clickedAt.get() >= target.timeInMillis)
-            assertEquals(ClickSchedulePolicy.nextOccurrence(task, System.currentTimeMillis()),
-                manager.getWorkInfoById(work.id).get()!!.nextScheduleTimeMillis)
-            assertEquals(WorkInfo.State.SUCCEEDED, runWorker(task).state)
-            assertEquals("Duplicate delivery must not click twice", 1, count.get())
-            android.util.Log.i("AutoclickQuickCheck", "completedAfterMs=${System.currentTimeMillis() - started}, lateByMs=${clickedAt.get() - target.timeInMillis}, realClicks=${count.get()}, duplicateClicks=0")
-            if (InstrumentationRegistry.getArguments().getString("uiScreenshots") == "true") {
-                shell("screencap -p /sdcard/autoclick-quick-scheduled.png")
-            }
-        }
-    }
 
-    @Test
-    fun periodicWorkerRetainsNextWallClockOverrideAfterCompletion() {
+
+    @Test fun currentCompletionPreservesIndependentFutureAlarm() {
         val count = AtomicInteger()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                activity.setContentView(Button(activity).apply { setOnClickListener { count.incrementAndGet() } })
-            }
-            val task = protectedTask("periodic-completion", listOf(ClickCounterPoint(300f, 300f, 0)))
+            scenario.onActivity { activity -> activity.setContentView(Button(activity).apply { setOnClickListener { count.incrementAndGet() } }) }
+            val task = protectedTask("future-alarm", listOf(ClickCounterPoint(300f, 300f, 0)))
             assertTrue(ClickTaskStore(context).save(task))
-            val manager = WorkManager.getInstance(context)
-            val work = PeriodicWorkRequestBuilder<ClickPeriodicWorker>(1, TimeUnit.DAYS)
-                .setInputData(Data.Builder().putString(ClickPeriodicWorker.TASK_ID, task.id).build())
-                .addTag(task.id).addTag(ClickPeriodicWorker.TAG)
-                .setNextScheduleTimeOverride(System.currentTimeMillis()).build()
-            manager.enqueueUniquePeriodicWork(ClickPeriodicWorker.TAG, ExistingPeriodicWorkPolicy.KEEP, work)
-                .result.get(10, TimeUnit.SECONDS)
-            val end = System.currentTimeMillis() + 20_000
-            var info = manager.getWorkInfoById(work.id).get()!!
-            while ((info.state != WorkInfo.State.ENQUEUED || count.get() == 0 ||
-                    ClickTaskStore(context).lastOutcome() != ClickTaskOutcome.COMPLETED.message) && System.currentTimeMillis() < end) {
-                Thread.sleep(100)
-                info = manager.getWorkInfoById(work.id).get()!!
-            }
+            assertEquals(ScheduledResult.COMPLETED, runScheduled(task))
+            val completedAt = System.currentTimeMillis(); val completedCount = count.get()
+            awaitCondition("The actual button must receive the completed gesture", 5_000) { count.get() == 1 }
+            android.util.Log.i("AutoclickQuickCheck", "gestureCompleteButtonCount=$completedCount actualButtonCount=${count.get()} deliveryWaitMs=${System.currentTimeMillis()-completedAt}")
             assertEquals(1, count.get())
-            assertEquals(WorkInfo.State.ENQUEUED, info.state)
-            assertEquals(ClickSchedulePolicy.nextOccurrence(task, System.currentTimeMillis()), info.nextScheduleTimeMillis)
+            val next = ClickTaskStore(context).alarmState()!!.next!!
+            assertTrue(next.scheduledAt > System.currentTimeMillis())
+            assertEquals(ClickAlarmStatus.ARMED, ClickTaskStore(context).alarmState()!!.status)
         }
     }
 
@@ -520,7 +421,8 @@ class GestureIntegrationTest {
             assertTrue(trialResult.contains("全部点击手势已完成"))
             val scheduled = task.copy(enabled = true, days = (1..7).toSet())
             assertTrue(ClickTaskStore(context).save(scheduled))
-            assertEquals(WorkInfo.State.SUCCEEDED, runWorker(scheduled).state)
+            assertEquals(ScheduledResult.COMPLETED, runScheduled(scheduled))
+            awaitCondition("The actual button must receive the scheduled click", 5_000) { count.get() == 2 }
             assertEquals(2, count.get())
             assertEquals("A scheduled run must retain the independent trial result", trialResult,
                 ClickExecutionSession.state.value.lastTrialResult)

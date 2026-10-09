@@ -5,53 +5,53 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
-enum class ScheduledWorkState { LOADING, MISSING, ENQUEUED, RUNNING, UNKNOWN }
-data class ScheduledWorkSnapshot(val taskId: String, val state: ScheduledWorkState, val plannedAt: Long? = null)
 enum class RecoveryHelp { NONE, EXECUTION_PREPARATION, RECORD_AGAIN, RESAVE_TIME_ZONE, REENABLE }
 data class ClickTaskPresentation(val title: String, val detail: String = "", val nextAt: Long? = null,
-                                 val recoveryHelp: RecoveryHelp = RecoveryHelp.NONE)
+                                 val recoveryHelp: RecoveryHelp = RecoveryHelp.NONE,
+                                 val timingPermissionRequired: Boolean = false, val scheduledEnabled: Boolean = false,
+                                 val editingBlocked: Boolean = false)
 
-fun present(task: ClickTask?, work: ScheduledWorkSnapshot?, runState: ClickRunState, consumed: Boolean,
-            lastRecord: ClickExecutionRecord?, now: Long, currentTimeZoneId: String): ClickTaskPresentation {
+fun presentExact(task: ClickTask?, alarm: ClickAlarmState?, run: ClickRunState, record: ClickExecutionRecord?,
+                 permissionGranted: Boolean, now: Long, currentZone: String): ClickTaskPresentation {
     if (task == null) return ClickTaskPresentation("还没有定时任务")
-    val record = lastRecord?.takeIf { it.scheduleId == task.scheduleId }
-    val help = when (record?.reason) {
+    val history = record?.takeIf { it.scheduleId == task.scheduleId }
+    val help = when (history?.reason) {
         ClickOutcomeReason.NEEDS_RECORDING, ClickOutcomeReason.DISPLAY_CHANGED -> RecoveryHelp.RECORD_AGAIN
-        ClickOutcomeReason.SCREEN_LOCKED, ClickOutcomeReason.APP_CHANGED,
-        ClickOutcomeReason.TARGET_UNAVAILABLE -> RecoveryHelp.EXECUTION_PREPARATION
+        ClickOutcomeReason.SCREEN_LOCKED, ClickOutcomeReason.APP_CHANGED, ClickOutcomeReason.TARGET_UNAVAILABLE -> RecoveryHelp.EXECUTION_PREPARATION
         ClickOutcomeReason.SCHEDULING_FAILED -> RecoveryHelp.REENABLE
         else -> RecoveryHelp.NONE
     }
-    if (!task.enabled) return ClickTaskPresentation("任务已停用", recoveryHelp = help)
-    if (task.timeZoneId != currentTimeZoneId)
+    val state = alarm?.takeIf { it.isValid() && it.taskId == task.id && it.scheduleId == task.scheduleId }
+    if (!permissionGranted) return ClickTaskPresentation("定时权限未开启", "开启后请返回并启用任务",
+        timingPermissionRequired = true)
+    if (state?.status == ClickAlarmStatus.PERMISSION_REQUIRED)
+        return ClickTaskPresentation("权限已开启，请启用任务", recoveryHelp = RecoveryHelp.REENABLE)
+    if (task.timeZoneId != currentZone || state?.status == ClickAlarmStatus.TIME_ZONE_CHANGED)
         return ClickTaskPresentation("时区已改变，需重新设置任务", recoveryHelp = RecoveryHelp.RESAVE_TIME_ZONE)
-    if (task.protection == null)
-        return ClickTaskPresentation("录制信息不完整，需重新录制", recoveryHelp = RecoveryHelp.RECORD_AGAIN)
-    if (runState.active && !runState.manual) return ClickTaskPresentation(runState.message, recoveryHelp = help)
-    if (work != null && work.taskId != task.id)
-        return ClickTaskPresentation("暂无法确认下一次计划", recoveryHelp = help)
-    if (work == null || work.state == ScheduledWorkState.LOADING)
-        return ClickTaskPresentation("正在读取任务状态", recoveryHelp = help)
-    if (work.state == ScheduledWorkState.RUNNING) return ClickTaskPresentation("执行准备中", recoveryHelp = help)
-    val due = work.plannedAt
-    if (work.state != ScheduledWorkState.ENQUEUED || due == null || due <= 0 || due == Long.MAX_VALUE)
-        return ClickTaskPresentation("暂无法确认下一次计划", recoveryHelp = help)
-    if (due > now) return ClickTaskPresentation(formatNextPlan(task, due, now), nextAt = due, recoveryHelp = help)
-    val next = ClickSchedulePolicy.nextOccurrence(task, now)
-    // An early or clock-shifted diagnostic may refer to a future occurrence.
-    // Only a known terminal result recorded within this occurrence proves it ended.
-    val ended = record != null && record.occurrenceAt == due &&
-        record.reason != ClickOutcomeReason.UNKNOWN && record.recordedAt in due..now
-    if (consumed || ended) {
-        return ClickTaskPresentation(formatNextPlan(task, next, now),
-            if (consumed) "本次已开始过，不自动重放" else "本次已结束，不自动重试", next, help)
+    if (task.protection == null) return ClickTaskPresentation("录制信息不完整，需重新录制", recoveryHelp = RecoveryHelp.RECORD_AGAIN)
+    val active = state?.active
+    val futureFailure = if (state?.status == ClickAlarmStatus.SCHEDULE_FAILED) "下次定时安排失败，请重新启用" else ""
+    if (task.enabled && active != null && run.active && !run.manual && run.taskId == task.id && run.scheduleId == task.scheduleId)
+        return ClickTaskPresentation(run.message, futureFailure, recoveryHelp = help, scheduledEnabled = true)
+    if (task.enabled && active != null && state.phase == ClickAlarmPhase.PREPARING) {
+        if (ExactClickPolicy.evaluate(task, active.scheduledAt, now, currentZone).status == ClickScheduleStatus.READY)
+            return ClickTaskPresentation("执行准备中", futureFailure, recoveryHelp = help, scheduledEnabled = true)
+        return ClickTaskPresentation("已错过启动时间，本次跳过", recoveryHelp = help)
     }
-    if (!sameDate(due, now, task.timeZoneId) || now - due > ClickSchedulePolicy.MAX_LATENESS_MS) {
-        return ClickTaskPresentation("本次已超时", formatNextPlan(task, next, now), next, help)
+    if (state?.status == ClickAlarmStatus.NEEDS_ENABLE)
+        return ClickTaskPresentation("请启用定时任务", recoveryHelp = RecoveryHelp.REENABLE)
+    if (state?.status == ClickAlarmStatus.SCHEDULE_FAILED)
+        return ClickTaskPresentation("定时安排失败，请重新启用", recoveryHelp = RecoveryHelp.REENABLE)
+    if (!task.enabled) return ClickTaskPresentation("任务已停用", recoveryHelp = help)
+    val next = state?.next
+    if (state?.status == ClickAlarmStatus.ARMED && next != null) {
+        if (next.scheduledAt > now) return ClickTaskPresentation(formatNextPlan(task, next.scheduledAt, now),
+            nextAt = next.scheduledAt, recoveryHelp = help, scheduledEnabled = true)
+        if (now - next.scheduledAt >= ExactClickPolicy.START_WINDOW_MS)
+            return ClickTaskPresentation("已错过启动时间，本次跳过", "下一次安排尚未确认", recoveryHelp = help)
+        return ClickTaskPresentation("执行准备中", recoveryHelp = help, scheduledEnabled = true)
     }
-    val minutes = (now - due) / 60_000
-    return ClickTaskPresentation(if (minutes == 0L) "尚未开始 · 已到计划时间" else "尚未开始 · 已延后 $minutes 分钟",
-        "${formatTime(task, due + ClickSchedulePolicy.MAX_LATENESS_MS)} 后将跳过本次", recoveryHelp = help)
+    return ClickTaskPresentation("暂无法确认下一次计划", recoveryHelp = RecoveryHelp.REENABLE)
 }
 
 private fun dateAt(time: Long, zone: String): Calendar = Calendar.getInstance(TimeZone.getTimeZone(zone)).apply { timeInMillis = time }

@@ -1,50 +1,58 @@
-# Autoclick
+# AutoClick
 
-An Android app that records screen coordinates and relative timing, then replays one saved sequence on selected weekdays.
+Records screen coordinates and relative timing, then replays one saved sequence on selected weekdays.
 
 ## Use
 
-1. Open the app and enable its accessibility service and overlay permission when prompted.
-2. Choose **开始录制** or **继续录制**. Move the floating button to a target position and tap it to record that position. Move/tap again to record additional positions and the elapsed interval. Recording does not click the underlying application.
-3. Long-press the floating button, select a time and at least one weekday, and confirm. Cancel returns to the preserved recording.
-4. Check **当前状态** for the next planned occurrence or present execution state, and **最近结果** for the independently retained previous result on the main screen. **停用任务**, **启用任务**, and **删除任务** control the saved schedule. Saving again replaces the existing task.
-5. Choose **5 秒后试运行** to test the saved sequence, including a disabled schedule. Confirm the real clicks, then switch to the target page during the countdown. Trial does not consume that day's scheduled occurrence; its result appears separately.
-6. Use **停止并停用** on the home screen or floating execution control to interrupt the current sequence and disable future scheduled runs. It interrupts a waiting interval immediately; an already dispatched gesture cannot be undone. Explicitly enable/save again to allow scheduled execution.
+1. Open AutoClick and enable accessibility when prompted. The app checks both the grant and live connection whenever it is in the foreground. Choose **去开启** to open settings or **退出应用** to close the Activity without deleting data. A connecting service waits up to ten seconds in this foreground guide.
+2. Choose **开始录制** / **继续录制**, move the floating button and tap to record positions and intervals. Recording does not click the underlying app. Long-press to choose a time and weekdays; saving replaces the existing schedule. Drafts and saved tasks survive process restarts.
+3. Android 12+ may require **闹钟和提醒** permission. Without it, saving preserves the configuration as disabled. **去开启 / 暂不** only affects timed execution: recording and trial remain available. Returning from settings never enables a task automatically; explicitly choose **启用任务**.
+4. Check **当前状态** for the actual alarm registration or current execution, and **最近结果** for independent history. Disable, resume and delete use the existing buttons. Resume rotates the event identity while preserving this schedule's consumed/skipped occurrences and history.
+5. **修改时间** edits the saved hour/minute and weekdays, retaining points, intervals, protection, saved time zone, schedule identity, draft and execution history. Cancel leaves the task unchanged; rotation keeps the edit and never duplicates a saving operation. A disabled task stays disabled and needs no exact-alarm permission to edit. If an enabled task loses permission during saving, the new configuration is retained disabled with an explicit result. A changed time zone remains blocked until the existing re-save flow updates it. Editing is unavailable during alarm preparation, trial or execution. Unchanged values do not replace identity or reschedule.
+6. **5 秒后试运行** confirms real clicks, then gives five seconds to return to the target page. Trial works with a disabled schedule and does not consume a timed occurrence. It shares the execution gate with timed runs.
+7. **停止并停用** immediately cancels the active sequence and disables future timing. Already dispatched gestures cannot be undone. Enable/save explicitly to allow future timed execution again.
 
-Draft recordings and saved tasks survive overlay recreation and application restarts. Starting a new recording clears only the draft; an existing scheduled task retains its saved sequence.
+Existing WorkManager schedules are cancelled during upgrade. Their recording, configuration, history and consumption ledger remain, but the task shows **定时方式已更新，请启用任务**. It requires explicit enabling; old Worker instances cannot dispatch gestures. Recordings without protection metadata still require re-recording.
 
-Accessibility is a prerequisite: opening or returning to the foreground automatically checks both the system grant and live service connection. If disabled, the app shows **去开启** and **退出应用**. A pending connection waits at most ten seconds, then offers settings guidance to switch the service off and on. Back or **退出应用** closes the Activity and preserves tasks and drafts. The home screen becomes available only after connection; losing permission in the foreground brings the prerequisite prompt back. **无障碍设置** opens Android settings; permission must still be enabled explicitly by the user. You can close the home screen and keep the target application open.
+## Timing and safety
 
-Current task status reads the matching WorkManager entry and execution session. **下次** is a planned time, not an exact-start guarantee. An overdue entry shows elapsed delay and the existing skip deadline; unknown scheduling does not invent a next time or reason. Previous execution results remain after connection recovery or disabling/resuming the same schedule. Contextual preparation/re-recording/time-zone/re-enable explanations only show guidance; they do not clear recordings, change settings or retry automatically. Legacy results retain their text without guessing a recovery cause.
+- A cancellable, explicit, immutable AlarmManager event schedules one future occurrence with `setExactAndAllowWhileIdle`. WorkManager is retained only to cancel old schedules and host the inert compatibility Worker. There is no fallback clicking path when exact timing permission is unavailable.
+- The first gesture may be dispatched only in **T ≤ firstDispatchAt < T + 5,000 ms**. Delivery, process startup, service connection, stop-control preparation, checks, consumption commit and the first point's delay all consume the original budget. A final guard runs immediately before `dispatchGesture`. At five seconds, the occurrence is skipped; future plans continue. This is a business cutoff, not an Android delivery guarantee.
+- Once the first gesture starts in time, remaining points retain recorded intervals and may finish after that window. Execution belongs to the connected accessibility service lifecycle, and service destruction cancels it. The broadcast receiver only verifies, connects and hands off; there is no foreground standby service or automatic Activity launch.
+- Keep the device awake/unlocked and the correct target page open. Each point checks task/service identity, display size/rotation, target package, stop-control bounds, screen state and clock changes. AutoClick does not open target apps or unlock devices. Package matching cannot detect page changes inside the same app.
+- Before any gesture, claiming an automatic occurrence durably consumes its entire date in the saved time zone. Editing to a later time that day, process death, cancellation, clock rollback and disable/resume cannot run it again that date. A skipped event that was never claimed retains an event watermark without consuming the entire date; explicitly editing to a future time that day is allowed. Editing always selects a strictly future selected time and never catches up a passed occurrence. Saving a new recording creates a new schedule. Interrupted sequences may remain incomplete.
+- Only one execution runs at a time. A timed occurrence arriving during trial is skipped without queuing or interrupting trial. An unavailable stop control prevents clicking. A sequence has at most 200 points and eight minutes of recorded time; a nine-minute watchdog bounds execution.
+- Boot/application update can rebuild a strictly future alarm only for an already enabled new-version task with valid permissions. Time changes stop timed execution and recalculate future timing. Time-zone changes pause the task and require re-saving. Permission grants never arm automatically.
+- After Android **Force Stop**, reopen AutoClick and check the task; an unconfirmed arrangement requires explicit enabling. Ordinary startup validates stored state and does not blindly replace a potentially cancelled alarm. If accessibility stays disconnected, switch it off/on in system settings. AutoClick cannot bypass Android's stopped state or manufacturer background restrictions.
+- **下次** means the system API accepted a future arrangement, not guaranteed on-time execution. Missing/failed arrangements do not invent a next time. **全部点击手势已完成** means Android completed the gestures, not that the target business action succeeded.
 
-Exact-start reliability and the business justification for the existing fifteen-minute cutoff remain follow-up work requiring design review; this change leaves scheduling and that cutoff unchanged.
+## Development and short verification
 
-## Execution limits
-
-- WorkManager schedules an approximate daily trigger; Android may delay it for power management. A start delayed by more than 15 minutes is skipped, as are early triggers and yesterday's missed occurrences. It is unsuitable for actions that must occur at an exact instant. Schedules retain the time zone from saving; re-save after changing time zone.
-- Keep the device awake/unlocked, the accessibility service enabled, and the target page open. Autoclick does not launch target apps or unlock devices.
-- If WorkManager starts the app process before an enabled accessibility service reconnects, the scheduled worker waits up to ten seconds before the first click. A disabled service fails immediately. Stop, task replacement, clock changes and start-window expiry abort the wait without consuming the occurrence. Connection timeout does not trigger an automatic retry. The system controls accessibility binding; this is recovery from a short initialization gap, not a guarantee of process survival or exact execution. After **Force Stop**, reopen the app; if the service stays disconnected, explicitly switch it off and on in system accessibility settings. Autoclick does not bypass Android's stopped state.
-- Coordinates are absolute screen pixels. Recordings retain display size/rotation and the application for each point. Before each gesture, the worker verifies those conditions and the unlocked/interactive screen, and stops on a mismatch or an unknown foreground app. Re-record after changing orientation, display dimensions, or target layout. App matching cannot detect page/layout changes inside the same app.
-- Old recordings/tasks without environment metadata remain visible but require re-recording before execution. Startup disables legacy schedules; no unprotected replay is allowed.
-- Before dispatching clicks, the day's occurrence is durably consumed. Process death, cancellation or a failed gesture never automatically replays that occurrence; disable/resume retains this protection. A newly saved recording defines a new schedule. This prevents duplicate actions but can leave an interrupted sequence incomplete.
-- A sequence contains at most 200 points and lasts at most eight minutes. Gestures run in order and await Android completion callbacks. Rejected/cancelled gestures stop execution without replaying already completed clicks.
-- Trial and scheduled execution share one execution gate and cannot run simultaneously. A scheduled trigger arriving during another run is skipped; disable the schedule while testing if it must not trigger later that day. Trial never automatically restarts after cancellation or application process death.
-- The stop control remains over the target page during countdown and execution. Its position avoids the saved coordinates; execution fails closed if it cannot be safely displayed or its actual bounds cover a point.
-- “全部点击手势已完成” confirms Android completed the gestures; it does not confirm the target application's business action succeeded.
-
-## Development
+Use SDK 36 and the project-configured JBR 21.0.11. The currently installed Android Studio JDK 25 does not configure this Gradle/Kotlin version successfully; no toolchain upgrade is required for this integration:
 
 ```sh
-./gradlew :autoclick:assembleDebug
-./gradlew :accessibilityCore:testDebugUnitTest :autoclick:testDebugUnitTest
-./gradlew :autoclick:connectedDebugAndroidTest
-./gradlew :autoclick:lintDebug
+export JAVA_HOME='/Users/hgeng/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Home'
+./gradlew :autoclick:testDebugUnitTest :accessibilityCore:testDebugUnitTest \
+  :autoclick:assembleDebug :autoclick:assembleDebugAndroidTest :autoclick:lintDebug \
+  --no-daemon --max-workers=2
 ```
 
-The Android tests exercise saved preferences, task control, and worker outcomes. Run on a dedicated emulator or test device, since tests create and delete the app's saved task.
+Device tests create/delete fixtures. Snapshot application files, accessibility settings and the exact-alarm app-op before running; cancel fixture alarms and restore/verify those values afterwards. An old task may legitimately migrate to disabled after restoration; preserve its content/history and report the migration. Never run destructive fixtures against unprotected user data.
 
-For a quick scheduled-click acceptance check, run `GestureIntegrationTest#quickScheduledTaskFiresAtNextMinute` with instrumentation argument `quickSchedule=true`. It saves through the normal task controller, selects the next minute (with a five-second save margin), and waits at most 90 seconds for a real button click. It checks that the click is not early, duplicate delivery does not click again, and the next daily trigger stays aligned. No test timing override is used. The default suite skips this optional wait.
+`EditScheduleUiTest#editedEnabledScheduleClicksOnceAndConsumedDateStaysBlocked` edits through the real home screen, waits for a real exact-alarm click, records first dispatch and button receipt, then edits later that date and checks persistent rejection and the next future date. `ExactTimingIntegrationTest#quickExactTaskFiresAtNextMinute` uses the production clock/controller/AlarmManager/receiver/service and an actual button. It chooses the next minute with at least five seconds of save margin, waits at most 90 seconds, checks both first-dispatch and button-receipt times within the five-second window, checks one click and no duplicate, and verifies an independent future alarm. Other gesture-protection regressions inject an internal clock to avoid repeating minute-long waits; those do not prove production timing. Production time/window cannot be overridden by Intent, preferences or UI.
 
-`ClickProcessRestoreTest` is opt-in: run it with instrumentation argument `processRestorePhase=seed`, force-stop the application, then run it in a new instrumentation process with `processRestorePhase=verify`. Keep application data between phases. The default test run skips this two-process regression.
+`ExactTimingPermissionUiTest` supports host-driven `permissionPhase=seed/lost/granted`. End instrumentation before revoking permission: revocation can kill the app. Establish an ordinary app/service baseline and explicitly register a real fixture alarm before revocation; verify its cancellation and each phase's test result. Granting alone must leave the task disabled.
 
-`ClickRecoveryProcessTest` is also opt-in (`processRecoverySeed=true`). It seeds an upcoming normal schedule against a button in the separate test-APK process. Android force-stops the app when instrumentation finishes; establish a normal live connection first, re-enabling the test service if it remains crashed. Then return to the target, kill only the Autoclick PID without force-stopping the package, and verify a new PID/system service connection and one real button click. Do not launch the app, change permissions or run instrumentation after that kill. Snapshot/restore app data and settings around these destructive fixtures.
+`ClickProcessRestoreTest` is opt-in (`processRestorePhase=seed/verify`) for persistence across separate processes. `ClickRecoveryProcessTest` is opt-in (`processRecoverySeed=true`) for a separate PID-kill experiment: after instrumentation ends, establish normal binding, explicitly enable the saved fixture alarm, open the test-APK target, and kill only the AutoClick PID. Observe OS restart and the real button without launching the app, changing permissions or restarting instrumentation after the kill. Simulated BOOT/recovery events and an actual device reboot are different validations; a real reboot is optional. Emulator acceptance does not cover physical-device manufacturer policies.
+
+The current integration checkout is this project directory. Non-sensitive diagnostics and the protected test runner are in `.artifacts/autoclick-integration/`; source backups are kept there without creating another checkout. Run each device batch serially on the existing emulator:
+
+```sh
+python3 .artifacts/autoclick-integration/run_tests.py edit-store com.lumostech.autoclick.ScheduleEditIntegrationTest
+python3 .artifacts/autoclick-integration/run_tests.py edit-ui com.lumostech.autoclick.EditScheduleUiTest
+python3 .artifacts/autoclick-integration/run_tests.py permission com.lumostech.autoclick.ExactTimingPermissionUiTest#hostDrivenPermissionRoundtrip permissions
+```
+
+The runner snapshots application files and settings, verifies restoration even after failures, and keeps private recovery backups on unresolved failures. See `.artifacts/autoclick-integration/report.md` for actual results and limits, and `.artifacts/autoclick-status-audit/2026-10-08.md` for the earlier pre-integration inventory. The proposed new legacy-task recovery UX is outside this integration.
+
+2026-10-09 integration acceptance: 103 local tests and 115 device cases passed across protected sequential batches, with no failures or skips. Edited and unedited production alarms each produced one real button click within the first-gesture window. APK hashes, screenshots, restoration and unverified physical-device/reboot limits are recorded in the integration report.

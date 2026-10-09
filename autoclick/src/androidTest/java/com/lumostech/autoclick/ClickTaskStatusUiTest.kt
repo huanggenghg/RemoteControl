@@ -53,7 +53,7 @@ class ClickTaskStatusUiTest {
         shell("input keyevent KEYCODE_WAKEUP")
         shell("wm dismiss-keyguard")
         compose.waitUntil(10_000) { AccessibilityCoreService.accessibilityCoreService != null }
-        store.clear()
+        runBlocking { ClickTaskController(context).delete() }
         val target = Calendar.getInstance().apply { add(Calendar.MINUTE, 2); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
         due = target.timeInMillis
         task = ClickTask("status-ui", target.get(Calendar.HOUR_OF_DAY), target.get(Calendar.MINUTE), (1..7).toSet(),
@@ -64,7 +64,7 @@ class ClickTaskStatusUiTest {
 
     @After fun restore() {
         WorkManager.getInstance(context).cancelUniqueWork(ClickPeriodicWorker.TAG).result.get(10, TimeUnit.SECONDS)
-        store.clear()
+        runBlocking { ClickTaskController(context).delete() }
         if (originalServices == "null" || originalServices.isBlank()) shell("settings --user 0 delete secure enabled_accessibility_services")
         else shell("settings --user 0 put secure enabled_accessibility_services $originalServices")
         shell("settings --user 0 put secure accessibility_enabled ${if (originalEnabled == "1") "1" else "0"}")
@@ -77,6 +77,39 @@ class ClickTaskStatusUiTest {
     private fun capture(name: String) {
         if (InstrumentationRegistry.getArguments().getString("uiScreenshots") == "true")
             shell("screencap -p /sdcard/autoclick-$name.png")
+    }
+
+    @Test fun largeFontAndLandscapeKeepTaskActionsReachable() {
+        val font = shell("settings --user 0 get system font_scale")
+        val rotation = shell("settings --user 0 get system user_rotation")
+        val automatic = shell("settings --user 0 get system accelerometer_rotation")
+        try {
+            shell("settings --user 0 put system font_scale 1.5")
+            for (rotation in listOf(UiAutomation.ROTATION_FREEZE_0, UiAutomation.ROTATION_FREEZE_90)) {
+                automation.setRotation(rotation)
+                ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                    compose.waitUntil(5_000) {
+                        var ready = false
+                        scenario.onActivity { ready = it.resources.configuration.fontScale >= 1.49f &&
+                            (rotation != UiAutomation.ROTATION_FREEZE_90 ||
+                                it.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) }
+                        ready
+                    }
+                    waitFor("当前状态")
+                    for (text in listOf("当前状态", "最近结果", "停用任务"))
+                        compose.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+                    capture(if (rotation == UiAutomation.ROTATION_FREEZE_0) "task-large-font" else "task-landscape")
+                }
+            }
+        } finally {
+            automation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+            for ((key, value) in listOf("user_rotation" to rotation, "accelerometer_rotation" to automatic)) {
+                if (value == "null") shell("settings --user 0 delete system $key")
+                else shell("settings --user 0 put system $key $value")
+            }
+            if (font == "null") shell("settings --user 0 delete system font_scale")
+            else shell("settings --user 0 put system font_scale $font")
+        }
     }
 
     @Test fun nextPlanAndHistoricalFailureAreSeparate() {

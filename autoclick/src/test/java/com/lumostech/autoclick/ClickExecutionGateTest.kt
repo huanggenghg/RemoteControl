@@ -40,4 +40,51 @@ class ClickExecutionGateTest {
         assertFalse(gate.canContinue(old))
         assertNull(gate.tryStart(manual = false))
     }
+
+    @Test fun editAndExecutionCannotAcquireEachOthersReservation() {
+        val gate = ClickExecutionGate()
+        val run = gate.tryStart(manual = true)!!
+        assertNull(gate.tryBeginEdit())
+        gate.finish(run)
+        val edit = gate.tryBeginEdit()!!
+        assertTrue(gate.canEdit(edit))
+        assertNull(gate.tryStart(manual = false))
+        assertNull(gate.tryStart(manual = true))
+        assertNull(gate.tryBeginEdit())
+        gate.finishEdit(edit)
+        assertNotNull(gate.tryStart(manual = false))
+    }
+
+    @Test fun emergencyStopRevokesEditAndCannotBeUndoneByItsCompletion() {
+        val gate = ClickExecutionGate()
+        val edit = gate.tryBeginEdit()!!
+        gate.stop()
+        assertFalse(gate.canEdit(edit))
+        assertFalse(gate.allowScheduledAfterEdit(edit))
+        gate.finishEdit(edit)
+        assertNull(gate.tryStart(manual = false))
+    }
+
+    @Test fun staleEditReleaseCannotUnlockAnotherEdit() {
+        val gate = ClickExecutionGate()
+        val old = gate.tryBeginEdit()!!
+        gate.finishEdit(old)
+        val current = gate.tryBeginEdit()!!
+        gate.finishEdit(old)
+        assertTrue(gate.canEdit(current))
+        assertNull(gate.tryStart(manual = false))
+        assertTrue(gate.allowScheduledAfterEdit(current))
+        gate.finishEdit(current)
+        assertNotNull(gate.tryStart(manual = false))
+    }
+
+    @Test fun stopBeforeEditReservationCannotBeUndoneByThatEdit() {
+        val gate = ClickExecutionGate()
+        gate.stop()
+        val edit = gate.tryBeginEdit()!!
+        assertTrue(gate.canEdit(edit))
+        assertFalse(gate.allowScheduledAfterEdit(edit))
+        gate.finishEdit(edit)
+        assertNull(gate.tryStart(manual = false))
+    }
 }

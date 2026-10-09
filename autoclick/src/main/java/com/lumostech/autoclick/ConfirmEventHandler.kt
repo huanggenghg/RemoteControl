@@ -13,7 +13,8 @@ import java.util.UUID
 class ConfirmEventHandler(
     private val binding: LayoutConfirmBinding,
     private val scope: CoroutineScope,
-    private val controller: ClickTaskController
+    private val controller: ClickTaskController,
+    private val onTimingPermissionRequired: () -> Unit = {}
 ) {
     fun onConfirmClick(view: View) {
         val days = binding.weekdaysPicker.selectedDays.toSet()
@@ -38,10 +39,12 @@ class ConfirmEventHandler(
         binding.cancel.isEnabled = false
         scope.launch {
             try {
-                controller.save(task)
+                val result = controller.save(task)
                 ViewModelMain.isShowFloatWindow.value = false
                 ViewModelMain.isShowCustomFloatWindow.value = false
-                Toast.makeText(view.context, "任务已保存，延后超过 15 分钟将跳过", Toast.LENGTH_LONG).show()
+                Toast.makeText(view.context, if (result == ClickTaskSaveResult.ENABLED)
+                    "任务已保存，须在计划时间后 5 秒内开始" else "任务已保存，开启定时权限后请启用", Toast.LENGTH_LONG).show()
+                if (result == ClickTaskSaveResult.SAVED_NEEDS_PERMISSION) onTimingPermissionRequired()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

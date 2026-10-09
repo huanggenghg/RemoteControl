@@ -1,0 +1,158 @@
+{
+  "status": "verified",
+  "root": "/Users/hgeng/AndroidStudioProjects/RemoteControl",
+  "head": "93c7c4ccaa5c51fa795b0712ca299661f72be547",
+  "local": {
+    "autoclick": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "accessibilityCore": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lint": {
+      "Error": 0,
+      "Warning": 34
+    },
+    "apks": {
+      "autoclick/build/outputs/apk/debug/autoclick-debug.apk": "06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d",
+      "autoclick/build/outputs/apk/androidTest/debug/autoclick-debug-androidTest.apk": "046cc36cbf68fc06e49a7374c385a1fec1e0eed4fa1c755c677cfae055786852"
+    },
+    "test_apk_build_log": "environment-diagnostic-build.log",
+    "production_unchanged_since_final_build": true
+  },
+  "device": {
+    "environments": [
+      {
+        "avd": "Pixel_9a_2",
+        "api": 36,
+        "role": "prior controller and environment diagnosis; original settings restored",
+        "original_display_restored": true
+      },
+      {
+        "avd": "Pixel_9a_3",
+        "api": 36,
+        "role": "all final device batches",
+        "renderer": "host",
+        "display": "1080x2424 at 420dpi"
+      }
+    ],
+    "api": 36,
+    "batches": {
+      "edit-controller-final4": {
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      },
+      "edit-ui6": {
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      },
+      "regression": {
+        "passed": 84,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      },
+      "permission-seed": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      },
+      "permission-lost": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      },
+      "permission-granted": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "restoration_verified": true,
+        "avd": "Pixel_9a_3"
+      }
+    },
+    "total_passed": 115,
+    "edit_real_click": {
+      "clicks": 1,
+      "first_dispatch_late_ms": 217,
+      "button_late_ms": 360,
+      "consumed_date_blocked": true,
+      "stale_worker_rejected": true
+    },
+    "exact_real_click": {
+      "scheduled_at": 1791552420000,
+      "received_at": 1791552420024,
+      "first_dispatch_at": 1791552420196,
+      "button_received_at": 1791552420271,
+      "first_dispatch_late_ms": 196,
+      "button_late_ms": 271,
+      "clicks": 1
+    }
+  },
+  "source_checks": {
+    "index_preserved": true,
+    "head_preserved": true,
+    "edit_backup_preserved": true,
+    "exact_source_preserved": true,
+    "unrelated_preserved": true,
+    "product_unchanged_since_final_build": true,
+    "icons_preserved": true
+  },
+  "private_backups_removed": true,
+  "limits": [
+    "No physical device or OEM background-policy acceptance",
+    "No actual reboot recovery acceptance",
+    "Legacy recovery UX remains design-only"
+  ],
+  "final_device_state": {
+    "queued_exact_alarms": [],
+    "original_task_absent_preserved": true,
+    "installed_apk_sha256": "06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d",
+    "test_package_removed_to_match_original": true,
+    "desktop_icon_visually_verified": true,
+    "private_backup_files_absent": true
+  },
+  "verified_on": "2026-10-09 Asia/Shanghai",
+  "self_review_only": true,
+  "acceptance_phase_no_commit_push_publish": true,
+  "subsequent_user_authorization": "commit & push to main",
+  "pre_push_verification": {
+    "build_log": "pre-push-verification.log",
+    "local_tests": {
+      "autoclick": {
+        "tests": 87,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "accessibilityCore": {
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "lint": {
+      "Error": 0,
+      "Warning": 34
+    },
+    "apk_hashes_unchanged": true,
+    "device_logs_and_source_hashes_rechecked": true
+  }
+}

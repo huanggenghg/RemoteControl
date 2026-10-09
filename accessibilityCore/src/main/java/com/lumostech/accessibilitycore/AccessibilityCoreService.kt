@@ -218,6 +218,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     suspend fun executeClickSequence(
         points: List<ClickCounterPoint>,
+        beforeDispatch: (() -> Boolean)? = null,
         canContinue: () -> Boolean = { true }
     ): Boolean =
         withContext(Dispatchers.Main.immediate) {
@@ -238,6 +239,10 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
                                 val gesture = GestureDescription.Builder().addStroke(
                                     GestureDescription.StrokeDescription(path, 0, 20)
                                 ).build()
+                                if (beforeDispatch != null && !beforeDispatch()) {
+                                    if (continuation.isActive) continuation.resume(false)
+                                    return@suspendCancellableCoroutine
+                                }
                                 val accepted = dispatchGesture(gesture, object : GestureResultCallback() {
                                     override fun onCompleted(gestureDescription: GestureDescription) {
                                         if (continuation.isActive) continuation.resume(true)

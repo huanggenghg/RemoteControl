@@ -21,9 +21,10 @@ internal object ClickServiceConnection {
     fun readiness(context: Context): ClickServiceReadiness = ClickServiceReadiness.from(
         isEnabled(context), AccessibilityCoreService.accessibilityCoreService != null)
 
-    suspend fun await(context: Context, canContinue: () -> Boolean): AccessibilityCoreService? =
+    suspend fun await(context: Context, canContinue: () -> Boolean, timeoutMs: Long = MAX_WAIT_MS): AccessibilityCoreService? =
         withContext(Dispatchers.Main.immediate) {
-            ServiceConnectionWaiter.await(MAX_WAIT_MS, 100,
+            if (timeoutMs <= 0) return@withContext null
+            ServiceConnectionWaiter.await(timeoutMs, 100,
                 { canContinue() && isEnabled(context) },
                 { AccessibilityCoreService.accessibilityCoreService })
         }

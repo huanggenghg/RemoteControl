@@ -1,0 +1,8 @@
+{
+  "queued_exact_alarms": [],
+  "original_task_absent_preserved": true,
+  "installed_apk_sha256": "06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d",
+  "test_package_removed_to_match_original": true,
+  "desktop_icon_visually_verified": true,
+  "private_backup_files_absent": true
+}

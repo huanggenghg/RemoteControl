@@ -7,7 +7,7 @@ import kotlin.math.abs
 enum class ClickScheduleStatus(val message: String) {
     READY("等待执行"),
     EARLY("尚未到计划时间，已跳过"),
-    LATE("已超过计划时间 15 分钟，已跳过"),
+    LATE("已错过启动时间，本次跳过"),
     WRONG_DAY("今天不在执行星期内，已跳过"),
     TIME_ZONE_CHANGED("时区已改变，请重新设置任务"),
     INVALID("任务配置无效，请重新录制")
@@ -16,12 +16,21 @@ enum class ClickScheduleStatus(val message: String) {
 data class ClickScheduleDecision(val status: ClickScheduleStatus, val scheduledAt: Long = 0)
 
 object ClickSchedulePolicy {
-    const val MAX_LATENESS_MS = 15 * 60_000L
-
     fun clockUnchanged(startWall: Long, startElapsed: Long, nowWall: Long, nowElapsed: Long): Boolean =
         abs((nowWall - startWall) - (nowElapsed - startElapsed)) <= 2_000L
 
-    fun nextOccurrence(task: ClickTask, now: Long): Long {
+    fun isConsumedDate(candidate: Long, consumedAt: Long?, timeZoneId: String): Boolean {
+        if (consumedAt == null) return false
+        if (candidate <= consumedAt) return true
+        val zone = TimeZone.getTimeZone(timeZoneId)
+        val a = Calendar.getInstance(zone).apply { timeInMillis = candidate }
+        val b = Calendar.getInstance(zone).apply { timeInMillis = consumedAt }
+        return a.get(Calendar.ERA) == b.get(Calendar.ERA) &&
+            a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
+            a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
+    }
+
+    fun nextOccurrence(task: ClickTask, now: Long, consumedAt: Long? = null): Long {
         require(task.isValid())
         val date = Calendar.getInstance(TimeZone.getTimeZone(task.timeZoneId)).apply {
             timeInMillis = now
@@ -34,7 +43,11 @@ object ClickSchedulePolicy {
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
             }
-            if (due.timeInMillis > now && due.get(Calendar.DAY_OF_WEEK) in task.days) return due.timeInMillis
+            // Calendar normalizes nonexistent local times across a DST gap.
+            // Such a value would fail the occurrence identity check; skip that date.
+            if (due.timeInMillis > now && due.get(Calendar.DAY_OF_WEEK) in task.days &&
+                due.get(Calendar.HOUR_OF_DAY) == task.hour && due.get(Calendar.MINUTE) == task.minute &&
+                !isConsumedDate(due.timeInMillis, consumedAt, task.timeZoneId)) return due.timeInMillis
             date.add(Calendar.DAY_OF_YEAR, 1)
         }
     }
@@ -53,7 +66,7 @@ object ClickSchedulePolicy {
         val lateness = now - due
         val status = when {
             lateness < 0 -> ClickScheduleStatus.EARLY
-            lateness > MAX_LATENESS_MS -> ClickScheduleStatus.LATE
+            lateness >= ExactClickPolicy.START_WINDOW_MS -> ClickScheduleStatus.LATE
             else -> ClickScheduleStatus.READY
         }
         return ClickScheduleDecision(status, due)

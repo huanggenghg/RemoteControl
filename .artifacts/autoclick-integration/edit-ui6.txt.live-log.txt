@@ -1,0 +1,4 @@
+--------- beginning of main
+10-09 21:23:37.752  3983  3983 I AutoclickQuickCheck: environment=ClickEnvironment(width=1080, height=2424, rotation=0, packageName=com.lumostech.autoclick, displayId=0, left=0, top=0, right=1080, bottom=2424) rootPackage=com.lumostech.autoclick window=AccessibilityWindowInfo[title=AutoClick, displayId=0, id=55, taskId=235, type=TYPE_APPLICATION, layer=0, region=SkRegion((0,0,1080,2424)), bounds=Rect(0, 0 - 1080, 2424), focused=true, active=true, pictureInPicture=false, transitionTime=229274, hasParent=false, isAnchored=false, hasChildren=false] serviceFlags=66
+10-09 21:23:41.359  3983  3999 I AutoclickQuickCheck: edit scheduledAt=1791552240000, replacedAlarm=1791552480000
+10-09 21:24:03.557  3983  3999 I AutoclickQuickCheck: edit realClicks=1, firstDispatchLateMs=217, buttonLateMs=360, consumedDateBlocked=true, staleWorkerRejected=true

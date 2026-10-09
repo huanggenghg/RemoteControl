@@ -30,8 +30,10 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
         }.getOrNull()
     }
 
-    fun save(task: ClickTask, message: String = "等待下次执行", reason: ClickOutcomeReason? = null): Boolean = synchronized(lock) {
+    fun save(task: ClickTask, message: String = "等待下次执行", reason: ClickOutcomeReason? = null,
+             controlError: String? = null, alarmState: ClickAlarmState? = null): Boolean = synchronized(lock) {
         require(task.isValid())
+        alarmState?.let { require(it.isValid() && it.taskId == task.id && it.scheduleId == task.scheduleId) }
         val previous = load()
         val sameSchedule = previous?.scheduleId == task.scheduleId
         // Preserve a legacy execution result before a control operation replaces
@@ -49,11 +51,14 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
             task.protection?.let { put("protection", it.encode()) }
         }
         val editor = preferences.edit().putString("task", json.toString()).putString("outcome", message)
-            .remove("outcome_time")
+            .remove("outcome_time").remove("control_error")
         if (!sameSchedule) editor.remove("consumed_at").remove("execution_record").remove("execution_pending")
+            .remove("exact_alarm").remove("closed_at").remove("start_trace")
         legacyRecord?.let { editor.putString("execution_record", it.encode()) }
         reason?.let { editor.putString("execution_record", ClickExecutionRecord(task.id, task.scheduleId,
             null, System.currentTimeMillis(), it, message).encode()).putBoolean("execution_pending", false) }
+        controlError?.let { editor.putString("control_error", JSONObject().put("taskId", task.id).put("message", it).toString()) }
+        alarmState?.let { editor.putString("exact_alarm", it.encode()) }
         editor.commit()
     }
 
@@ -84,7 +89,95 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
     }
 
     fun wasConsumed(taskId: String, scheduledAt: Long): Boolean = synchronized(lock) {
-        load()?.id == taskId && preferences.contains("consumed_at") && scheduledAt <= preferences.getLong("consumed_at", 0)
+        val task = load() ?: return false
+        task.id == taskId && ClickSchedulePolicy.isConsumedDate(scheduledAt, consumedAt(taskId), task.timeZoneId)
+    }
+
+    fun consumedAt(taskId: String): Long? = synchronized(lock) {
+        if (load()?.id == taskId && preferences.contains("consumed_at")) preferences.getLong("consumed_at", 0) else null
+    }
+
+    fun controlError(taskId: String): String? = synchronized(lock) {
+        runCatching {
+            val value = JSONObject(preferences.getString("control_error", null) ?: return null)
+            value.getString("message").takeIf { load()?.id == taskId && value.getString("taskId") == taskId }
+        }.getOrNull()
+    }
+
+    fun alarmState(): ClickAlarmState? = synchronized(lock) {
+        val task = load() ?: return null
+        ClickAlarmState.decode(preferences.getString("exact_alarm", null))
+            ?.takeIf { it.taskId == task.id && it.scheduleId == task.scheduleId }
+    }
+
+    fun startTrace(): ClickStartTrace? = synchronized(lock) {
+        ClickStartTrace.decode(preferences.getString("start_trace", null))
+            ?.takeIf { it.occurrence.scheduleId == load()?.scheduleId }
+    }
+
+    fun closedThrough(): Long = synchronized(lock) {
+        maxOf(preferences.getLong("consumed_at", 0), preferences.getLong("closed_at", 0))
+    }
+
+    fun saveAlarmState(taskId: String, state: ClickAlarmState, enabled: Boolean? = null): Boolean = synchronized(lock) {
+        val task = load() ?: return false
+        if (task.id != taskId || state.taskId != taskId || state.scheduleId != task.scheduleId || !state.isValid()) return false
+        val editor = preferences.edit().putString("exact_alarm", state.encode())
+        if (enabled != null) {
+            val json = JSONObject(preferences.getString("task", null)!!).put("enabled", enabled)
+            editor.putString("task", json.toString())
+        }
+        editor.commit()
+    }
+
+    fun reserveAlarm(occurrence: ClickAlarmOccurrence, receivedAt: Long): Boolean = synchronized(lock) {
+        val task = load() ?: return false
+        val state = alarmState() ?: return false
+        if (!occurrence.matches(task) || !task.enabled || task.protection == null ||
+            state.status != ClickAlarmStatus.ARMED || state.next != occurrence || state.active != null ||
+            occurrence.scheduledAt <= closedThrough() || wasConsumed(task.id, occurrence.scheduledAt) || receivedAt <= 0) return false
+        // Until the separate platform call confirms a next event, no future alarm is advertised.
+        preferences.edit().putString("exact_alarm", state.copy(status = ClickAlarmStatus.ARMING,
+            next = null, active = occurrence, phase = ClickAlarmPhase.PREPARING).encode())
+            .putString("start_trace", ClickStartTrace(occurrence, receivedAt).encode()).commit()
+    }
+
+    fun claimAlarm(occurrence: ClickAlarmOccurrence): ClickExecutionClaim = synchronized(lock) {
+        val task = load() ?: return ClickExecutionClaim.STALE_TASK
+        if (!occurrence.matches(task) || !task.enabled || task.protection == null) return ClickExecutionClaim.STALE_TASK
+        if (occurrence.scheduledAt <= closedThrough() || wasConsumed(task.id, occurrence.scheduledAt)) return ClickExecutionClaim.ALREADY_CONSUMED
+        val state = alarmState() ?: return ClickExecutionClaim.STALE_TASK
+        if (state.active != occurrence || state.phase != ClickAlarmPhase.PREPARING) return ClickExecutionClaim.STALE_TASK
+        val legacy = if (lastExecutionRecord() == null) lastExecutionResult() else null
+        val editor = preferences.edit().putLong("consumed_at", occurrence.scheduledAt)
+            .putBoolean("execution_pending", true)
+            .putString("exact_alarm", state.copy(phase = ClickAlarmPhase.CLAIMED).encode())
+        legacy?.let { editor.putString("execution_record", it.encode()) }
+        if (editor.commit()) ClickExecutionClaim.CLAIMED else ClickExecutionClaim.STORAGE_FAILED
+    }
+
+    fun finishAlarm(occurrence: ClickAlarmOccurrence, reason: ClickOutcomeReason, message: String): Boolean = synchronized(lock) {
+        val task = load() ?: return false
+        val state = alarmState() ?: return false
+        if (!occurrence.matches(task) || state.active != occurrence) return false
+        val consumed = preferences.getLong("consumed_at", 0)
+        if (state.phase == ClickAlarmPhase.CLAIMED && consumed != occurrence.scheduledAt) return false
+        if (state.phase != ClickAlarmPhase.CLAIMED && consumed >= occurrence.scheduledAt) return false
+        val time = System.currentTimeMillis()
+        preferences.edit().putLong("closed_at", maxOf(preferences.getLong("closed_at", 0), occurrence.scheduledAt))
+            .putString("execution_record", ClickExecutionRecord(task.id, task.scheduleId, occurrence.scheduledAt,
+                time, reason, message).encode()).putBoolean("execution_pending", false)
+            .putString("outcome", message).putLong("outcome_time", time)
+            .putString("exact_alarm", state.copy(active = null, phase = null).encode()).commit()
+    }
+
+    fun recordFirstDispatch(occurrence: ClickAlarmOccurrence, firstDispatchAt: Long): Boolean = synchronized(lock) {
+        val task = load() ?: return false
+        val state = alarmState() ?: return false
+        val trace = startTrace() ?: return false
+        if (!occurrence.matches(task) || state.active != occurrence || state.phase != ClickAlarmPhase.CLAIMED ||
+            trace.occurrence != occurrence || trace.firstDispatchAt != null) return false
+        preferences.edit().putString("start_trace", trace.copy(firstDispatchAt = firstDispatchAt).encode()).commit()
     }
 
     fun clear(): Boolean = synchronized(lock) { preferences.edit().clear().commit() }
@@ -104,7 +197,7 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
         val consumed = preferences.contains("consumed_at")
         val last = preferences.getLong("consumed_at", 0)
         if (claimed && (!consumed || last != scheduledAt)) return false
-        if (!claimed && consumed && last >= scheduledAt) return false
+        if (!claimed && wasConsumed(taskId, scheduledAt)) return false
         val time = System.currentTimeMillis()
         preferences.edit().putString("outcome", message).putLong("outcome_time", time)
             .putString("execution_record", ClickExecutionRecord(taskId, current.scheduleId, scheduledAt, time, reason, message).encode()).putBoolean("execution_pending", false).commit()
