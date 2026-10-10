@@ -1,0 +1,2 @@
+--------- beginning of main
+10-09 23:56:02.900  4427  4443 I AutoclickQuickCheck: scheduledAt=1791561360000 receivedAt=1791561360014 firstDispatchAt=1791561360367 buttonReceivedAt=1791561360865 firstLateMs=367 buttonLateMs=865 realClicks=1 duplicateClicks=0

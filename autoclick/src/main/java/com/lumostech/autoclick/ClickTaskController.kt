@@ -35,13 +35,13 @@ class ClickTaskController internal constructor(
             check(current.id == expectedTaskId) { "任务已改变，请重新打开任务设置" }
             require(hour in 0..23 && minute in 0..59) { "请输入有效的时间" }
             require(selected.isNotEmpty() && selected.all { it in 1..7 }) { "请至少选择一个有效的执行星期" }
-            require(current.protection != null) { ClickTaskOutcome.NEEDS_RECORDING.message }
             check(store.alarmState()?.active == null && !ClickExecutionSession.state.value.active) {
                 "定时准备或点击正在执行，请结束后再修改"
             }
             check(canEdit()) { "无障碍服务未连接，请恢复后再修改" }
             if (current.hour == hour && current.minute == minute && current.days == selected)
                 return@withLock ClickScheduleEditResult.UNCHANGED
+            if (current.protection == null) return@withLock updateLegacySchedule(current, hour, minute, selected)
             ClickExecutionSession.withScheduleEdit { edit ->
                 val latest = checkNotNull(store.load()) { "任务已删除，请重新打开任务设置" }
                 check(latest.id == expectedTaskId) { "任务已改变，请重新打开任务设置" }
@@ -105,6 +105,24 @@ class ClickTaskController internal constructor(
         }
     }
 
+    private suspend fun updateLegacySchedule(original: ClickTask, hour: Int, minute: Int,
+                                             days: Set<Int>): ClickScheduleEditResult = ClickExecutionSession.withScheduleEdit { edit ->
+        val current = checkNotNull(store.load()) { "任务已删除，请重新打开时间设置" }
+        check(current.id == original.id && current.protection == null) { "任务已变化，请重新打开时间设置" }
+        check(store.alarmState()?.active == null) { "定时任务已开始准备，请结束后再修改" }
+        edit.checkActive()
+        check(canEdit()) { "无障碍服务未连接，请恢复后再修改" }
+        cancelLegacy()
+        store.alarmState()?.next?.let { platform.cancel(it) }
+        edit.checkActive()
+        val updated = current.copy(id = UUID.randomUUID().toString(), hour = hour, minute = minute,
+            days = days.toSet(), enabled = false)
+        check(store.saveLegacySchedule(current.id, updated, ClickScheduleEditResult.LEGACY_DISABLED.message)) {
+            "时间修改未完成，原任务已保留"
+        }
+        ClickScheduleEditResult.LEGACY_DISABLED
+    }
+
     suspend fun save(task: ClickTask): ClickTaskSaveResult = withContext(Dispatchers.IO) {
         mutationLock.withLock {
             require(task.protection != null) { ClickTaskOutcome.NEEDS_RECORDING.message }
@@ -121,6 +139,43 @@ class ClickTaskController internal constructor(
                 armNext(task.copy(enabled = true))
                 ClickExecutionSession.allowScheduled()
                 ClickTaskSaveResult.ENABLED
+            }
+        }
+    }
+
+    suspend fun saveRecoveredRecording(session: LegacyTaskRecoverySession, candidate: ClickTask,
+                                       recordedSessionId: String?): LegacyTaskRecoveryResult = withContext(Dispatchers.IO) {
+        mutationLock.withLock {
+            require(session.isValid()) { "恢复记录无效，请重新进入恢复" }
+            if (store.wasRecovered(session.recoveryId, session.replacementTaskId))
+                return@withLock LegacyTaskRecoveryResult.ALREADY_SAVED
+            val current = checkNotNull(store.load()) { "原任务已删除，请重新进入恢复" }
+            check(current.id == session.sourceTaskId && current.scheduleId == session.sourceScheduleId) {
+                "原任务已变化，请重新进入恢复"
+            }
+            check(current.protection == null && !current.enabled) { "任务状态已变化，请重新进入恢复" }
+            require(recordedSessionId == session.recoveryId) { "当前录制不属于本次恢复，请重新确认" }
+            require(candidate.id == session.replacementTaskId && candidate.scheduleId == session.replacementTaskId) { "恢复任务身份不匹配" }
+            require(candidate.isValid() && candidate.protection != null) { "请完成有效的新录制" }
+            require(candidate.timeZoneId == TimeZone.getDefault().id) { "时区已改变，请重新确认保存时间" }
+            check(store.alarmState()?.active == null && !ClickExecutionSession.state.value.active) {
+                "任务正在准备或执行，请结束后再恢复"
+            }
+            check(canEdit()) { "无障碍服务未连接，请恢复后再保存" }
+            ClickExecutionSession.withScheduleEdit { edit ->
+                val latest = checkNotNull(store.load()) { "原任务已删除，请重新进入恢复" }
+                check(latest.id == session.sourceTaskId && latest.scheduleId == session.sourceScheduleId) { "原任务已变化，请重新进入恢复" }
+                edit.checkActive()
+                cancelLegacy()
+                store.alarmState()?.next?.let { platform.cancel(it) }
+                edit.checkActive()
+                check(canEdit()) { "无障碍服务已断开，请恢复后再保存" }
+                currentCoroutineContext().ensureActive()
+                edit.checkActive()
+                check(store.replaceLegacyTask(session.sourceTaskId, candidate.copy(enabled = false), session.recoveryId)) {
+                    "新任务保存未完成，原任务已保留"
+                }
+                LegacyTaskRecoveryResult.SAVED_DISABLED
             }
         }
     }

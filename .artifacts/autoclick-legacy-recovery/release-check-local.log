@@ -1,0 +1,205 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :accessibilityBase:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityBase:preBuild UP-TO-DATE
+> Task :accessibilityBase:preDebugBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugResValues UP-TO-DATE
+> Task :accessibilityBase:generateDebugResources UP-TO-DATE
+> Task :accessibilityBase:packageDebugResources UP-TO-DATE
+> Task :accessibilityBase:parseDebugLocalResources UP-TO-DATE
+> Task :accessibilityBase:generateDebugRFile UP-TO-DATE
+> Task :accessibilityBase:compileDebugKotlin UP-TO-DATE
+> Task :accessibilityBase:javaPreCompileDebug UP-TO-DATE
+> Task :accessibilityBase:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityBase:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :accessibilityBase:processDebugJavaRes UP-TO-DATE
+> Task :accessibilityBase:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :accessibilityCore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityCore:preBuild UP-TO-DATE
+> Task :accessibilityCore:preDebugBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugResValues UP-TO-DATE
+> Task :accessibilityCore:generateDebugResources UP-TO-DATE
+> Task :accessibilityCore:packageDebugResources UP-TO-DATE
+> Task :accessibilityCore:parseDebugLocalResources UP-TO-DATE
+> Task :accessibilityCore:generateDebugRFile UP-TO-DATE
+> Task :accessibilityCore:compileDebugKotlin UP-TO-DATE
+> Task :accessibilityCore:javaPreCompileDebug UP-TO-DATE
+> Task :accessibilityCore:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :accessibilityCore:processDebugJavaRes UP-TO-DATE
+> Task :accessibilityCore:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :autoclick:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :autoclick:preBuild UP-TO-DATE
+> Task :autoclick:preDebugBuild UP-TO-DATE
+> Task :autoclick:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :autoclick:generateDebugResValues UP-TO-DATE
+> Task :autoclick:generateDebugResources UP-TO-DATE
+> Task :autoclick:mergeDebugResources UP-TO-DATE
+> Task :autoclick:packageDebugResources UP-TO-DATE
+> Task :autoclick:parseDebugLocalResources UP-TO-DATE
+> Task :autoclick:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :autoclick:dataBindingTriggerDebug UP-TO-DATE
+> Task :autoclick:generateDebugBuildConfig UP-TO-DATE
+> Task :accessibilityBase:compileDebugLibraryResources UP-TO-DATE
+> Task :accessibilityCore:compileDebugLibraryResources UP-TO-DATE
+> Task :accessibilityBase:writeDebugAarMetadata UP-TO-DATE
+> Task :accessibilityCore:writeDebugAarMetadata UP-TO-DATE
+> Task :autoclick:checkDebugAarMetadata UP-TO-DATE
+> Task :autoclick:mapDebugSourceSetPaths UP-TO-DATE
+> Task :autoclick:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :accessibilityBase:extractDeepLinksDebug UP-TO-DATE
+> Task :accessibilityBase:processDebugManifest UP-TO-DATE
+> Task :accessibilityCore:extractDeepLinksDebug UP-TO-DATE
+> Task :accessibilityCore:processDebugManifest UP-TO-DATE
+> Task :autoclick:extractDeepLinksDebug UP-TO-DATE
+> Task :autoclick:processDebugMainManifest UP-TO-DATE
+> Task :autoclick:processDebugManifest UP-TO-DATE
+> Task :autoclick:processDebugManifestForPackage UP-TO-DATE
+> Task :autoclick:processDebugResources UP-TO-DATE
+> Task :autoclick:javaPreCompileDebug UP-TO-DATE
+> Task :autoclick:preDebugUnitTestBuild UP-TO-DATE
+> Task :autoclick:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :accessibilityCore:preDebugUnitTestBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :accessibilityCore:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :accessibilityCore:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :accessibilityCore:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :accessibilityCore:testDebugUnitTest UP-TO-DATE
+> Task :autoclick:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :accessibilityBase:mergeDebugShaders UP-TO-DATE
+> Task :accessibilityBase:compileDebugShaders NO-SOURCE
+> Task :accessibilityBase:generateDebugAssets UP-TO-DATE
+> Task :accessibilityBase:mergeDebugAssets UP-TO-DATE
+> Task :accessibilityCore:mergeDebugShaders UP-TO-DATE
+> Task :accessibilityCore:compileDebugShaders NO-SOURCE
+> Task :accessibilityCore:generateDebugAssets UP-TO-DATE
+> Task :accessibilityCore:mergeDebugAssets UP-TO-DATE
+> Task :autoclick:mergeDebugShaders UP-TO-DATE
+> Task :autoclick:compileDebugShaders NO-SOURCE
+> Task :autoclick:generateDebugAssets UP-TO-DATE
+> Task :autoclick:mergeDebugAssets UP-TO-DATE
+> Task :autoclick:compressDebugAssets UP-TO-DATE
+> Task :autoclick:checkDebugDuplicateClasses UP-TO-DATE
+> Task :autoclick:desugarDebugFileDependencies UP-TO-DATE
+> Task :autoclick:mergeExtDexDebug UP-TO-DATE
+> Task :accessibilityCore:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :accessibilityBase:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :autoclick:mergeLibDexDebug UP-TO-DATE
+> Task :accessibilityBase:mergeDebugJniLibFolders UP-TO-DATE
+> Task :accessibilityBase:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityBase:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :accessibilityCore:mergeDebugJniLibFolders UP-TO-DATE
+> Task :accessibilityCore:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityCore:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :autoclick:mergeDebugJniLibFolders UP-TO-DATE
+> Task :autoclick:mergeDebugNativeLibs UP-TO-DATE
+> Task :autoclick:stripDebugDebugSymbols UP-TO-DATE
+> Task :autoclick:validateSigningDebug UP-TO-DATE
+> Task :autoclick:writeDebugAppMetadata UP-TO-DATE
+> Task :autoclick:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :autoclick:preDebugAndroidTestBuild SKIPPED
+> Task :autoclick:processDebugAndroidTestManifest UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestBuildConfig UP-TO-DATE
+> Task :autoclick:checkDebugAndroidTestAarMetadata UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :autoclick:mapDebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:processDebugAndroidTestResources UP-TO-DATE
+> Task :autoclick:javaPreCompileDebugAndroidTest UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestShaders UP-TO-DATE
+> Task :autoclick:compileDebugAndroidTestShaders NO-SOURCE
+> Task :autoclick:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:compressDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:checkDebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :autoclick:desugarDebugAndroidTestFileDependencies UP-TO-DATE
+> Task :autoclick:mergeExtDexDebugAndroidTest UP-TO-DATE
+> Task :autoclick:mergeLibDexDebugAndroidTest UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :autoclick:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :autoclick:validateSigningDebugAndroidTest UP-TO-DATE
+> Task :autoclick:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+> Task :accessibilityBase:stripDebugDebugSymbols NO-SOURCE
+> Task :accessibilityBase:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :accessibilityBase:extractDebugAnnotations UP-TO-DATE
+> Task :accessibilityBase:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :accessibilityBase:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :accessibilityBase:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :accessibilityBase:prepareDebugArtProfile UP-TO-DATE
+> Task :accessibilityBase:prepareLintJarForPublish UP-TO-DATE
+> Task :accessibilityBase:mergeDebugJavaResource UP-TO-DATE
+> Task :accessibilityBase:syncDebugLibJars UP-TO-DATE
+> Task :accessibilityBase:bundleDebugLocalLintAar UP-TO-DATE
+> Task :accessibilityBase:createFullJarDebug UP-TO-DATE
+> Task :accessibilityBase:preDebugAndroidTestBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :accessibilityBase:writeDebugLintModelMetadata UP-TO-DATE
+> Task :accessibilityBase:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :accessibilityBase:extractProguardFiles UP-TO-DATE
+> Task :accessibilityBase:generateDebugLintModel UP-TO-DATE
+> Task :accessibilityBase:preDebugUnitTestBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :accessibilityBase:lintAnalyzeDebug UP-TO-DATE
+> Task :accessibilityBase:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :accessibilityBase:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :accessibilityCore:stripDebugDebugSymbols NO-SOURCE
+> Task :accessibilityCore:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :accessibilityCore:extractDebugAnnotations UP-TO-DATE
+> Task :accessibilityCore:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :accessibilityCore:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :accessibilityCore:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :accessibilityCore:prepareDebugArtProfile UP-TO-DATE
+> Task :accessibilityCore:prepareLintJarForPublish UP-TO-DATE
+> Task :accessibilityCore:mergeDebugJavaResource UP-TO-DATE
+> Task :accessibilityCore:syncDebugLibJars UP-TO-DATE
+> Task :accessibilityCore:bundleDebugLocalLintAar UP-TO-DATE
+> Task :accessibilityCore:createFullJarDebug UP-TO-DATE
+> Task :accessibilityCore:preDebugAndroidTestBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :accessibilityCore:writeDebugLintModelMetadata UP-TO-DATE
+> Task :accessibilityCore:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :accessibilityCore:extractProguardFiles UP-TO-DATE
+> Task :accessibilityCore:generateDebugLintModel UP-TO-DATE
+> Task :accessibilityCore:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :accessibilityCore:lintAnalyzeDebug UP-TO-DATE
+> Task :accessibilityCore:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :accessibilityCore:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :autoclick:extractProguardFiles UP-TO-DATE
+> Task :autoclick:compileDebugKotlin
+> Task :autoclick:compileDebugJavaWithJavac UP-TO-DATE
+> Task :autoclick:bundleDebugClassesToRuntimeJar
+> Task :autoclick:bundleDebugClassesToCompileJar
+> Task :autoclick:processDebugJavaRes UP-TO-DATE
+> Task :autoclick:mergeDebugJavaResource UP-TO-DATE
+> Task :autoclick:compileDebugUnitTestKotlin
+> Task :autoclick:dexBuilderDebug
+> Task :autoclick:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :autoclick:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :autoclick:testDebugUnitTest
+> Task :autoclick:mergeProjectDexDebug
+> Task :autoclick:compileDebugAndroidTestKotlin
+> Task :autoclick:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+> Task :autoclick:processDebugAndroidTestJavaRes UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestJavaResource UP-TO-DATE
+> Task :autoclick:dexBuilderDebugAndroidTest UP-TO-DATE
+> Task :autoclick:mergeProjectDexDebugAndroidTest UP-TO-DATE
+> Task :autoclick:packageDebugAndroidTest UP-TO-DATE
+> Task :autoclick:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :autoclick:assembleDebugAndroidTest UP-TO-DATE
+> Task :autoclick:generateDebugAndroidTestLintModel
+> Task :autoclick:generateDebugLintReportModel
+> Task :autoclick:generateDebugUnitTestLintModel
+> Task :autoclick:packageDebug
+> Task :autoclick:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :autoclick:assembleDebug
+> Task :autoclick:lintAnalyzeDebug
+> Task :autoclick:lintAnalyzeDebugAndroidTest
+> Task :autoclick:lintAnalyzeDebugUnitTest
+> Task :autoclick:lintReportDebug UP-TO-DATE
+> Task :autoclick:lintDebug
+
+BUILD SUCCESSFUL in 1m 59s
+164 actionable tasks: 16 executed, 148 up-to-date

@@ -8,6 +8,13 @@ import java.util.Calendar
 import java.util.TimeZone
 
 class ClickTaskPresentationTest {
+    @Test fun legacyTaskExplainsWhyItCannotBeEnabled() {
+        val legacy = ClickTask("legacy", 9, 0, setOf(2),
+            listOf(com.lumostech.accessibilitycore.ClickCounterPoint(200f, 200f, 0)), enabled = false)
+        val view = presentExact(legacy, null, ClickRunState(), null, true, 1000, legacy.timeZoneId)
+        assertEquals("旧版任务需要重新录制，才能启用", view.title)
+        assertNull(view.nextAt)
+    }
     private val zone = "Asia/Shanghai"
     private val task = ClickTask("status-test", 9, 0, (1..7).toSet(), listOf(ClickCounterPoint(300f, 300f, 0)),
         protection = ClickRecordingProtection(1080, 2400, 0, listOf("com.test")), timeZoneId = zone)

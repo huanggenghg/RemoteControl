@@ -1,0 +1,34 @@
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick sha256=a7d8cb858cb16f5a9dae56148b2d7bbeb0367ccbad68cd5915d67bcf4e23e945
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick.test sha256=2580265019ac8c046020b1825afbaa1b8be04534b487466bc68230dd5819c454
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyRecoveryProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.lumostech.autoclick.LegacyRecoveryProcessTest:
+INSTRUMENTATION_STATUS: test=seedInterruptedRecovery
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyRecoveryProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=seedInterruptedRecovery
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.665
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+{"phase": "after", "original_pid": "6395", "reopened_pid": "6427", "task_id": "legacy-process-replacement", "disabled": true, "no_next_alarm": true, "draft_preserved": true, "session_present": false, "instrumentation_running_during_kill": false, "ordinary_service_rebound_before_kill": true, "saving_session_not_opened_in_ui_before_kill": true}
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick sha256=06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d
+RESTORED: app files, saved task and accessibility settings verified.

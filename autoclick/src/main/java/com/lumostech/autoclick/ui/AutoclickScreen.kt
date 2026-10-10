@@ -17,6 +17,11 @@ import com.lumostech.autoclick.RecoveryHelp
 import com.lumostech.autoclick.ClickTask
 import com.lumostech.autoclick.ClickRunState
 import com.lumostech.autoclick.ClickServiceReadiness
+import com.lumostech.autoclick.ClickTaskAction
+import com.lumostech.autoclick.ClickTaskActionState
+import com.lumostech.autoclick.LegacyTaskRecoverySession
+import com.lumostech.autoclick.LegacyRecoveryPhase
+import com.lumostech.autoclick.taskActionState
 import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -36,9 +41,18 @@ fun AutoclickScreen(
     onTrial: () -> Unit,
     onEditSchedule: () -> Unit,
     onEmergencyStop: () -> Unit,
-    onTimingSettings: () -> Unit = {}
+    onTimingSettings: () -> Unit = {},
+    recoverySession: LegacyTaskRecoverySession? = null,
+    recoveryError: String? = null,
+    storageUnconfirmed: Boolean = false,
+    onRecover: () -> Unit = {},
+    onPauseRecovery: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
+    fun action(which: ClickTaskAction): ClickTaskActionState = if (storageUnconfirmed)
+        ClickTaskActionState(false, "保存状态未确认，请稍候重试")
+    else taskActionState(task, which, busy, runState.active || presentation.editingBlocked,
+        serviceReadiness == ClickServiceReadiness.CONNECTED, recoverySession != null)
     Surface(color = colors.background, modifier = Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.TopCenter) {
             Column(
@@ -80,11 +94,11 @@ fun AutoclickScreen(
                     }
                     Text("打开目标应用，拖动悬浮按钮定位，轻点记录位置和间隔。长按按钮设置定时任务。", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     Button(
-                        onClick = { onRecord(false) }, enabled = !busy && !runState.active,
+                        onClick = { onRecord(false) }, enabled = !busy && !runState.active && !presentation.editingBlocked && !storageUnconfirmed,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = MaterialTheme.shapes.medium
-                    ) { Text(if (pointCount == 0) "开始录制" else "继续录制") }
+                    ) { Text(if (recoverySession != null) "继续恢复录制" else if (pointCount == 0) "开始录制" else "继续录制") }
                     if (pointCount > 0) {
-                        TextButton(onClick = { onRecord(true) }, enabled = !busy && !runState.active, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        TextButton(onClick = { onRecord(true) }, enabled = !busy && !runState.active && !presentation.editingBlocked && !storageUnconfirmed, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                             Text("清空并重新录制")
                         }
                     }
@@ -107,8 +121,24 @@ fun AutoclickScreen(
                         val orderedDays = (2..7).toList() + 1
                         Text(orderedDays.filter { it in task.days }.joinToString("、") { labels[it].orEmpty() }, style = MaterialTheme.typography.bodyMedium)
                         Text("${task.points.size} 个点击 · 使用保存时的录制", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                        Text(if (task.protection == null) "旧任务缺少环境信息，请清空并重新录制。" else
+                        Text(if (task.protection == null) "旧版任务需要重新录制，才能启用。" else
                             "已保护应用与屏幕方向 · ${task.timeZoneId} · 5 秒内未开始则跳过", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        if (task.protection == null) {
+                            Text("旧录制缺少目标应用、屏幕尺寸和方向信息，无法安全启用或试运行。时间和星期仍可修改。",
+                                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                            Button(onClick = onRecover, enabled = action(ClickTaskAction.RECOVER).enabled,
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                Text(if (recoverySession == null) "重新录制" else "继续恢复")
+                            }
+                        }
+                        recoverySession?.let {
+                            Text(if (it.phase == LegacyRecoveryPhase.SAVING) "正在保存新的停用任务，原任务在保存成功前保留。"
+                                else if (it.phase == LegacyRecoveryPhase.PAUSED) "恢复已暂停，新录制草稿已保留。原任务在新任务保存成功前保留。"
+                                else "正在重新录制，原任务在新任务保存成功前保留。", style = MaterialTheme.typography.bodyMedium)
+                            if (it.phase == LegacyRecoveryPhase.RECORDING)
+                                TextButton(onClick = onPauseRecovery, enabled = !busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("暂停恢复") }
+                        }
+                        recoveryError?.let { Text(it, color = colors.error, style = MaterialTheme.typography.bodyMedium) }
                         HorizontalDivider(color = colors.outlineVariant)
                         Text("当前状态", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         Text(presentation.title, style = MaterialTheme.typography.titleMedium)
@@ -121,23 +151,30 @@ fun AutoclickScreen(
                         HorizontalDivider(color = colors.outlineVariant)
                         Text("最近结果", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         Text(outcome.ifBlank { "尚无执行结果" }, style = MaterialTheme.typography.bodyMedium)
-                        RecoveryExplanation(task.scheduleId, presentation.recoveryHelp)
+                        if (task.protection != null) RecoveryExplanation(task.scheduleId, presentation.recoveryHelp)
+                        val toggle = action(if (presentation.scheduledEnabled) ClickTaskAction.DISABLE else ClickTaskAction.ENABLE)
+                        val edit = action(ClickTaskAction.EDIT_TIME)
+                        val trial = action(ClickTaskAction.TRIAL)
+                        val delete = action(ClickTaskAction.DELETE)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedButton(onClick = onEditSchedule, enabled = !busy && !presentation.editingBlocked && task.protection != null,
+                            OutlinedButton(onClick = onEditSchedule, enabled = edit.enabled,
                                 shape = MaterialTheme.shapes.medium, border = BorderStroke(1.dp, colors.outline),
                                 modifier = Modifier.heightIn(min = 48.dp)) { Text("修改时间") }
-                            OutlinedButton(onClick = onToggleTask, enabled = !busy && !runState.active && (task.enabled || task.protection != null), shape = MaterialTheme.shapes.medium,
+                            OutlinedButton(onClick = onToggleTask, enabled = toggle.enabled, shape = MaterialTheme.shapes.medium,
                                 border = BorderStroke(1.dp, colors.outline), modifier = Modifier.heightIn(min = 48.dp)) {
                                 Text(if (presentation.scheduledEnabled) "停用任务" else "启用任务")
                             }
-                            TextButton(onClick = onDeleteTask, enabled = !busy && !runState.active,
+                            TextButton(onClick = onDeleteTask, enabled = delete.enabled,
                                 colors = ButtonDefaults.textButtonColors(contentColor = colors.error), modifier = Modifier.heightIn(min = 48.dp)) {
                                 Text("删除任务")
                             }
                         }
-                        OutlinedButton(onClick = onTrial, enabled = !busy && !runState.active && task.protection != null,
+                        OutlinedButton(onClick = onTrial, enabled = trial.enabled,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = MaterialTheme.shapes.medium) {
                             Text("5 秒后试运行")
+                        }
+                        listOfNotNull(edit.reason, toggle.reason, trial.reason, delete.reason).distinct().forEach {
+                            Text(it, color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         }
                         Text("试运行会真实点击，可先停用定时任务再测试，不消耗当天定时次数。", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }

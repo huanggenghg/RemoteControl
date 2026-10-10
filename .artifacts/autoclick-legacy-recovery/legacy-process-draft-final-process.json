@@ -1,0 +1,13 @@
+{
+  "phase": "draft",
+  "original_pid": "5164",
+  "reopened_pid": "5206",
+  "task_id": "legacy-process-source",
+  "disabled": true,
+  "no_next_alarm": true,
+  "draft_preserved": true,
+  "session_present": true,
+  "instrumentation_running_during_kill": false,
+  "ordinary_service_rebound_before_kill": true,
+  "saving_session_not_opened_in_ui_before_kill": false
+}

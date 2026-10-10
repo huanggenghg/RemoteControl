@@ -1,0 +1,89 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :accessibilityBase:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityBase:preBuild UP-TO-DATE
+> Task :accessibilityBase:preDebugBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugResValues
+> Task :accessibilityBase:generateDebugResources
+> Task :accessibilityBase:packageDebugResources
+> Task :accessibilityBase:javaPreCompileDebug
+> Task :accessibilityCore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityCore:preBuild UP-TO-DATE
+> Task :accessibilityCore:preDebugBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugResValues
+> Task :accessibilityCore:generateDebugResources
+> Task :accessibilityBase:parseDebugLocalResources
+> Task :accessibilityCore:packageDebugResources
+> Task :accessibilityCore:parseDebugLocalResources
+> Task :accessibilityBase:generateDebugRFile
+> Task :accessibilityCore:generateDebugRFile
+> Task :accessibilityCore:javaPreCompileDebug
+> Task :autoclick:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :autoclick:preBuild UP-TO-DATE
+> Task :autoclick:preDebugBuild UP-TO-DATE
+> Task :autoclick:dataBindingMergeDependencyArtifactsDebug
+> Task :autoclick:generateDebugResValues
+> Task :autoclick:generateDebugResources
+> Task :autoclick:mergeDebugResources
+> Task :autoclick:packageDebugResources
+> Task :autoclick:parseDebugLocalResources
+> Task :accessibilityBase:compileDebugKotlin
+> Task :autoclick:dataBindingGenBaseClassesDebug
+> Task :accessibilityBase:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityBase:processDebugJavaRes
+> Task :accessibilityBase:bundleLibRuntimeToJarDebug
+> Task :autoclick:dataBindingTriggerDebug
+> Task :accessibilityBase:bundleLibCompileToJarDebug
+> Task :autoclick:generateDebugBuildConfig
+> Task :accessibilityBase:compileDebugLibraryResources
+> Task :accessibilityCore:compileDebugLibraryResources
+> Task :accessibilityBase:writeDebugAarMetadata
+> Task :accessibilityCore:writeDebugAarMetadata
+> Task :autoclick:checkDebugAarMetadata
+> Task :autoclick:mapDebugSourceSetPaths
+> Task :autoclick:createDebugCompatibleScreenManifests
+> Task :accessibilityBase:extractDeepLinksDebug
+> Task :accessibilityBase:processDebugManifest
+> Task :accessibilityCore:extractDeepLinksDebug
+> Task :accessibilityCore:processDebugManifest
+> Task :autoclick:extractDeepLinksDebug
+> Task :autoclick:processDebugMainManifest
+> Task :autoclick:processDebugManifest
+> Task :autoclick:processDebugManifestForPackage
+> Task :autoclick:processDebugResources
+> Task :autoclick:javaPreCompileDebug
+> Task :autoclick:preDebugUnitTestBuild UP-TO-DATE
+> Task :autoclick:javaPreCompileDebugUnitTest
+> Task :accessibilityCore:preDebugUnitTestBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugUnitTestStubRFile
+> Task :accessibilityCore:javaPreCompileDebugUnitTest
+
+> Task :accessibilityCore:compileDebugKotlin
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityHandler.kt:7:77 'constructor(): Handler' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:23 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:38 'fun getMetrics(p0: DisplayMetrics!): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:70:51 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:219:45 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:239:35 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///Users/hgeng/AndroidStudioProjects/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:259:43 'fun newInstance(): CapturedType(*)!' is deprecated. Deprecated in Java.
+
+> Task :accessibilityCore:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:bundleLibRuntimeToJarDebug
+> Task :accessibilityCore:processDebugJavaRes
+> Task :accessibilityCore:bundleLibCompileToJarDebug
+> Task :accessibilityCore:compileDebugUnitTestKotlin
+> Task :accessibilityCore:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:processDebugUnitTestJavaRes
+> Task :accessibilityCore:testDebugUnitTest
+> Task :autoclick:compileDebugKotlin
+> Task :autoclick:compileDebugJavaWithJavac
+> Task :autoclick:bundleDebugClassesToCompileJar
+> Task :autoclick:bundleDebugClassesToRuntimeJar
+> Task :autoclick:processDebugJavaRes
+> Task :autoclick:compileDebugUnitTestKotlin
+> Task :autoclick:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :autoclick:processDebugUnitTestJavaRes
+> Task :autoclick:testDebugUnitTest
+
+BUILD SUCCESSFUL in 1m 29s
+60 actionable tasks: 60 executed

@@ -9,24 +9,47 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.util.TimeZone
 
 class ConfirmEventHandler(
     private val binding: LayoutConfirmBinding,
     private val scope: CoroutineScope,
     private val controller: ClickTaskController,
-    private val onTimingPermissionRequired: () -> Unit = {}
+    private val onTimingPermissionRequired: () -> Unit = {},
+    private val recoveryViewModel: LegacyTaskRecoveryViewModel? = null
 ) {
     fun onConfirmClick(view: View) {
         val days = binding.weekdaysPicker.selectedDays.toSet()
         val service = AccessibilityCoreService.accessibilityCoreService
-        val points = service?.getRecordedClickPoints().orEmpty()
+        val snapshot = service?.getRecordedSnapshot()
+        val points = snapshot?.points.orEmpty()
         if (days.isEmpty() || points.isEmpty()) {
             Toast.makeText(view.context, if (days.isEmpty()) "请至少选择一个执行星期" else "请先录制点击位置", Toast.LENGTH_SHORT).show()
             return
         }
-        val protection = service?.getRecordedProtection()
+        val protection = snapshot?.protection
         if (protection == null) {
             Toast.makeText(view.context, ClickTaskOutcome.NEEDS_RECORDING.message, Toast.LENGTH_LONG).show()
+            return
+        }
+        val session = recoveryViewModel?.session
+        if (session != null) {
+            if (recoveryViewModel.busy) return
+            if (snapshot?.sessionId != session.recoveryId) {
+                showRecordingError(view, "当前录制不属于本次恢复，请重新确认")
+                return
+            }
+            val candidate = ClickTask(session.replacementTaskId, binding.timePicker.hour, binding.timePicker.minute,
+                days, points, enabled = false, protection = protection, timeZoneId = TimeZone.getDefault().id,
+                scheduleId = session.replacementTaskId)
+            binding.confirm.isEnabled = false
+            binding.cancel.isEnabled = false
+            binding.confirm.text = "正在保存…"
+            recoveryViewModel.save(candidate, snapshot.sessionId)
+            return
+        }
+        if (snapshot?.sessionId != null) {
+            showRecordingError(view, "这是恢复录制草稿，请先进入任务恢复")
             return
         }
         val task = ClickTask(UUID.randomUUID().toString(), binding.timePicker.hour, binding.timePicker.minute, days, points,
@@ -57,7 +80,13 @@ class ConfirmEventHandler(
     }
 
     fun onCancelClick(view: View) {
+        recoveryViewModel?.session?.let {
+            if (recoveryViewModel.busy) return
+            recoveryViewModel.updateTime(binding.timePicker.hour, binding.timePicker.minute, binding.weekdaysPicker.selectedDays.toSet())
+        }
         ViewModelMain.isShowCustomFloatWindow.value = false
         ViewModelMain.isShowFloatWindow.value = true
     }
+
+    private fun showRecordingError(view: View, message: String) = Toast.makeText(view.context, message, Toast.LENGTH_LONG).show()
 }

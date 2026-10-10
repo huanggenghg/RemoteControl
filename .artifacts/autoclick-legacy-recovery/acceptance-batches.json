@@ -1,0 +1,58 @@
+[
+  {
+    "label": "legacy-storage-final",
+    "exit_code": 0,
+    "tests": 26,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-ui-final",
+    "exit_code": 0,
+    "tests": 11,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-regression-final",
+    "exit_code": 0,
+    "tests": 68,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-exact-final",
+    "exit_code": 0,
+    "tests": 1,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-process-draft-final",
+    "exit_code": 0,
+    "tests": 1,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-process-before-final",
+    "exit_code": 0,
+    "tests": 1,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  },
+  {
+    "label": "legacy-process-after-final",
+    "exit_code": 0,
+    "tests": 1,
+    "restored": true,
+    "skipped": 0,
+    "passed": true
+  }
+]

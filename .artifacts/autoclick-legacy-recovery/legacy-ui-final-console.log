@@ -1,0 +1,179 @@
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick sha256=a7d8cb858cb16f5a9dae56148b2d7bbeb0367ccbad68cd5915d67bcf4e23e945
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick.test sha256=2580265019ac8c046020b1825afbaa1b8be04534b487466bc68230dd5819c454
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+com.lumostech.autoclick.LegacyTaskRecoveryUiTest:
+INSTRUMENTATION_STATUS: test=unconfirmedStorageKeepsLastKnownTaskAndBlocksOperations
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=unconfirmedStorageKeepsLastKnownTaskAndBlocksOperations
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=pauseAndContinuePreserveTheNewRecordingAndOriginalTask
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=pauseAndContinuePreserveTheNewRecordingAndOriginalTask
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=recordedRecoverySavesDisabledRejectsOldAlarmsAndTrialClicksOnce
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=recordedRecoverySavesDisabledRejectsOldAlarmsAndTrialClicksOnce
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=rotatingPanelPreservesTimeDraftAndLargeFontCanReachSave
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=rotatingPanelPreservesTimeDraftAndLargeFontCanReachSave
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=changedSourcePausesRecoveryWithoutRebindingOrClearingDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=changedSourcePausesRecoveryWithoutRebindingOrClearingDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=failedSaveRetainsOriginalAndDraftForAConfirmedRetry
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=failedSaveRetainsOriginalAndDraftForAConfirmedRetry
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=savingPanelUpdatesWhileTargetAppIsInForeground
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=savingPanelUpdatesWhileTargetAppIsInForeground
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=deniedOverlayPermissionDoesNotClearOriginalOrDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=deniedOverlayPermissionDoesNotClearOriginalOrDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=legacyButtonsExplainReasonAndExplanationCancelKeepsTaskAndDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=legacyButtonsExplainReasonAndExplanationCancelKeepsTaskAndDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=legacyTimeAndWeekdaysCanBeEditedWithoutClearingDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=legacyTimeAndWeekdaysCanBeEditedWithoutClearingDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=duplicateSaveAndRotationKeepOneConfirmedReplacement
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.lumostech.autoclick.LegacyTaskRecoveryUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=duplicateSaveAndRotationKeepOneConfirmedReplacement
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 94.156
+
+OK (11 tests)
+
+
+INSTRUMENTATION_CODE: -1
+/sdcard/autoclick-legacy-reason.png: 1 file pulled, 0 skipped. 24.5 MB/s (213750 bytes in 0.008s)
+/sdcard/autoclick-legacy-explanation.png: 1 file pulled, 0 skipped. 42.2 MB/s (254621 bytes in 0.006s)
+/sdcard/autoclick-legacy-panel.png: 1 file pulled, 0 skipped. 27.9 MB/s (185379 bytes in 0.006s)
+/sdcard/autoclick-legacy-large-font.png: 1 file pulled, 0 skipped. 33.2 MB/s (196690 bytes in 0.006s)
+/sdcard/autoclick-legacy-landscape.png: 1 file pulled, 0 skipped. 23.8 MB/s (105780 bytes in 0.004s)
+/sdcard/autoclick-legacy-trial-result.png: 1 file pulled, 0 skipped. 13.3 MB/s (38698 bytes in 0.003s)
+Performing Streamed Install
+Success
+APK VERIFIED: com.lumostech.autoclick sha256=06f9f5962066fcc9888903f8e0e1fee5e1207226017e8259e017089d46ab070d
+RESTORED: app files, saved task and accessibility settings verified.

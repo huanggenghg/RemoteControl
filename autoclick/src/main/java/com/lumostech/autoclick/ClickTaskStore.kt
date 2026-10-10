@@ -11,9 +11,10 @@ import java.util.TimeZone
 enum class ClickExecutionClaim { CLAIMED, ALREADY_CONSUMED, STALE_TASK, STORAGE_FAILED }
 
 class ClickTaskStore internal constructor(private val preferences: SharedPreferences) {
-    constructor(context: Context) : this(context.applicationContext.getSharedPreferences("autoclick_task", Context.MODE_PRIVATE))
+    constructor(context: Context) : this(RecoverableTaskPreferences.forContext(context))
 
     fun load(): ClickTask? = synchronized(lock) {
+        (preferences as? RecoverableTaskPreferences)?.ensureReadable()
         runCatching {
             val json = JSONObject(preferences.getString("task", null) ?: return null)
             val days = json.getJSONArray("days")
@@ -27,11 +28,19 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
                 timeZoneId = json.optString("timeZoneId", TimeZone.getDefault().id),
                 scheduleId = json.optString("scheduleId", json.getString("id"))
             ).takeIf { it.isValid() }
-        }.getOrNull()
+        }.getOrNull().also {
+            if (it == null && (preferences as? RecoverableTaskPreferences)?.hasRecoverySnapshot() == true)
+                throw RecoveryStorageException()
+        }
     }
 
     fun save(task: ClickTask, message: String = "等待下次执行", reason: ClickOutcomeReason? = null,
              controlError: String? = null, alarmState: ClickAlarmState? = null): Boolean = synchronized(lock) {
+        commitValues(saveValues(task, message, reason, controlError, alarmState))
+    }
+
+    private fun saveValues(task: ClickTask, message: String, reason: ClickOutcomeReason? = null,
+                           controlError: String? = null, alarmState: ClickAlarmState? = null): Map<String, Any> {
         require(task.isValid())
         alarmState?.let { require(it.isValid() && it.taskId == task.id && it.scheduleId == task.scheduleId) }
         val previous = load()
@@ -50,16 +59,58 @@ class ClickTaskStore internal constructor(private val preferences: SharedPrefere
             put("scheduleId", task.scheduleId)
             task.protection?.let { put("protection", it.encode()) }
         }
-        val editor = preferences.edit().putString("task", json.toString()).putString("outcome", message)
-            .remove("outcome_time").remove("control_error")
-        if (!sameSchedule) editor.remove("consumed_at").remove("execution_record").remove("execution_pending")
-            .remove("exact_alarm").remove("closed_at").remove("start_trace")
-        legacyRecord?.let { editor.putString("execution_record", it.encode()) }
-        reason?.let { editor.putString("execution_record", ClickExecutionRecord(task.id, task.scheduleId,
-            null, System.currentTimeMillis(), it, message).encode()).putBoolean("execution_pending", false) }
-        controlError?.let { editor.putString("control_error", JSONObject().put("taskId", task.id).put("message", it).toString()) }
-        alarmState?.let { editor.putString("exact_alarm", it.encode()) }
-        editor.commit()
+        return copyPreferenceValues(preferences.all).toMutableMap().apply {
+            put("task", json.toString()); put("outcome", message)
+            remove("outcome_time"); remove("control_error")
+            if (!sameSchedule) listOf("consumed_at", "execution_record", "execution_pending", "exact_alarm",
+                "closed_at", "start_trace", "recovered_session_id").forEach(::remove)
+            legacyRecord?.let { put("execution_record", it.encode()) }
+            reason?.let {
+                put("execution_record", ClickExecutionRecord(task.id, task.scheduleId, null,
+                    System.currentTimeMillis(), it, message).encode())
+                put("execution_pending", false)
+            }
+            controlError?.let { put("control_error", JSONObject().put("taskId", task.id).put("message", it).toString()) }
+            alarmState?.let { put("exact_alarm", it.encode()) }
+        }
+    }
+
+    private fun commitValues(values: Map<String, Any>): Boolean {
+        val editor = preferences.edit().clear()
+        values.forEach { (key, value) -> when (value) {
+            is String -> editor.putString(key, value)
+            is Int -> editor.putInt(key, value)
+            is Long -> editor.putLong(key, value)
+            is Float -> editor.putFloat(key, value)
+            is Boolean -> editor.putBoolean(key, value)
+            is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
+        } }
+        return editor.commit()
+    }
+
+    fun replaceLegacyTask(expectedTaskId: String, task: ClickTask, recoveryId: String): Boolean = synchronized(lock) {
+        val old = load() ?: return false
+        if (old.id != expectedTaskId || old.protection != null || old.enabled || recoveryId.isBlank()) return false
+        require(task.isValid() && task.protection != null && !task.enabled && task.id == task.scheduleId)
+        val values = saveValues(task, "任务已恢复，请先试运行，再手动启用", alarmState =
+            ClickAlarmState(task.id, task.scheduleId, ClickAlarmStatus.NEEDS_ENABLE)).toMutableMap()
+        values["recovered_session_id"] = recoveryId
+        checkNotNull(preferences as? RecoverableTaskPreferences) { "恢复保存需要可靠存储" }
+            .commitRecovery(expectedTaskId, values, recoveryId)
+    }
+
+    fun saveLegacySchedule(expectedTaskId: String, task: ClickTask, message: String): Boolean = synchronized(lock) {
+        val old = load() ?: return false
+        if (old.id != expectedTaskId || old.protection != null) return false
+        require(task.isValid() && task.protection == null && !task.enabled && old.scheduleId == task.scheduleId &&
+            old.points == task.points && old.timeZoneId == task.timeZoneId)
+        val values = saveValues(task, message, alarmState = ClickAlarmState(task.id, task.scheduleId, ClickAlarmStatus.NEEDS_ENABLE))
+        checkNotNull(preferences as? RecoverableTaskPreferences) { "时间修改需要可靠存储" }
+            .commitRecovery(expectedTaskId, values, "schedule-edit-${task.id}")
+    }
+
+    fun wasRecovered(recoveryId: String, replacementTaskId: String): Boolean = synchronized(lock) {
+        load()?.scheduleId == replacementTaskId && preferences.getString("recovered_session_id", null) == recoveryId
     }
 
     /** Commit before any external side effect; an interrupted occurrence is never replayed. */

@@ -48,6 +48,7 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     private lateinit var recording: ClickRecording
     private lateinit var sequenceStore: ClickSequenceStore
     private var recordingProtection: ClickRecordingProtection? = null
+    private var recordingSessionId: String? = null
     private var protectedRecording = false
     private var executionControlView: View? = null
 
@@ -85,9 +86,11 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         super.onCreate()
         sequenceStore = ClickSequenceStore(this)
-        recording = ClickRecording(sequenceStore.load())
-        recordingProtection = sequenceStore.loadProtection()
-        protectedRecording = recordingProtection != null
+        val snapshot = sequenceStore.loadSnapshot()
+        recording = ClickRecording(snapshot.points)
+        recordingProtection = snapshot.protection
+        recordingSessionId = snapshot.sessionId
+        protectedRecording = recordingProtection != null || recordingSessionId != null
         ViewModelMain.recordedPointCount.value = recording.snapshot().size
         initObserve()
     }
@@ -139,6 +142,19 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
 
     fun getRecordedClickPoints(): List<ClickCounterPoint> = recording.snapshot()
 
+    fun beginRecordingSession(sessionId: String): Boolean {
+        require(sessionId.isNotBlank())
+        if (!sequenceStore.saveSession(RecordedClickSnapshot(sessionId, emptyList(), null))) return false
+        recording = ClickRecording()
+        recordingProtection = null
+        recordingSessionId = sessionId
+        enableProtectedRecording()
+        ViewModelMain.recordedPointCount.value = 0
+        return true
+    }
+    fun getRecordedSnapshot(): RecordedClickSnapshot = RecordedClickSnapshot(recordingSessionId,
+        getRecordedClickPoints().map { it.copy() }, getRecordedProtection())
+
     fun enableProtectedRecording() {
         protectedRecording = true
         val config = serviceInfo
@@ -169,12 +185,14 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
     fun startRecording() {
         recording.clear()
         recordingProtection = null
+        recordingSessionId = null
         sequenceStore.save(emptyList())
         ViewModelMain.recordedPointCount.value = 0
     }
 
     fun recordClick(x: Float, y: Float) {
         val points = recording.snapshot()
+        val previousProtection = recordingProtection
         if (points.size >= ClickSequenceCodec.MAX_POINTS) {
             Toast.makeText(this, "最多录制 ${ClickSequenceCodec.MAX_POINTS} 个点击", Toast.LENGTH_SHORT).show()
             return
@@ -205,7 +223,15 @@ class AccessibilityCoreService : AccessibilityService(), AccessibilityBaseEvent,
             recordingProtection = ClickRecordingProtection(environment.width, environment.height, environment.rotation,
                 recordingProtection?.packages.orEmpty() + environment.packageName)
         }
-        sequenceStore.save(updated, recordingProtection)
+        val sessionId = recordingSessionId
+        if (sessionId != null) {
+            if (!sequenceStore.saveSession(RecordedClickSnapshot(sessionId, updated, getRecordedProtection()))) {
+                recording = ClickRecording(points)
+                recordingProtection = previousProtection
+                Toast.makeText(this, "录制未保存，请重试", Toast.LENGTH_LONG).show()
+                return
+            }
+        } else sequenceStore.save(updated, recordingProtection)
         ViewModelMain.recordedPointCount.value = updated.size
     }
 

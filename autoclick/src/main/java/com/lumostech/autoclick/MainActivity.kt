@@ -25,11 +25,13 @@ import com.lumostech.accessibilitybase.utils.Logger
 import com.lumostech.accessibilitycore.*
 import com.lumostech.autoclick.ui.EditScheduleDialog
 import com.lumostech.autoclick.ui.AutoclickScreen
+import com.lumostech.autoclick.ui.LegacyTaskRecoveryDialog
 import com.lumostech.autoclick.ui.theme.AutoclickTheme
 import com.lumostech.autoclick.databinding.LayoutConfirmBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import java.text.DateFormat
 import java.util.Date
 
@@ -46,6 +48,13 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
     private var serviceReadiness by mutableStateOf(ClickServiceReadiness.DISABLED)
     private lateinit var editViewModel: EditScheduleViewModel
     private lateinit var gateViewModel: AccessibilityGateViewModel
+    private lateinit var recoveryViewModel: LegacyTaskRecoveryViewModel
+    private var recoveryPrompt by mutableStateOf(false)
+    private var recoveryPermissionHint by mutableStateOf<String?>(null)
+    private var storageUnconfirmed by mutableStateOf(false)
+    private var pendingRecoverySourceId: String? = null
+    private var pendingRecoveryResume = false
+    private var confirmBinding: LayoutConfirmBinding? = null
     private var gatePhase by mutableStateOf(AccessibilityGatePhase.CHECKING)
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refreshTask() }
 
@@ -57,8 +66,24 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         controller = ClickTaskController(this)
         gateViewModel = ViewModelProvider(this)[AccessibilityGateViewModel::class.java]
         editViewModel = ViewModelProvider(this)[EditScheduleViewModel::class.java]
+        recoveryViewModel = ViewModelProvider(this)[LegacyTaskRecoveryViewModel::class.java]
+        pendingRecoverySourceId = savedInstanceState?.getString("pendingRecoverySourceId")
+        pendingRecoveryResume = savedInstanceState?.getBoolean("pendingRecoveryResume") ?: false
         store.observe(preferenceListener)
         refreshTask()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                snapshotFlow { listOf(recoveryViewModel.session, recoveryViewModel.busy, recoveryViewModel.error,
+                    recoveryViewModel.resultMessage, storageUnconfirmed) }.collect {
+                    updateRecoveryPanel()
+                    recoveryViewModel.resultMessage?.let { message ->
+                        recoveryViewModel.clearResult()
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                        refreshTask()
+                    }
+                }
+            }
+        }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 launch {
@@ -76,7 +101,11 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                 }
                 while (true) {
                     refreshGate()
-                    if (gatePhase == AccessibilityGatePhase.READY) handleConfigureIntent()
+                    recoveryViewModel.retryConfirmation()
+                    if (gatePhase == AccessibilityGatePhase.READY) {
+                        handleConfigureIntent()
+                        continuePendingRecovery()
+                    }
                     delay(500)
                 }
             }
@@ -113,25 +142,33 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                     task = task,
                     outcome = outcome,
                     presentation = presentation,
-                    busy = busy || editViewModel.saving,
+                    busy = busy || editViewModel.saving || recoveryViewModel.busy,
                     runState = runState,
                     serviceReadiness = serviceReadiness,
                     onAccessibilitySettings = ::openAccessibilitySettings,
                     onRecord = ::showRecording,
-                    onToggleTask = { if (requireReady()) task?.let { mutateTask {
+                    onToggleTask = { if (allowed(if (presentation.scheduledEnabled) ClickTaskAction.DISABLE else ClickTaskAction.ENABLE)) task?.let { mutateTask {
                         val enabling = !presentation.scheduledEnabled
                         controller.setEnabled(enabling)
                         if (enabling && !AndroidClickAlarmPlatform(this@MainActivity).canSchedule()) requestTimingPermission()
                     } } },
                     onTimingSettings = ::requestTimingPermission,
-                    onDeleteTask = { if (requireReady()) mutateTask { controller.delete() } },
-                    onTrial = { if (requireReady()) trialCandidate = task },
+                    onDeleteTask = { if (allowed(ClickTaskAction.DELETE)) mutateTask { controller.delete() } },
+                    onTrial = { if (allowed(ClickTaskAction.TRIAL)) trialCandidate = task },
                     onEmergencyStop = { ClickExecutionSession.emergencyStop(this@MainActivity) },
                     onEditSchedule = {
-                        if (requireReady() && !busy && !editViewModel.saving && !presentation.editingBlocked)
-                            task?.let { if (it.protection != null) editViewModel.open(it) }
-                    }
+                        if (allowed(ClickTaskAction.EDIT_TIME)) task?.let { editViewModel.open(it) }
+                    },
+                    recoverySession = recoveryViewModel.session,
+                    recoveryError = recoveryViewModel.error ?: recoveryPermissionHint,
+                    storageUnconfirmed = storageUnconfirmed || recoveryViewModel.storageUnconfirmed,
+                    onRecover = { if (allowed(ClickTaskAction.RECOVER)) recoveryPrompt = true },
+                    onPauseRecovery = { recoveryViewModel.pause() }
                 )
+                if (recoveryPrompt) LegacyTaskRecoveryDialog(recoveryViewModel.session != null,
+                    onDismiss = { recoveryPrompt = false; pendingRecoverySourceId = null },
+                    onBegin = { recoveryPrompt = false; requestRecovery(resume = false) },
+                    onResume = { recoveryPrompt = false; requestRecovery(resume = true) })
                 editViewModel.candidate?.let { candidate ->
                     EditScheduleDialog(candidate, editViewModel.saving, editViewModel.error,
                         onDismiss = { editViewModel.dismiss() },
@@ -182,27 +219,74 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
 
     private fun refreshTask() {
         if (!::store.isInitialized) return
-        val current = store.load()
-        if (current?.id != task?.id) presentation = ClickTaskPresentation("正在读取任务状态")
-        task = current
-        val record = store.lastExecutionResult()
-        val timestamp = record?.recordedAt ?: 0L
-        val message = record?.message ?: "尚无执行结果"
-        outcome = message + if (timestamp > 0) "\n${DateFormat.getDateTimeInstance().format(Date(timestamp))}" else ""
+        try {
+            val current = store.load()
+            val record = store.lastExecutionResult()
+            if (current?.id != task?.id) presentation = ClickTaskPresentation("正在读取任务状态")
+            task = current
+            storageUnconfirmed = false
+            val timestamp = record?.recordedAt ?: 0L
+            val message = record?.message ?: "尚无执行结果"
+            outcome = message + if (timestamp > 0) "\n${DateFormat.getDateTimeInstance().format(Date(timestamp))}" else ""
+            if (::recoveryViewModel.isInitialized) recoveryViewModel.onTaskChanged(current)
+        } catch (failure: RecoveryStorageException) {
+            storageUnconfirmed = true
+            presentation = presentation.copy(title = "保存状态未确认", detail = "原任务与恢复记录已保留，请稍候重试", editingBlocked = true)
+        }
     }
 
     private fun showRecording(reset: Boolean) {
         if (!requireReady()) return
+        if (storageUnconfirmed || busy || editViewModel.saving || recoveryViewModel.busy || presentation.editingBlocked) return
+        if (task?.protection == null && task != null || recoveryViewModel.session != null) {
+            if (reset || recoveryViewModel.session == null) recoveryPrompt = true
+            else requestRecovery(resume = true)
+            return
+        }
         val service = AccessibilityCoreService.accessibilityCoreService
         if (service == null) {
             refreshGate()
             return
         }
         FloatWindowUtils.checkSuspendedWindowPermission(this) {
+            if (!reset && service.getRecordedSnapshot().sessionId != null) {
+                Toast.makeText(this, "这是恢复录制草稿，请进入恢复，或清空后开始新录制", Toast.LENGTH_LONG).show()
+                return@checkSuspendedWindowPermission
+            }
             service.enableProtectedRecording()
             if (reset) service.startRecording()
             ViewModelMain.isShowFloatWindow.value = true
         }
+    }
+
+    private fun allowed(action: ClickTaskAction): Boolean = requireReady() && !storageUnconfirmed &&
+        taskActionState(task, action, busy || editViewModel.saving || recoveryViewModel.busy,
+            ClickExecutionSession.state.value.active || presentation.editingBlocked,
+            serviceReadiness == ClickServiceReadiness.CONNECTED, recoveryViewModel.session != null).enabled
+
+    private fun requestRecovery(resume: Boolean) {
+        val source = task ?: return
+        pendingRecoverySourceId = source.id
+        pendingRecoveryResume = resume
+        recoveryPermissionHint = null
+        if (!Settings.canDrawOverlays(this)) {
+            recoveryPermissionHint = "需要悬浮窗权限。原任务和录制草稿已保留，开启后返回继续。"
+            FloatWindowUtils.checkSuspendedWindowPermission(this) { continuePendingRecovery() }
+        } else continuePendingRecovery()
+    }
+
+    private fun continuePendingRecovery() {
+        val expected = pendingRecoverySourceId ?: return
+        if (busy || recoveryViewModel.busy || editViewModel.saving || !Settings.canDrawOverlays(this) || !requireReady()) return
+        refreshTask()
+        val source = task
+        pendingRecoverySourceId = null
+        if (storageUnconfirmed || source?.id != expected) {
+            recoveryPermissionHint = "原任务已变化，请重新进入恢复"
+            return
+        }
+        recoveryPermissionHint = null
+        if (pendingRecoveryResume) recoveryViewModel.resume(source) else recoveryViewModel.begin(source)
     }
 
     private fun mutateTask(action: suspend () -> Unit) {
@@ -230,16 +314,47 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         }
         val binding = DataBindingUtil.inflate<LayoutConfirmBinding>(LayoutInflater.from(this), R.layout.layout_confirm, null, false)
         binding.timePicker.setIs24HourView(true)
-        task?.let { saved ->
+        val session = recoveryViewModel.session
+        if (session != null) {
+            binding.timePicker.hour = session.hour
+            binding.timePicker.minute = session.minute
+            binding.weekdaysPicker.setSelectedDays(session.days.sorted())
+            binding.timePicker.setOnTimeChangedListener { _, hour, minute ->
+                recoveryViewModel.updateTime(hour, minute, binding.weekdaysPicker.selectedDays.toSet())
+            }
+            binding.weekdaysPicker.setOnWeekdaysChangeListener { _, _, days ->
+                recoveryViewModel.updateTime(binding.timePicker.hour, binding.timePicker.minute, days.toSet())
+            }
+        } else task?.let { saved ->
             binding.timePicker.hour = saved.hour
             binding.timePicker.minute = saved.minute
             binding.weekdaysPicker.setSelectedDays(saved.days.sorted())
         }
-        binding.confirmEventHandler = ConfirmEventHandler(binding, lifecycleScope, controller, ::requestTimingPermission)
+        binding.confirmEventHandler = ConfirmEventHandler(binding, lifecycleScope, controller, ::requestTimingPermission, recoveryViewModel)
+        confirmBinding = binding
+        updateRecoveryPanel()
         val density = resources.displayMetrics.density
         val panelWidth = minOf(resources.displayMetrics.widthPixels - (32 * density).toInt(), (560 * density).toInt())
         service.setFloatCustomView(binding.root, panelWidth)
         ViewModelMain.isShowCustomFloatWindow.value = true
+    }
+
+    private fun updateRecoveryPanel() {
+        val binding = confirmBinding ?: return
+        if (recoveryViewModel.session == null) return
+        binding.dialogTitle.text = "恢复旧版任务"
+        binding.dialogMessage.text = recoveryViewModel.error ?: "保存成功后替换旧任务，并保持停用。请先试运行，再手动启用。\n保存时区：${java.util.TimeZone.getDefault().id}"
+        binding.confirm.text = if (recoveryViewModel.busy) "正在保存…" else "保存并替换旧任务"
+        binding.confirm.isEnabled = !recoveryViewModel.busy && !storageUnconfirmed
+        binding.cancel.isEnabled = !recoveryViewModel.busy
+        binding.timePicker.isEnabled = !recoveryViewModel.busy
+        binding.weekdaysPicker.setEditable(!recoveryViewModel.busy)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("pendingRecoverySourceId", pendingRecoverySourceId)
+        outState.putBoolean("pendingRecoveryResume", pendingRecoveryResume)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
@@ -293,11 +408,17 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
     }
 
     override fun onDestroy() {
+        confirmBinding?.apply {
+            timePicker.setOnTimeChangedListener(null)
+            weekdaysPicker.setOnWeekdaysChangeListener(null)
+            confirmEventHandler = null
+        }
+        confirmBinding = null
         store.stopObserving(preferenceListener)
         if (AccessibilityCoreService.onPointLongClickListener === this) {
             if (ViewModelMain.isShowCustomFloatWindow.value == true) {
                 ViewModelMain.isShowCustomFloatWindow.value = false
-                ViewModelMain.isShowFloatWindow.value = true
+                ViewModelMain.isShowFloatWindow.value = !recoveryViewModel.saving
             }
             AccessibilityCoreService.onPointLongClickListener = null
         }

@@ -12,7 +12,15 @@ Records screen coordinates and relative timing, then replays one saved sequence 
 6. **5 秒后试运行** confirms real clicks, then gives five seconds to return to the target page. Trial works with a disabled schedule and does not consume a timed occurrence. It shares the execution gate with timed runs.
 7. **停止并停用** immediately cancels the active sequence and disables future timing. Already dispatched gestures cannot be undone. Enable/save explicitly to allow future timed execution again.
 
-Existing WorkManager schedules are cancelled during upgrade. Their recording, configuration, history and consumption ledger remain, but the task shows **定时方式已更新，请启用任务**. It requires explicit enabling; old Worker instances cannot dispatch gestures. Recordings without protection metadata still require re-recording.
+Existing WorkManager schedules are cancelled during upgrade. Their recording, configuration, history and consumption ledger remain, but the task shows **定时方式已更新，请启用任务**. It requires explicit enabling; old Worker instances cannot dispatch gestures.
+
+### Legacy task recovery
+
+Tasks without saved application/display protection show **旧版任务需要重新录制，才能启用。** The card explains the missing application, display size and rotation metadata. **修改时间** still edits the time and weekdays, retaining the old clicks, saved time zone, schedule identity, history and consumption ledger; the task stays disabled.
+
+Choose **重新录制** and review the explanation before **开始重新录制**. Only the recording draft is cleared; the saved task and its history remain until the new task is confirmed saved. Cancel or denied permissions preserve both. Tap the floating button on the target page and long-press to choose time/weekdays, then **保存并替换旧任务**. **暂停恢复** retains the new draft, and **继续恢复** lets you continue or explicitly clear it and restart. Rotation retains the time draft and one saving operation.
+
+The replacement is a new schedule and **remains disabled**, with no automatic alarm. First use **5 秒后试运行**, then explicitly **启用任务**. The old schedule's history and consumed dates are not attributed to the new recording. An interrupted save resumes from the confirmed task snapshot; an uncompleted save pauses without retrying automatically. If storage cannot be confirmed, the UI retains its last known task, explains the state and blocks changes. A source-task or recording-session mismatch cannot overwrite another task.
 
 ## Timing and safety
 
@@ -53,6 +61,10 @@ python3 .artifacts/autoclick-integration/run_tests.py edit-ui com.lumostech.auto
 python3 .artifacts/autoclick-integration/run_tests.py permission com.lumostech.autoclick.ExactTimingPermissionUiTest#hostDrivenPermissionRoundtrip permissions
 ```
 
-The runner snapshots application files and settings, verifies restoration even after failures, and keeps private recovery backups on unresolved failures. See `.artifacts/autoclick-integration/report.md` for actual results and limits, and `.artifacts/autoclick-status-audit/2026-10-08.md` for the earlier pre-integration inventory. The proposed new legacy-task recovery UX is outside this integration.
+The runner snapshots application files and settings, verifies restoration even after failures, and keeps private recovery backups on unresolved failures. See `.artifacts/autoclick-integration/report.md` for the earlier integration results and `.artifacts/autoclick-status-audit/2026-10-08.md` for the pre-integration inventory.
 
 2026-10-09 integration acceptance: 103 local tests and 115 device cases passed across protected sequential batches, with no failures or skips. Edited and unedited production alarms each produced one real button click within the first-gesture window. APK hashes, screenshots, restoration and unverified physical-device/reboot limits are recorded in the integration report.
+
+Legacy recovery acceptance uses `.artifacts/autoclick-legacy-recovery/run_acceptance.py`. It runs protected storage/UI regressions and three actual process-kill/reopen phases serially on the existing `emulator-5554`, preserving app files, accessibility, exact-alarm/overlay permissions, display settings and the original installed APK. See `.artifacts/autoclick-legacy-recovery/report.md` for actual results, screenshots, APK hashes and physical-device limits. No fixture should be run against unprotected user data.
+
+2026-10-09 legacy recovery acceptance: 110 local tests and 109 device cases passed with no failures or skips; Lint reported 0 errors and 34 warnings, matching the previous warning count. The final APK was used for every device batch. Three host-driven PID-kill/reopen phases retained the correct disabled task and draft without scheduling an alarm. The recovered task received zero automatic clicks from two old deliveries and one real manual-trial click; manual enabling created a future alarm. Original app data, settings and installed APK were restored and verified after each batch. Physical devices, manufacturer background policies and actual system reboot remain unverified.

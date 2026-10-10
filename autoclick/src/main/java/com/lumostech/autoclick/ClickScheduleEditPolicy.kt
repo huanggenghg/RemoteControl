@@ -4,6 +4,7 @@ enum class ClickScheduleEditResult(val message: String) {
     UNCHANGED("时间和星期未改变"),
     ENABLED("时间已修改"),
     DISABLED("时间已修改，任务仍停用"),
+    LEGACY_DISABLED("时间已修改，旧版任务仍需重新录制"),
     PERMISSION_REQUIRED("时间已修改，定时权限未开启，任务未启用"),
     TIME_ZONE_CHANGED("时间已修改，时区已改变，任务未启用")
 }

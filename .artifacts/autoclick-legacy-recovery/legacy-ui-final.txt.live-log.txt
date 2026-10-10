@@ -1,0 +1,2 @@
+--------- beginning of main
+10-09 23:48:52.267 29779 29794 I AutoclickQuickCheck: legacy recoveredDisabled=true oldDeliveries=2 automaticClicks=0 realTrialClicks=1

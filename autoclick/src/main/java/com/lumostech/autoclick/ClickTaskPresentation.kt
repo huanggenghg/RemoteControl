@@ -28,7 +28,7 @@ fun presentExact(task: ClickTask?, alarm: ClickAlarmState?, run: ClickRunState, 
         return ClickTaskPresentation("权限已开启，请启用任务", recoveryHelp = RecoveryHelp.REENABLE)
     if (task.timeZoneId != currentZone || state?.status == ClickAlarmStatus.TIME_ZONE_CHANGED)
         return ClickTaskPresentation("时区已改变，需重新设置任务", recoveryHelp = RecoveryHelp.RESAVE_TIME_ZONE)
-    if (task.protection == null) return ClickTaskPresentation("录制信息不完整，需重新录制", recoveryHelp = RecoveryHelp.RECORD_AGAIN)
+    if (task.protection == null) return ClickTaskPresentation("旧版任务需要重新录制，才能启用", recoveryHelp = RecoveryHelp.RECORD_AGAIN)
     val active = state?.active
     val futureFailure = if (state?.status == ClickAlarmStatus.SCHEDULE_FAILED) "下次定时安排失败，请重新启用" else ""
     if (task.enabled && active != null && run.active && !run.manual && run.taskId == task.id && run.scheduleId == task.scheduleId)
