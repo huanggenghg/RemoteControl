@@ -126,10 +126,10 @@ class LegacyTaskRecoveryUiTest {
     @Test fun legacyTimeAndWeekdaysCanBeEditedWithoutClearingDraft() {
         val draft = ClickSequenceStore(context).load()
         compose.onNodeWithText("修改时间").performScrollTo().performClick()
-        compose.onNodeWithTag("schedule-hour").performTextReplacement("18")
-        compose.onNodeWithTag("schedule-minute").performTextReplacement("20")
-        compose.onNodeWithTag("schedule-day-2").performClick()
-        compose.onNodeWithText("保存修改").performClick()
+        ScheduleEditorUi.time(hour = 18)
+        ScheduleEditorUi.time(minute = 20)
+        ScheduleEditorUi.toggleDay(2)
+        ScheduleEditorUi.save()
         compose.waitUntil(5_000) { store.load()?.hour == 18 }
         val edited = store.load()!!
         assertEquals(setOf(4), edited.days)

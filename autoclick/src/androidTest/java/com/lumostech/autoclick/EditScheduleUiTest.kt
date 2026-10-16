@@ -82,7 +82,7 @@ class EditScheduleUiTest {
     private fun openEditor() {
         compose.waitUntil(5_000) { compose.onAllNodesWithText("修改时间").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("修改时间").performScrollTo().performClick()
-        compose.onNodeWithText("修改任务时间").assertIsDisplayed()
+        ScheduleEditorUi.assertOpen()
     }
 
     private fun capture(name: String) {
@@ -93,14 +93,13 @@ class EditScheduleUiTest {
     @Test fun prefilledValuesAndCancelLeaveTaskAndDraftUntouched() {
         val draft = ClickSequenceStore(context).load()
         openEditor()
-        compose.onNodeWithTag("schedule-hour").assertTextContains("09")
-        compose.onNodeWithTag("schedule-minute").assertTextContains("35")
-        compose.onNodeWithTag("schedule-day-2").assertIsSelected()
-        compose.onNodeWithTag("schedule-day-4").assertIsSelected()
+        ScheduleEditorUi.assertTime(9, 35)
+        ScheduleEditorUi.assertDaySelected(2)
+        ScheduleEditorUi.assertDaySelected(4)
         capture("edit-normal")
-        compose.onNodeWithTag("schedule-hour").performTextReplacement("18")
-        compose.onNodeWithText("取消").performScrollTo().performClick()
-        compose.onNodeWithText("修改任务时间").assertDoesNotExist()
+        ScheduleEditorUi.time(hour = 18)
+        ScheduleEditorUi.cancel()
+        ScheduleEditorUi.assertClosed()
         assertEquals(task, store.load())
         assertEquals(draft, ClickSequenceStore(context).load())
     }
@@ -108,14 +107,14 @@ class EditScheduleUiTest {
     @Test fun savesTimeAndWeekdaysWithoutEnablingOrReplacingRecording() {
         val draft = ClickSequenceStore(context).load()
         openEditor()
-        compose.onNodeWithTag("schedule-hour").performTextReplacement("18")
-        compose.onNodeWithTag("schedule-minute").performTextReplacement("20")
-        compose.onNodeWithTag("schedule-day-2").performClick()
-        compose.onNodeWithTag("schedule-day-4").performClick()
-        compose.onNodeWithTag("schedule-day-6").performClick()
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
+        ScheduleEditorUi.time(hour = 18)
+        ScheduleEditorUi.time(minute = 20)
+        ScheduleEditorUi.toggleDay(2)
+        ScheduleEditorUi.toggleDay(4)
+        ScheduleEditorUi.toggleDay(6)
+        ScheduleEditorUi.save()
         compose.waitUntil(5_000) { store.load()?.hour == 18 }
-        compose.waitUntil(5_000) { compose.onAllNodesWithText("修改任务时间").fetchSemanticsNodes().isEmpty() }
+        ScheduleEditorUi.waitUntilClosed(compose)
         val edited = ClickTaskStore(context).load()!!
         assertEquals(20, edited.minute)
         assertEquals(setOf(Calendar.FRIDAY), edited.days)
@@ -130,47 +129,46 @@ class EditScheduleUiTest {
         assertEquals(edited, store.load())
     }
 
-    @Test fun emptyWeekdaysAndInvalidTimeCannotBeSaved() {
+    @Test fun emptyWeekdaysCannotBeSavedAndSelectingADayClearsTheError() {
         openEditor()
-        compose.onNodeWithTag("schedule-day-2").performClick()
-        compose.onNodeWithTag("schedule-day-4").performClick()
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
-        compose.onNodeWithText("请至少选择一个执行星期").performScrollTo().assertIsDisplayed()
+        ScheduleEditorUi.toggleDay(2)
+        ScheduleEditorUi.toggleDay(4)
+        ScheduleEditorUi.save()
+        ScheduleEditorUi.assertError("请至少选择一个执行星期")
         capture("edit-error")
         assertEquals(task, store.load())
-        compose.onNodeWithTag("schedule-day-2").performClick()
-        compose.onNodeWithTag("schedule-hour").performTextReplacement("24")
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
-        compose.onNodeWithText("请输入有效的时间（00:00–23:59）").performScrollTo().assertIsDisplayed()
+        ScheduleEditorUi.toggleDay(2)
+        ScheduleEditorUi.assertNoError()
+        ScheduleEditorUi.cancel()
         assertEquals(task, store.load())
     }
 
     @Test fun rotationKeepsDraftAndLargeFontAndLandscapeRemainUsable() {
         openEditor()
-        compose.onNodeWithTag("schedule-hour").performTextReplacement("17")
+        ScheduleEditorUi.time(hour = 17)
         scenario!!.recreate()
-        compose.onNodeWithTag("schedule-hour").assertTextContains("17")
+        ScheduleEditorUi.assertTime(17, 35)
         shell("settings --user 0 put system font_scale 1.5")
         scenario!!.recreate()
-        compose.onNodeWithText("保存修改").performScrollTo().assertIsDisplayed()
+        ScheduleEditorUi.assertSaveDisplayed()
         capture("edit-large-font")
         scenario!!.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
         compose.waitUntil(5_000) { context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE }
-        compose.onNodeWithText("保存修改").performScrollTo().assertIsDisplayed()
+        ScheduleEditorUi.assertSaveDisplayed()
         capture("edit-landscape")
-        compose.onNodeWithText("取消").performScrollTo().performClick()
+        ScheduleEditorUi.cancel()
         assertEquals(task, store.load())
     }
 
     @Test fun replacedTaskAndLostServiceCloseUnsubmittedEditor() {
         openEditor()
         assertTrue(store.save(task.copy(id = "replacement-ui")))
-        compose.waitUntil(5_000) { compose.onAllNodesWithText("修改任务时间").fetchSemanticsNodes().isEmpty() }
+        ScheduleEditorUi.waitUntilClosed(compose)
         openEditor()
         val service = AccessibilityCoreService.accessibilityCoreService!!
         try {
             compose.runOnIdle { AccessibilityCoreService.accessibilityCoreService = null }
-            compose.waitUntil(5_000) { compose.onAllNodesWithText("修改任务时间").fetchSemanticsNodes().isEmpty() }
+            ScheduleEditorUi.waitUntilClosed(compose)
             compose.onNodeWithText("正在连接服务").assertIsDisplayed()
         } finally { compose.runOnIdle { AccessibilityCoreService.accessibilityCoreService = service } }
         assertEquals("replacement-ui", store.load()!!.id)
@@ -199,14 +197,13 @@ class EditScheduleUiTest {
             assertTrue(entered.await(5, TimeUnit.SECONDS))
             scenario!!.recreate()
             scenario!!.onActivity { assertSame(model, ViewModelProvider(it)[EditScheduleViewModel::class.java]) }
-            compose.onNodeWithText("正在保存…").performScrollTo().assertIsNotEnabled()
-            compose.onNodeWithText("取消").performScrollTo().assertIsNotEnabled()
+            ScheduleEditorUi.assertSaving()
         } finally {
             release.countDown()
             AndroidClickAlarmPlatform(context).cancel(originalAlarm)
         }
         compose.waitUntil(5_000) { !model.saving }
-        compose.onNodeWithText("修改任务时间").assertDoesNotExist()
+        ScheduleEditorUi.assertClosed()
         assertEquals(18, store.load()!!.hour)
         assertEquals(setOf(Calendar.FRIDAY), store.load()!!.days)
         assertEquals(1, platform.scheduled.size)
@@ -250,11 +247,11 @@ class EditScheduleUiTest {
             add(Calendar.MINUTE, 1); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
             if (timeInMillis - System.currentTimeMillis() < 10_000) add(Calendar.MINUTE, 1)
         }
-        compose.onNodeWithTag("schedule-hour").performTextReplacement(due.get(Calendar.HOUR_OF_DAY).toString())
-        compose.onNodeWithTag("schedule-minute").performTextReplacement(due.get(Calendar.MINUTE).toString())
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
+        ScheduleEditorUi.time(hour = due.get(Calendar.HOUR_OF_DAY))
+        ScheduleEditorUi.time(minute = due.get(Calendar.MINUTE))
+        ScheduleEditorUi.save()
         compose.waitUntil(5_000) { store.load()?.id != original.id }
-        compose.waitUntil(5_000) { compose.onAllNodesWithText("修改任务时间").fetchSemanticsNodes().isEmpty() }
+        ScheduleEditorUi.waitUntilClosed(compose)
         val edited = store.load()!!
         assertFalse(store.reserveAlarm(oldEvent, System.currentTimeMillis()))
         val count = AtomicInteger()
@@ -283,9 +280,9 @@ class EditScheduleUiTest {
         scenario!!.recreate()
         openEditor()
         val later = (due.clone() as Calendar).apply { add(Calendar.MINUTE, 2) }
-        compose.onNodeWithTag("schedule-hour").performTextReplacement(later.get(Calendar.HOUR_OF_DAY).toString())
-        compose.onNodeWithTag("schedule-minute").performTextReplacement(later.get(Calendar.MINUTE).toString())
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
+        ScheduleEditorUi.time(hour = later.get(Calendar.HOUR_OF_DAY))
+        ScheduleEditorUi.time(minute = later.get(Calendar.MINUTE))
+        ScheduleEditorUi.save()
         compose.waitUntil(5_000) { store.load()?.id != edited.id }
         val updated = ClickTaskStore(context).load()!!
         val newOccurrenceToday = (due.clone() as Calendar).apply {

@@ -26,6 +26,10 @@ import com.lumostech.accessibilitycore.*
 import com.lumostech.autoclick.ui.EditScheduleDialog
 import com.lumostech.autoclick.ui.AutoclickScreen
 import com.lumostech.autoclick.ui.LegacyTaskRecoveryDialog
+import com.lumostech.autoclick.ui.configureScheduleEditor
+import com.lumostech.autoclick.ui.scheduleEditorWidthPixels
+import com.lumostech.autoclick.ui.setScheduleBusy
+import com.lumostech.autoclick.ui.showScheduleError
 import com.lumostech.autoclick.ui.theme.AutoclickTheme
 import com.lumostech.autoclick.databinding.LayoutConfirmBinding
 import kotlinx.coroutines.CancellationException
@@ -313,29 +317,18 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
             return
         }
         val binding = DataBindingUtil.inflate<LayoutConfirmBinding>(LayoutInflater.from(this), R.layout.layout_confirm, null, false)
-        binding.timePicker.setIs24HourView(true)
         val session = recoveryViewModel.session
-        if (session != null) {
-            binding.timePicker.hour = session.hour
-            binding.timePicker.minute = session.minute
-            binding.weekdaysPicker.setSelectedDays(session.days.sorted())
-            binding.timePicker.setOnTimeChangedListener { _, hour, minute ->
-                recoveryViewModel.updateTime(hour, minute, binding.weekdaysPicker.selectedDays.toSet())
-            }
-            binding.weekdaysPicker.setOnWeekdaysChangeListener { _, _, days ->
-                recoveryViewModel.updateTime(binding.timePicker.hour, binding.timePicker.minute, days.toSet())
-            }
-        } else task?.let { saved ->
-            binding.timePicker.hour = saved.hour
-            binding.timePicker.minute = saved.minute
-            binding.weekdaysPicker.setSelectedDays(saved.days.sorted())
+        binding.configureScheduleEditor(session?.hour ?: task?.hour ?: binding.timePicker.hour,
+            session?.minute ?: task?.minute ?: binding.timePicker.minute,
+            session?.days ?: task?.days ?: emptySet()) { selection ->
+            if (session != null) recoveryViewModel.updateTime(selection.hour, selection.minute, selection.days)
         }
-        binding.confirmEventHandler = ConfirmEventHandler(binding, lifecycleScope, controller, ::requestTimingPermission, recoveryViewModel)
+        val handler = ConfirmEventHandler(binding, lifecycleScope, controller, ::requestTimingPermission, recoveryViewModel)
+        binding.confirm.setOnClickListener(handler::onConfirmClick)
+        binding.cancel.setOnClickListener(handler::onCancelClick)
         confirmBinding = binding
         updateRecoveryPanel()
-        val density = resources.displayMetrics.density
-        val panelWidth = minOf(resources.displayMetrics.widthPixels - (32 * density).toInt(), (560 * density).toInt())
-        service.setFloatCustomView(binding.root, panelWidth)
+        service.setFloatCustomView(binding.root, scheduleEditorWidthPixels(resources))
         ViewModelMain.isShowCustomFloatWindow.value = true
     }
 
@@ -343,12 +336,10 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         val binding = confirmBinding ?: return
         if (recoveryViewModel.session == null) return
         binding.dialogTitle.text = "恢复旧版任务"
-        binding.dialogMessage.text = recoveryViewModel.error ?: "保存成功后替换旧任务，并保持停用。请先试运行，再手动启用。\n保存时区：${java.util.TimeZone.getDefault().id}"
+        binding.dialogMessage.text = "保存成功后替换旧任务，并保持停用。请先试运行，再手动启用。"
+        binding.showScheduleError(recoveryViewModel.error)
         binding.confirm.text = if (recoveryViewModel.busy) "正在保存…" else "保存并替换旧任务"
-        binding.confirm.isEnabled = !recoveryViewModel.busy && !storageUnconfirmed
-        binding.cancel.isEnabled = !recoveryViewModel.busy
-        binding.timePicker.isEnabled = !recoveryViewModel.busy
-        binding.weekdaysPicker.setEditable(!recoveryViewModel.busy)
+        binding.setScheduleBusy(recoveryViewModel.busy, saveAllowed = !storageUnconfirmed)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -411,7 +402,8 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
         confirmBinding?.apply {
             timePicker.setOnTimeChangedListener(null)
             weekdaysPicker.setOnWeekdaysChangeListener(null)
-            confirmEventHandler = null
+            confirm.setOnClickListener(null)
+            cancel.setOnClickListener(null)
         }
         confirmBinding = null
         store.stopObserving(preferenceListener)

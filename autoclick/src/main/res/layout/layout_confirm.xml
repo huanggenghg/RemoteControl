@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-    <data><variable name="confirmEventHandler" type="com.lumostech.autoclick.ConfirmEventHandler" /></data>
+    <data />
     <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:fillViewport="true" android:clipToPadding="false" android:padding="16dp">
         <LinearLayout style="@style/AutoclickPanel" android:layout_width="match_parent"
@@ -13,7 +13,7 @@
                 android:text="选择时间和重复日期，保存当前录制。"
                 android:textColor="@color/ac_text_secondary" android:textSize="14sp" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="24dp" android:text="执行时间" android:textStyle="bold"
+                android:layout_marginTop="24dp" android:text="执行时间 · 24 小时制" android:textStyle="bold"
                 android:textColor="@color/ac_text" android:textSize="14sp" />
             <TimePicker android:id="@+id/timePicker" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
@@ -26,17 +26,27 @@
                 app:highlight_color="@color/ac_primary" app:background_color="@color/ac_soft"
                 app:text_color="@color/ac_on_primary" app:text_unselected_color="@color/ac_primary_pressed"
                 app:sunday_first_day="false" app:weekenddarker="false" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" android:text="系统省电可能延后触发；执行时需亮屏、解锁并打开目标页面。"
+            <TextView android:id="@+id/schedule_time_zone" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="16dp"
                 android:textColor="@color/ac_text_secondary" android:textSize="12sp" />
+            <TextView android:id="@+id/schedule_zone_warning" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:visibility="gone"
+                android:text="@string/schedule_zone_changed"
+                android:textColor="@color/ac_error" android:textSize="12sp" />
+            <TextView android:id="@+id/schedule_hint" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="计划时间后 5 秒内未开始则跳过；执行时需亮屏、解锁并打开目标页面。"
+                android:textColor="@color/ac_text_secondary" android:textSize="12sp" />
+            <TextView android:id="@+id/schedule_error" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="16dp" android:visibility="gone"
+                android:accessibilityLiveRegion="polite" android:textColor="@color/ac_error" android:textSize="14sp" />
             <androidx.appcompat.widget.AppCompatButton android:id="@+id/confirm" style="@style/AutoclickButton"
                 android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp"
                 android:background="@drawable/selector_dialog_confirm" android:text="保存任务"
-                android:textColor="@color/ac_button_text" android:onClick="@{confirmEventHandler::onConfirmClick}" />
+                android:textColor="@color/ac_button_text" />
             <androidx.appcompat.widget.AppCompatButton android:id="@+id/cancel" style="@style/AutoclickButton"
                 android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
                 android:background="@drawable/selector_dialog_cancel" android:text="返回录制"
-                android:textColor="@color/ac_primary_pressed" android:onClick="@{confirmEventHandler::onCancelClick}" />
+                android:textColor="@color/ac_primary_pressed" />
         </LinearLayout>
     </ScrollView>
 </layout>

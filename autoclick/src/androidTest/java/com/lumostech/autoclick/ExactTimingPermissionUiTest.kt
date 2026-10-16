@@ -32,10 +32,10 @@ class ExactTimingPermissionUiTest {
     private fun editWithoutEnabling(screenshot: String) {
         val before = f.store.load()!!
         compose.onNodeWithText("修改时间").performScrollTo().performClick()
-        compose.onNodeWithTag("schedule-minute").performTextReplacement(((before.minute + 1) % 60).toString())
-        compose.onNodeWithText("保存修改").performScrollTo().performClick()
+        ScheduleEditorUi.time(minute = (before.minute + 1) % 60)
+        ScheduleEditorUi.save()
         compose.waitUntil(5_000) { f.store.load()?.id != before.id }
-        compose.waitUntil(5_000) { compose.onAllNodesWithText("修改任务时间").fetchSemanticsNodes().isEmpty() }
+        ScheduleEditorUi.waitUntilClosed(compose)
         assertFalse(f.store.load()!!.enabled)
         assertNull(f.store.alarmState()!!.next)
         assertEquals(before.points, f.store.load()!!.points)

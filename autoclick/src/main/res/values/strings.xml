@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">AutoClick</string>
+    <string name="schedule_saved_points">沿用保存的 %1$d 个点击和间隔。</string>
+    <string name="schedule_saved_time_zone">保存时区：%1$s</string>
+    <string name="schedule_zone_changed">当前设备时区已改变。本次修改仍使用原时区；请通过录制设置重新保存任务后再启用。</string>
     <string-array name="recurrence">
         <item>Every week</item>
         <item>Every odd week</item>
