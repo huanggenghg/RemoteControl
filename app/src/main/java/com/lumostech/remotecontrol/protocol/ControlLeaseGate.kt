@@ -25,14 +25,16 @@ class ControlLeaseGate(private val nowMs: () -> Long) {
 
     @Synchronized fun accept(sessionId: String, peerId: String, lease: String,
                              sequence: Long, messageId: String): Boolean {
-        if (sessionId != session || peerId != peer || messageId.isBlank() ||
-            (leases[lease] ?: Long.MIN_VALUE) <= nowMs() ||
+        if (!isActive(sessionId, peerId, lease) || messageId.isBlank() ||
             sequence <= lastSequence || messageId in received) return false
         lastSequence = sequence
         received += messageId
         if (received.size > 1024) received.remove(received.first())
         return true
     }
+
+    @Synchronized fun isActive(sessionId: String, peerId: String, lease: String): Boolean =
+        sessionId == session && peerId == peer && (leases[lease] ?: Long.MIN_VALUE) > nowMs()
 
     @Synchronized fun close() {
         session = null

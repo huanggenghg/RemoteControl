@@ -2,6 +2,7 @@ package com.lumostech.remotecontrol
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.provider.Settings
 import com.lumostech.remotecontrol.utils.GlobalExceptionHandler
 import com.lumostech.remotecontrol.utils.Logger
@@ -22,10 +23,12 @@ class MyApp : Application() {
         
         Logger.i(TAG, "应用启动 - 版本: ${getAppVersion()}")
         
-        try {
-            setMyServiceEnable()
-        } catch (e: Exception) {
-            Logger.e(TAG, "设置无障碍服务失败", e)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            try {
+                setMyServiceEnable()
+            } catch (e: Exception) {
+                Logger.e(TAG, "设置无障碍服务失败", e)
+            }
         }
     }
 

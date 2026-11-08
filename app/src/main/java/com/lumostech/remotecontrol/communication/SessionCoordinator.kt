@@ -14,7 +14,7 @@ class SessionCoordinator(
     private val scope: CoroutineScope,
     private val factory: (CommunicationListener) -> CommunicationSession,
     private val credentials: CredentialProvider,
-    private val dispatch: (RemoteCommand) -> Boolean,
+    private val dispatch: (RemoteCommand, canExecute: () -> Boolean) -> Boolean,
     private val status: (ConnectionState, Boolean, ScreenGeometry?) -> Unit,
     private val error: (String) -> Unit,
     private val clock: () -> Long = SystemClock::elapsedRealtime

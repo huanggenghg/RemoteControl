@@ -24,4 +24,20 @@
     <string name="remote_control_assist_desc1">输入对方提供的远程控制码来开始协助。连接后，您将能够查看和控制对方的设备</string>
     <string name="remote_control_assist_btn_loading">正在连接…</string>
     <string name="remote_control_assist_assisting">已连接</string>
+    <string name="adb_setup_title">设置无线调试</string>
+    <string name="adb_setup_instructions">在开发者选项中开启「无线调试」。首次配对时请分屏保留系统配对弹窗，填写配对端口和六位配对码。连接端口取自无线调试首页的「IP 地址和端口」。</string>
+    <string name="adb_connect_port">连接端口（无线调试首页）</string>
+    <string name="adb_pair_port">配对端口（配对弹窗）</string>
+    <string name="adb_pair_code">六位无线调试配对码</string>
+    <string name="adb_pair">配对本机</string>
+    <string name="adb_open_settings">开发者选项</string>
+    <string name="adb_connect_and_share">连接并投屏</string>
+    <string name="adb_invalid_port">请输入 1 至 65535 之间的端口号</string>
+    <string name="adb_invalid_code">请输入系统显示的六位配对码</string>
+    <string name="adb_pairing">正在配对…</string>
+    <string name="adb_pair_success">配对成功，请填写连接端口，再点「连接并投屏」。</string>
+    <string name="adb_pair_failed">配对失败。请保持系统配对弹窗打开，并核对配对端口和配对码。</string>
+    <string name="adb_connect_failed">连接失败。请确认无线调试已开启、本应用已配对，并核对首页上的连接端口。</string>
+    <string name="adb_settings_unavailable">请在系统设置中手动打开开发者选项。</string>
+    <string name="adb_session_failed">无线调试已断开或无法执行操作，远程协助已结束。请检查被控设备的调试权限后重试。</string>
 </resources>

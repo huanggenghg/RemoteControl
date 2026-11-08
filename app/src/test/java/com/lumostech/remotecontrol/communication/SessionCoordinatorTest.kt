@@ -37,7 +37,7 @@ class SessionCoordinatorTest {
         val deferred = CompletableDeferred<SessionCredentials>()
         var created = 0
         val coordinator = SessionCoordinator(this, { created++; FakeSession() },
-            CredentialProvider { _, _, _ -> deferred.await() }, { true }, { _, _, _ -> }, {}, { 0L })
+            CredentialProvider { _, _, _ -> deferred.await() }, { _, _ -> true }, { _, _, _ -> }, {}, { 0L })
         val starting = launch { coordinator.start("123456", SessionRole.CONTROLLER) }
         runCurrent()
         coordinator.close()
@@ -50,7 +50,7 @@ class SessionCoordinatorTest {
         val sdk = FakeSession()
         val coordinator = SessionCoordinator(this, { sdk },
             CredentialProvider { room, _, _ -> SessionCredentials("app", room, "user", "token") },
-            { true }, { _, _, _ -> }, {}, { 0L })
+            { _, _ -> true }, { _, _, _ -> }, {}, { 0L })
         val starting = launch { coordinator.start("123456", SessionRole.CONTROLLER) }
         runCurrent()
         starting.cancelAndJoin()
@@ -63,7 +63,7 @@ class SessionCoordinatorTest {
         val sdk = FakeSession()
         val coordinator = SessionCoordinator(this, { listener = it; sdk },
             CredentialProvider { room, _, _ -> SessionCredentials("app", room, "user", "token") },
-            { true }, { state, _, _ -> states += state }, {}, { 0L })
+            { _, _ -> true }, { state, _, _ -> states += state }, {}, { 0L })
         val starting = launch { coordinator.start("123456", SessionRole.CONTROLLER) }
         runCurrent()
         coordinator.close()
@@ -79,7 +79,7 @@ class SessionCoordinatorTest {
         val states = mutableListOf<ConnectionState>()
         val errors = mutableListOf<String>()
         val coordinator = SessionCoordinator(this, { created++; FakeSession() },
-            CredentialProvider { _, _, _ -> awaitCancellation() }, { true },
+            CredentialProvider { _, _, _ -> awaitCancellation() }, { _, _ -> true },
             { state, _, _ -> states += state }, errors::add, { testScheduler.currentTime })
         val starting = launch { coordinator.start("123456", SessionRole.CONTROLLER) }
         advanceTimeBy(15001)
@@ -100,7 +100,7 @@ class SessionCoordinatorTest {
             CredentialProvider { room, _, _ ->
                 if (++fetched == 1) SessionCredentials("app", room, "user", "token")
                 else awaitCancellation()
-            }, { true }, { state, _, _ -> states += state }, errors::add,
+            }, { _, _ -> true }, { state, _, _ -> states += state }, errors::add,
             { testScheduler.currentTime })
         try {
             coordinator.start("123456", SessionRole.CONTROLLER)
@@ -123,11 +123,11 @@ class SessionCoordinatorTest {
         lateinit var listener: CommunicationListener
         var ready = false
         val host = RemoteProtocol(SessionRole.HOST, "host-a", { testScheduler.currentTime },
-            { _, frame, _ -> listener.onMessage(Peer("host-a"), frame) }, { true }, {}, { _, _ -> })
+            { _, frame, _ -> listener.onMessage(Peer("host-a"), frame) }, { _, _ -> true }, {}, { _, _ -> })
         sdk.sent = { peer, frame -> if (peer.id == "host-a") host.receive(Peer("controller"), frame) }
         val coordinator = SessionCoordinator(this, { listener = it; sdk },
             CredentialProvider { room, _, _ -> SessionCredentials("app", room, "controller", "token") },
-            { true }, { _, canControl, _ -> ready = canControl }, {}, { testScheduler.currentTime })
+            { _, _ -> true }, { _, canControl, _ -> ready = canControl }, {}, { testScheduler.currentTime })
         // The fake renderer only records this opaque container; no Android method is invoked.
         val unsafeClass = Class.forName("sun.misc.Unsafe")
         val unsafeField = unsafeClass.getDeclaredField("theUnsafe").apply { isAccessible = true }
@@ -162,7 +162,7 @@ class SessionCoordinatorTest {
         val coordinator = SessionCoordinator(this, { created++; FakeSession() },
             CredentialProvider { _, _, _ ->
                 throw CredentialRequestException("即构凭证服务尚未配置", "not_configured")
-            }, { true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
+            }, { _, _ -> true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
         coordinator.start("123456", SessionRole.CONTROLLER)
         assertEquals(0, created)
         assertEquals(listOf("即构凭证服务尚未配置"), messages)
@@ -178,7 +178,7 @@ class SessionCoordinatorTest {
             CredentialProvider { room, _, _ ->
                 fetched++
                 SessionCredentials(if (fetched == 1) "first-app" else "second-app", room, "user", "synthetic")
-            }, { true }, { state, _, _ -> states += state }, messages::add,
+            }, { _, _ -> true }, { state, _, _ -> states += state }, messages::add,
             { testScheduler.currentTime })
         try {
             coordinator.start("123456", SessionRole.CONTROLLER)
@@ -199,7 +199,7 @@ class SessionCoordinatorTest {
             CredentialProvider { room, user, _ ->
                 if (++fetched == 1) SessionCredentials("42", room, user, "synthetic")
                 else throw CredentialRequestException("即构凭证服务尚未配置", "not_configured")
-            }, { true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
+            }, { _, _ -> true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
         try {
             coordinator.start("123456", SessionRole.CONTROLLER)
             listener.onCredentialsExpiring()

@@ -14,7 +14,7 @@ class RemoteProtocol(
     private val localId: String,
     private val nowMs: () -> Long,
     private val send: (Peer, ByteArray, Long?) -> Unit,
-    private val execute: (RemoteCommand) -> Boolean,
+    private val execute: (RemoteCommand, canExecute: () -> Boolean) -> Boolean,
     private val changed: () -> Unit,
     private val result: (String, String) -> Unit
 ) {
@@ -154,9 +154,11 @@ class RemoteProtocol(
                     if (role != SessionRole.HOST || !sharing || from != peer) return
                     val command = RemoteCommandCodec.decode(json.get("payload")?.toString() ?: return) ?: return
                     val id = json.get("messageId")?.asString ?: return
-                    if (id.length !in 1..64 || !gate.accept(json.get("session").asString, from.id,
-                            json.get("lease").asString, json.get("sequence").asLong, id)) return
-                    val dispatched = execute(command)
+                    val commandSession = json.get("session").asString
+                    val commandLease = json.get("lease").asString
+                    if (id.length !in 1..64 || !gate.accept(commandSession, from.id,
+                            commandLease, json.get("sequence").asLong, id)) return
+                    val dispatched = execute(command) { gate.isActive(commandSession, from.id, commandLease) }
                     transmit(from, "result") {
                         addProperty("session", session)
                         addProperty("messageId", id)

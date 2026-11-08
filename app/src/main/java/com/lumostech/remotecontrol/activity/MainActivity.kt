@@ -8,14 +8,22 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.Group
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.lifecycleScope
 import com.lumostech.remotecontrol.R
 import com.lumostech.communication.ConnectionState
 import com.lumostech.communication.ScreenGeometry
 import com.lumostech.communication.SessionRole
+import com.lumostech.remotecontrol.input.LocalAdbInputSession
+import com.lumostech.remotecontrol.protocol.RemoteCommand
+import com.lumostech.remotecontrol.utils.Logger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.Random
 
 
@@ -32,6 +40,9 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     private var tvCodeInput: EditText? = null
     private var tvCodeProjecting: TextView? = null
     private var tvWaiting: TextView? = null
+    private var adbInput: LocalAdbInputSession? = null
+    private var adbJob: Job? = null
+    private var adbSetupDialog: AlertDialog? = null
 
     @SuppressLint("CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +50,12 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         setContentView(R.layout.activity_main)
         initViews()
         initCode()
+        if (savedInstanceState?.getBoolean(SHOW_ADB_SETUP) == true) showAdbSetup(rememberedAdbPort())
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(SHOW_ADB_SETUP, adbSetupDialog?.isShowing == true)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onCommunicationState(state: ConnectionState, ready: Boolean, geometry: ScreenGeometry?) {
@@ -48,15 +65,27 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
             ready -> getString(R.string.remote_controlling)
             else -> getString(R.string.remote_control_waiting)
         }
-        if (state == ConnectionState.FAILED) releaseProjection()
+        if (state == ConnectionState.FAILED) {
+            closeAdbInput()
+            releaseProjection()
+        }
     }
 
     override fun onProjectionReady() { switchStatus(Status.ASSIST) }
     override fun onProjectionStopped() {
-        stopSession()
-        releaseProjection()
         switchStatus(Status.MAIN)
     }
+
+    override fun dispatchHostCommand(
+        command: RemoteCommand,
+        geometry: ScreenGeometry,
+        canExecute: () -> Boolean
+    ): Boolean =
+        if (LocalAdbInputSession.supported && command.action != "softInput") {
+            adbInput?.submit(command, geometry, canExecute) == true
+        } else {
+            super.dispatchHostCommand(command, geometry, canExecute)
+        }
 
     private fun initViews() {
         fabProjection = findViewById(R.id.projection)
@@ -95,16 +124,15 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
     @SuppressLint("NonConstantResourceId")
     override fun onClick(v: View) {
         if (v.id == R.id.projection) {
-            if (!checkCode()) {
-                return
-            }
-            if (projection == null) {
+            if (!checkCode()) return
+            if (LocalAdbInputSession.supported) {
+                if (adbJob?.isActive == true || adbSetupDialog?.isShowing == true) return
+                val port = rememberedAdbPort()
+                if (port == null) showAdbSetup(null) else startAdbInput(port)
+            } else {
                 requestMediaProjection()
                 showAccessibilityDialog()
-                return
             }
-            showAccessibilityDialog() // 再次检查，因为可能被关闭了服务，故需要再次检查
-            switchStatus(Status.ASSIST)
         } else if (v.id == R.id.assist) {
             switchStatus(Status.INPUT)
         } else if (v.id == R.id.terminal) {
@@ -112,6 +140,51 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
         } else if (v.id == R.id.go_assist) {
             assist()
         }
+    }
+
+    private fun rememberedAdbPort(): Int? =
+        getPreferences(MODE_PRIVATE).getInt(ADB_PORT, 0).takeIf { it in 1..65535 }
+
+    private fun showAdbSetup(port: Int?, connectionFailed: Boolean = false) {
+        adbSetupDialog = showAdbSetup(port, connectionFailed, ::startAdbInput)
+    }
+
+    private fun startAdbInput(port: Int) {
+        val input = LocalAdbInputSession()
+        adbInput = input
+        fabProjection?.isEnabled = false
+        fabAssist?.isEnabled = false
+        adbJob = lifecycleScope.launch {
+            var connected = false
+            try {
+                input.run(port) {
+                    connected = true
+                    getPreferences(MODE_PRIVATE).edit().putInt(ADB_PORT, port).apply()
+                    requestMediaProjection()
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                Logger.w("LocalAdb", "Wireless debugging session failed", failure)
+                if (adbInput !== input) return@launch
+                if (connected) {
+                    switchStatus(Status.MAIN)
+                    Toast.makeText(this@MainActivity, R.string.adb_session_failed, Toast.LENGTH_LONG).show()
+                } else {
+                    showAdbSetup(port, connectionFailed = true)
+                }
+            } finally {
+                if (adbInput === input) closeAdbInput()
+            }
+        }
+    }
+
+    private fun closeAdbInput() {
+        adbInput = null
+        adbJob?.cancel()
+        adbJob = null
+        fabProjection?.isEnabled = true
+        fabAssist?.isEnabled = true
     }
 
     // 显示返回键
@@ -184,7 +257,14 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
 
     private fun pauseCast() {
         stopSession()
+        closeAdbInput()
         releaseProjection()
+    }
+
+    override fun onDestroy() {
+        adbSetupDialog?.dismiss()
+        closeAdbInput()
+        super.onDestroy()
     }
 
     private fun assist() {
@@ -203,6 +283,8 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
 
     companion object {
         private const val CODE_LENGTH = 6
+        private const val ADB_PORT = "local_adb_connect_port"
+        private const val SHOW_ADB_SETUP = "show_local_adb_setup"
     }
 
     enum class Status {

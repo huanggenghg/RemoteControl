@@ -10,13 +10,14 @@ class RemoteProtocolTest {
         var now = 0L
         var executed = 0
         val commands = mutableListOf<RemoteCommand>()
+        val permits = mutableListOf<() -> Boolean>()
         val packets = java.util.ArrayDeque<Packet>()
         val host = RemoteProtocol(SessionRole.HOST, "h", { now },
             { peer, bytes, _ -> packets.add(Packet(Peer("h"), peer, bytes)) },
-            { commands += it; executed++; true }, {}, { _, _ -> })
+            { command, permit -> commands += command; permits += permit; executed++; true }, {}, { _, _ -> })
         val controller = RemoteProtocol(SessionRole.CONTROLLER, "c", { now },
             { peer, bytes, _ -> packets.add(Packet(Peer("c"), peer, bytes)) },
-            { throw AssertionError("Controller cannot dispatch") }, {}, { _, _ -> })
+            { _, _ -> throw AssertionError("Controller cannot dispatch") }, {}, { _, _ -> })
         fun connect() {
             host.connection(true)
             controller.connection(true)
@@ -55,6 +56,26 @@ class RemoteProtocolTest {
         link.pump()
         assertEquals(0, link.executed)
         assertFalse(link.controller.canControl)
+    }
+
+    @Test fun queuedCommandsLoseAuthorizationOnExpiryOrPeerDeparture() {
+        val link = Link()
+        link.connect()
+        assertTrue(link.controller.command(RemoteCommand("home")))
+        link.pump()
+        val expiring = link.permits.single()
+        assertTrue(expiring())
+        link.now += ControlLeaseGate.LEASE_MS
+        assertFalse(expiring())
+
+        link.host.tick()
+        link.pump()
+        assertTrue(link.controller.command(RemoteCommand("back")))
+        link.pump()
+        val revoked = link.permits.last()
+        assertTrue(revoked())
+        link.host.peerLeft(Peer("c"))
+        assertFalse(revoked())
     }
 
     @Test fun reconnectRehandshakesWithoutDependingOnNewMemberCallbacks() {

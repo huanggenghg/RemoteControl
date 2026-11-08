@@ -39,5 +39,19 @@ class RemoteCommandCodecTest {
         assertNull(ScreenCoordinateMapper.map(20f, 10f, 100, 200, 200, 200))
         assertEquals(Pair(50f, 100f), ScreenCoordinateMapper.map(100f, 100f, 100, 200, 200, 200))
         assertNull(ScreenCoordinateMapper.map(1f, 1f, 0, 200, 200, 200))
+        assertEquals(Pair(0f, 200f), ScreenCoordinateMapper.map(
+            20f, 210f, 100, 200, 200, 200, clampToContent = true))
+    }
+
+    @Test fun swipeRequiresTwoValidEndpointsAndAnExplicitDuration() {
+        val command = RemoteCommand("swipe", .25f, .75f, duration = 180L, endX = 1f, endY = .25f)
+        assertEquals(command, RemoteCommandCodec.decode(RemoteCommandCodec.encode(command)))
+        val payload = """{"action":"swipe","x":0.25,"y":0.75,"endX":1,"endY":0.25,"duration":180}"""
+        assertNull(RemoteCommandCodec.decode(payload.replace(",\"endY\":0.25", "")))
+        assertNull(RemoteCommandCodec.decode(payload.replace(",\"duration\":180", "")))
+        assertNull(RemoteCommandCodec.decode(payload.replace("180", "10001")))
+        assertNull(RemoteCommandCodec.decode(payload.replace("\"endX\":1", "\"endX\":1.01")))
+        assertNull(RemoteCommandCodec.decode(payload.replace("\"endX\":1", "\"endX\":\"NaN\"")))
+        assertEquals(RemoteCommand("scrollUp"), RemoteCommandCodec.decode("""{"action":"scrollUp"}"""))
     }
 }

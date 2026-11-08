@@ -8,7 +8,7 @@ import okio.ByteString.Companion.toByteString
 
 object RemoteCommandCodec {
     private val gson = Gson()
-    private val actions = setOf("click", "scrollUp", "scrollDown", "scrollLeft", "scrollRight",
+    private val actions = setOf("click", "swipe", "scrollUp", "scrollDown", "scrollLeft", "scrollRight",
         "softInput", "back", "home", "recents")
 
     fun encode(command: RemoteCommand): String {
@@ -31,19 +31,25 @@ object RemoteCommandCodec {
             val command = RemoteCommand(action!!,
                 json.get("x")?.asFloat ?: 0f, json.get("y")?.asFloat ?: 0f,
                 json.get("distance")?.asFloat ?: 200f, json.get("duration")?.asLong ?: 300L,
-                inputText)
+                inputText,
+                if (action == "swipe") json.get("endX")?.asFloat else null,
+                if (action == "swipe") json.get("endY")?.asFloat else null)
             when {
-                action == "click" && (!json.has("x") || !json.has("y") ||
-                    !command.x.isFinite() || !command.y.isFinite() ||
-                    command.x !in 0f..1f || command.y !in 0f..1f) -> null
+                (action == "click" || action == "swipe") &&
+                    (!json.has("x") || !json.has("y") || !validCoordinate(command.x) ||
+                        !validCoordinate(command.y)) -> null
+                action == "swipe" && (!validCoordinate(command.endX) || !validCoordinate(command.endY) ||
+                    !json.has("duration") || command.duration !in 1L..RemoteCommand.MAX_SWIPE_DURATION_MS) -> null
                 action.startsWith("scroll") && (!command.distance.isFinite() ||
-                    command.distance !in 1f..10000f || command.duration !in 1L..10000L) -> null
+                    command.distance !in 1f..10000f || command.duration !in 1L..RemoteCommand.MAX_SWIPE_DURATION_MS) -> null
                 action == "softInput" && ((!json.has("inputText") && !json.has("inputTextBase64")) ||
                     command.inputText.toByteArray(Charsets.UTF_8).size > 4096) -> null
                 else -> command
             }
         }
     } catch (_: Exception) { null }
+
+    private fun validCoordinate(value: Float?) = value != null && value in 0f..1f
 
     private fun decodeInput(json: JsonObject): String? {
         if (!json.has("inputTextBase64")) return json.get("inputText")?.asString ?: ""

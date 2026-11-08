@@ -19,6 +19,8 @@ okhttp = "4.12.0"
 lifecycle = "2.6.1"
 
 [libraries]
+libadb-android = { group = "com.github.MuntashirAkon", name = "libadb-android", version = "3.1.1" }
+conscrypt-android = { group = "org.conscrypt", name = "conscrypt-android", version = "2.8.0" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

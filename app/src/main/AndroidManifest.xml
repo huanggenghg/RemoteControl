@@ -4,9 +4,6 @@
     package="com.lumostech.remotecontrol">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission
-        android:name="android.permission.INJECT_EVENTS"
-        tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="androd.permission.DISABLE_KEYGUARD" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"

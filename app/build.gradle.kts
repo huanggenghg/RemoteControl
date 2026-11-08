@@ -77,6 +77,8 @@ dependencies {
     add("zegoImplementation", project(":communication-zego"))
     add("agoraImplementation", project(":communication-agora"))
     implementation(libs.android.material)
+    implementation(libs.libadb.android)
+    implementation(libs.conscrypt.android)
 //    implementation(libs.accessibilityCore)
     api(project(":accessibilityCore"))
 
