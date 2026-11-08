@@ -4,6 +4,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val zegoTokenEndpoint = providers.gradleProperty("zegoTokenEndpoint")
+    .orElse(providers.environmentVariable("ZEGO_TOKEN_ENDPOINT"))
+    .getOrElse("https://opub.cn/remotecontrol/getZegoToken")
+val zegoTokenEndpointLiteral = "\"" + zegoTokenEndpoint.replace("\\", "\\\\")
+    .replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") + "\""
+
 android {
     namespace = "com.lumostech.remotecontrol"
     compileSdk = 36
@@ -20,7 +26,10 @@ android {
 
     flavorDimensions += "provider"
     productFlavors {
-        create("zego") { dimension = "provider" }
+        create("zego") {
+            dimension = "provider"
+            buildConfigField("String", "ZEGO_TOKEN_ENDPOINT", zegoTokenEndpointLiteral)
+        }
         create("agora") { dimension = "provider" }
     }
 
@@ -56,6 +65,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

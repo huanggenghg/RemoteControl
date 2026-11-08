@@ -104,6 +104,8 @@ The app requires sensitive permissions:
 
 ## ZEGO Integration
 
-- AppID: 678281271
-- Token authentication via backend API (`GetZegoTokenService`)
+- AppID and Token04 come from the HTTPS credential service; no fixed account in the APK
+- Default endpoint: `https://opub.cn/remotecontrol/getZegoToken`; override with `-PzegoTokenEndpoint` or `ZEGO_TOKEN_ENDPOINT`
+- New account AppID/ServerSecret stay in the server-private environment file; missing configuration returns 503
+- `ZegoTokenClient` validates business status, identity and expiry before creating a session
 - Token renewal handled in `onRoomTokenWillExpire` callback

@@ -87,7 +87,7 @@ class SessionCoordinatorTest {
         starting.join()
         assertEquals(0, created)
         assertEquals(ConnectionState.FAILED, states.last())
-        assertEquals(1, errors.size)
+        assertEquals(listOf("凭证请求超时，请稍后重试"), errors)
     }
 
     @Test fun renewalTimeoutClosesSdkAndReportsFailure() = runTest {
@@ -153,6 +153,60 @@ class SessionCoordinatorTest {
             assertTrue(ready)
             assertEquals(Peer("host-a"), sdk.bindings.last())
             assertFalse(sdk.bindings.contains(Peer("host-b")))
+        } finally { coordinator.close() }
+    }
+
+    @Test fun credentialFailureIsVisibleAndCannotCreateSdk() = runTest {
+        var created = 0
+        val messages = mutableListOf<String>()
+        val coordinator = SessionCoordinator(this, { created++; FakeSession() },
+            CredentialProvider { _, _, _ ->
+                throw CredentialRequestException("即构凭证服务尚未配置", "not_configured")
+            }, { true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
+        coordinator.start("123456", SessionRole.CONTROLLER)
+        assertEquals(0, created)
+        assertEquals(listOf("即构凭证服务尚未配置"), messages)
+    }
+
+    @Test fun renewalCannotSwitchApplicationIdentity() = runTest {
+        val sdk = FakeSession().apply { joined.complete(Result.success(Unit)) }
+        lateinit var listener: CommunicationListener
+        var fetched = 0
+        val states = mutableListOf<ConnectionState>()
+        val messages = mutableListOf<String>()
+        val coordinator = SessionCoordinator(this, { listener = it; sdk },
+            CredentialProvider { room, _, _ ->
+                fetched++
+                SessionCredentials(if (fetched == 1) "first-app" else "second-app", room, "user", "synthetic")
+            }, { true }, { state, _, _ -> states += state }, messages::add,
+            { testScheduler.currentTime })
+        try {
+            coordinator.start("123456", SessionRole.CONTROLLER)
+            listener.onCredentialsExpiring()
+            runCurrent()
+            assertEquals(2, fetched)
+            assertEquals(1, sdk.closes)
+            assertEquals(ConnectionState.FAILED, states.last())
+            assertEquals(1, messages.size)
+        } finally { coordinator.close() }
+    }
+    @Test fun renewalBusinessFailureClosesSdkAndShowsSafeReason() = runTest {
+        val sdk = FakeSession().apply { joined.complete(Result.success(Unit)) }
+        lateinit var listener: CommunicationListener
+        var fetched = 0
+        val messages = mutableListOf<String>()
+        val coordinator = SessionCoordinator(this, { listener = it; sdk },
+            CredentialProvider { room, user, _ ->
+                if (++fetched == 1) SessionCredentials("42", room, user, "synthetic")
+                else throw CredentialRequestException("即构凭证服务尚未配置", "not_configured")
+            }, { true }, { _, _, _ -> }, messages::add, { testScheduler.currentTime })
+        try {
+            coordinator.start("123456", SessionRole.CONTROLLER)
+            listener.onCredentialsExpiring()
+            runCurrent()
+            assertEquals(2, fetched)
+            assertEquals(1, sdk.closes)
+            assertEquals(listOf("凭证更新失败：即构凭证服务尚未配置，请重新连接"), messages)
         } finally { coordinator.close() }
     }
 }

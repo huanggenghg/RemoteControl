@@ -47,7 +47,7 @@ class SessionCoordinator(
         notifyStatus()
         try {
             val credential = withTimeoutOrNull(15000) { credentials.fetch(roomId, requestedUser, role) }
-                ?: throw IllegalStateException("Credential request timed out")
+                ?: throw CredentialRequestException("凭证请求超时，请稍后重试", "timeout")
             if (generation != generationAtStart) return
             require(credential.roomId == roomId && credential.appId.isNotBlank() &&
                 credential.userId.isNotBlank() && credential.token.isNotBlank())
@@ -88,7 +88,11 @@ class SessionCoordinator(
             close()
             currentState = ConnectionState.FAILED
             notifyStatus()
-            error(if (failure is MissingCredentialsException) failure.message!! else "连接失败，请检查凭证、配置和网络")
+            error(when (failure) {
+                is CredentialRequestException -> failure.userMessage
+                is MissingCredentialsException -> failure.message!!
+                else -> "连接失败，请检查凭证、配置和网络"
+            })
         }
     }
 
@@ -164,17 +168,19 @@ class SessionCoordinator(
             refresh = scope.launch {
                 try {
                     val updated = withTimeoutOrNull(15000) { credentials.fetch(args.first, args.second, args.third) }
-                        ?: throw IllegalStateException("Credential renewal timed out")
+                        ?: throw CredentialRequestException("凭证请求超时，请稍后重试", "timeout")
                     if (expected != generation) return@launch
                     require(updated.roomId == previous.roomId && updated.userId == previous.userId &&
                         updated.appId == previous.appId && updated.token.isNotBlank())
                     session?.renewCredentials(updated)?.getOrThrow()
                     joinedCredentials = updated
                 } catch (cancelled: CancellationException) { throw cancelled }
-                catch (_: Exception) {
+                catch (failure: Exception) {
                     if (generation == expected) {
                         refresh = null
-                        terminalFailure("凭证更新失败，请重新连接")
+                        val reason = (failure as? CredentialRequestException)?.userMessage
+                        terminalFailure(if (reason == null) "凭证更新失败，请重新连接"
+                            else "凭证更新失败：$reason，请重新连接")
                     }
                 }
             }

@@ -3,16 +3,16 @@ package com.lumostech.remotecontrol.communication
 import android.content.Context
 import com.lumostech.communication.*
 import com.lumostech.communication.zego.ZegoCommunicationSession
-import com.lumostech.remotecontrol.api.NetUtils
-import kotlinx.coroutines.flow.first
+import com.lumostech.remotecontrol.BuildConfig
+import com.lumostech.remotecontrol.api.ZegoTokenClient
 
 object CommunicationFactory {
+    private val fallback = object : CredentialProvider {
+        private val client by lazy { ZegoTokenClient.create(BuildConfig.ZEGO_TOKEN_ENDPOINT) }
+        override suspend fun fetch(roomId: String, userId: String, role: SessionRole): SessionCredentials =
+            client.fetch(roomId, userId, role)
+    }
     fun create(context: Context, listener: CommunicationListener): CommunicationSession =
         ZegoCommunicationSession(context.applicationContext, listener)
-
-    fun credentials(): CredentialProvider = CommunicationCredentials.provider ?: CredentialProvider { room, user, _ ->
-        val response = NetUtils.getZegoToken(user, room).first()
-        require(response.data.isNotBlank()) { "即构凭证为空" }
-        SessionCredentials("678281271", room, user, response.data)
-    }
+    fun credentials(): CredentialProvider = CommunicationCredentials.provider ?: fallback
 }

@@ -24,7 +24,13 @@ Release 默认没有签名配置，产物为 unsigned APK。没有自动上传�
 
 ## 注入凭证
 
-按本次需求暂不实现新的 Token 获取服务。即构版沿用已有 `/getZegoToken` 服务；声网版默认提示“请先接入声网凭证，再发起远程会话”。两版都可以在 `MyApp.onCreate` 中安装业务自有的 `CredentialProvider`，以替换默认获取路线。
+即构版默认请求 `https://opub.cn/remotecontrol/getZegoToken`，服务端通过新账号的私有配置签发基础 Token04，并返回 AppID。客户端不再固定账号。声网版默认提示“请先接入声网凭证，再发起远程会话”。两版都可以在 `MyApp.onCreate` 中安装业务自有的 `CredentialProvider`，优先于默认获取路线。
+
+接口地址可通过 `-PzegoTokenEndpoint=https://.../getZegoToken` 或环境变量 `ZEGO_TOKEN_ENDPOINT` 覆盖；只接受不含用户信息、查询参数和 fragment 的完整 HTTPS URL。不要在地址中携带密钥。客户端保留部署路径前缀，不会把 `/remotecontrol/` 丢掉。
+
+请求 JSON 为 `userId` 和 `loginRoomId`。响应必须含 `data`、`error.code`、`appId`、`roomId`、`userId`、`expiresAt`（Unix 秒）。客户端校验成功码 SUCCESS/0、Token04、AppID 范围、身份一致和有效期。缺配置 503/NOT_CONFIGURED 会直接显示“即构凭证服务尚未配置”，不会回退旧账号。总请求预算 12 秒，最多两次尝试，只对网络或网关临时故障重试；取消立即传播，业务错误不重试。
+
+后端仓库 RemoteControlService 使用独立 Token 入口，不需要 MySQL。部署、私有参数和回滚方式见该仓库 `docs/TOKEN_SERVICE.md`。`/remotecontrol/health` 只表示本地配置就绪；真实账号与双机登录、操作、续期需另外验收。
 
 ```kotlin
 CommunicationCredentials.provider = CredentialProvider { roomId, requestedUserId, role ->
@@ -33,7 +39,7 @@ CommunicationCredentials.provider = CredentialProvider { roomId, requestedUserId
 }
 ```
 
-这里的 `credentialsFromYourService` 代表你后续接入的业务方法，仓库不提供该服务。返回 `com.lumostech.communication.SessionCredentials`：
+这里的 `credentialsFromYourService` 代表业务自有的覆盖方法。返回 `com.lumostech.communication.SessionCredentials`：
 
 - `appId`：供应商项目 ID。即构为十进制字符串；声网为 32 位十六进制字符串。
 - `roomId`：本次传入的六位协助码，必须保持一致。
@@ -65,7 +71,7 @@ CommunicationCredentials.provider = CredentialProvider { roomId, requestedUserId
 
 ## 验证边界
 
-需要分别用两台 Android 设备验证两家版本的首帧、点击、四向滚动、输入、系统按键、断线重连、Token 续期和退出/再次授权。本次按用户要求不做真实凭证与双机功能验收；构建、JUnit 和 APK 隔离通过不等于真实网络可用。
+需要分别用两台 Android 设备验证两家版本的首帧、点击、四向滚动、输入、系统按键、断线重连、Token 续期和退出/再次授权。真实新账号参数和两台设备具备后完成验收；构建、JUnit 和 APK 隔离通过不等于真实网络可用。
 
 保留的即构 3.6.0 native 库有 Android 16KB 对齐警告；不能据本次编译通过声称已支持所有 16KB 页设备。升级现有 SDK 属于后续独立验证事项。
 
