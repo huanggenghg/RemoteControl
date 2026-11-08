@@ -13,8 +13,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class ZegoTokenClientTest {
     private lateinit var server: MockWebServer
@@ -23,10 +21,8 @@ class ZegoTokenClientTest {
     private fun response() = ZegoToken("04" + UUID.randomUUID(), ZegoError("SUCCESS", ""),
         "42", "123456", "test-user", System.currentTimeMillis() / 1000 + 600)
     private fun client(api: GetZegoTokenService? = null): ZegoTokenClient {
-        val service = api ?: Retrofit.Builder().baseUrl(server.url("/"))
-            .addConverterFactory(GsonConverterFactory.create()).build()
-            .create(GetZegoTokenService::class.java)
-        return ZegoTokenClient(service, server.url("/remotecontrol/getZegoToken"))
+        val endpoint = server.url("/remotecontrol/getZegoToken")
+        return ZegoTokenClient(api ?: ZegoTokenClient.createService(endpoint), endpoint)
     }
     private suspend fun failure(client: ZegoTokenClient): CredentialRequestException {
         try { client.fetch("123456", "test-user", SessionRole.CONTROLLER) }
@@ -43,6 +39,18 @@ class ZegoTokenClientTest {
         assertEquals("test-user", body.userId); assertEquals("123456", body.loginRoomId)
         assertEquals("42", credential.appId); assertEquals(expected.data, credential.token)
         assertFalse(expected.toString().contains(expected.data!!))
+    }
+    @Test fun redirectResponseDoesNotResendTokenRequest() = runBlocking {
+        MockWebServer().use { destination ->
+            destination.start()
+            destination.enqueue(MockResponse().setBody(Gson().toJson(response())))
+            server.enqueue(MockResponse().setResponseCode(307)
+                .addHeader("Location", destination.url("/redirected").toString()))
+
+            assertEquals("http_307", failure(client()).diagnosticCode)
+            assertEquals(1, server.requestCount)
+            assertEquals(0, destination.requestCount)
+        }
     }
     @Test fun numericSuccessCodeIsAccepted() = runBlocking {
         server.enqueue(MockResponse().setBody(Gson().toJson(response().copy(error = ZegoError("0", "")))))

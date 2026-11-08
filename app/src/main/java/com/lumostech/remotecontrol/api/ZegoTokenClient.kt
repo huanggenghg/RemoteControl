@@ -97,12 +97,20 @@ class ZegoTokenClient internal constructor(
                 url.query != null || url.fragment != null) {
                 throw CredentialRequestException("即构凭证接口地址无效，请检查配置", "endpoint_config")
             }
-            val client = OkHttpClient.Builder().retryOnConnectionFailure(false).connectTimeout(3, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.SECONDS).callTimeout(5, TimeUnit.SECONDS).build()
-            val api = Retrofit.Builder().baseUrl(url.resolve("/")!!).client(client)
+            return ZegoTokenClient(createService(url), url)
+        }
+
+        internal fun createService(url: HttpUrl): GetZegoTokenService {
+            val client = OkHttpClient.Builder()
+                .followRedirects(false)
+                .retryOnConnectionFailure(false)
+                .connectTimeout(3, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .callTimeout(5, TimeUnit.SECONDS)
+                .build()
+            return Retrofit.Builder().baseUrl(url.resolve("/")!!).client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build()
                 .create(GetZegoTokenService::class.java)
-            return ZegoTokenClient(api, url)
         }
     }
 }

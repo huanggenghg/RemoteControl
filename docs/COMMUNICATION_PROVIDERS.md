@@ -26,7 +26,7 @@ Release 默认没有签名配置，产物为 unsigned APK。没有自动上传�
 
 即构版默认请求 `https://opub.cn/remotecontrol/getZegoToken`，服务端通过新账号的私有配置签发基础 Token04，并返回 AppID。客户端不再固定账号。声网版默认提示“请先接入声网凭证，再发起远程会话”。两版都可以在 `MyApp.onCreate` 中安装业务自有的 `CredentialProvider`，优先于默认获取路线。
 
-接口地址可通过 `-PzegoTokenEndpoint=https://.../getZegoToken` 或环境变量 `ZEGO_TOKEN_ENDPOINT` 覆盖；只接受不含用户信息、查询参数和 fragment 的完整 HTTPS URL。不要在地址中携带密钥。客户端保留部署路径前缀，不会把 `/remotecontrol/` 丢掉。
+接口地址可通过 `-PzegoTokenEndpoint=https://.../getZegoToken` 或环境变量 `ZEGO_TOKEN_ENDPOINT` 覆盖；只接受不含用户信息、查询参数和 fragment 的完整 HTTPS URL。不要在地址中携带密钥。客户端直接请求带部署路径前缀的完整地址，收到重定向时报告服务不可用。
 
 请求 JSON 为 `userId` 和 `loginRoomId`。响应必须含 `data`、`error.code`、`appId`、`roomId`、`userId`、`expiresAt`（Unix 秒）。客户端校验成功码 SUCCESS/0、Token04、AppID 范围、身份一致和有效期。缺配置 503/NOT_CONFIGURED 会直接显示“即构凭证服务尚未配置”，不会回退旧账号。总请求预算 12 秒，最多两次尝试，只对网络或网关临时故障重试；取消立即传播，业务错误不重试。
 
