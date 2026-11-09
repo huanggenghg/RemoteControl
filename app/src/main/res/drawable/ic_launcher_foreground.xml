@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="768"
+    android:viewportHeight="768">
+    <!-- Center the 512-unit artwork in the 768-unit adaptive icon canvas. -->
+    <group
+        android:translateX="128"
+        android:translateY="128">
+        <path
+            android:strokeColor="#E2E8F0"
+            android:strokeWidth="20"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M245 223 V204 C245 189 233 177 218 177 H147 C132 177 120 189 120 204 V358 C120 373 132 385 147 385 H218 C233 385 245 373 245 358 V323" />
+        <path
+            android:strokeColor="#E2E8F0"
+            android:strokeWidth="14"
+            android:strokeLineCap="round"
+            android:pathData="M166 352 H199" />
+        <path
+            android:strokeColor="@android:color/white"
+            android:strokeWidth="20"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M267 189 V154 C267 139 279 127 294 127 H365 C380 127 392 139 392 154 V308 C392 323 380 335 365 335 H294 C279 335 267 323 267 308 V289" />
+        <path
+            android:strokeColor="@android:color/white"
+            android:strokeWidth="14"
+            android:strokeLineCap="round"
+            android:pathData="M313 302 H346" />
+        <path
+            android:strokeColor="#F1F5F9"
+            android:strokeWidth="18"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M182 281 H217 C231 281 242 270 250 262 L262 250 C270 242 281 231 295 231 H309" />
+        <path
+            android:fillColor="#F1F5F9"
+            android:pathData="M167,281 A15,15 0,1 0,197 281 A15,15 0,1 0,167 281 Z" />
+        <path
+            android:strokeColor="#F1F5F9"
+            android:strokeWidth="14"
+            android:pathData="M312,231 A20,20 0,1 0,352 231 A20,20 0,1 0,312 231 Z" />
+    </group>
+</vector>
