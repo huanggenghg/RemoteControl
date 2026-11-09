@@ -196,6 +196,13 @@
         app:layout_constraintStart_toStartOf="@id/exit" />
 
     <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_directional_controls"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:constraint_referenced_ids="more_hor,scrollUp,scrollDown,scrollLeft,scrollRight" />
+
+    <androidx.constraintlayout.widget.Group
         android:id="@+id/group_monitor"
         android:layout_width="0dp"
         android:layout_height="0dp"

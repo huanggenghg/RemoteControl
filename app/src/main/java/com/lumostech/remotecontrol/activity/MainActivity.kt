@@ -243,7 +243,7 @@ class MainActivity : MediaProjectionActivity(), View.OnClickListener {
 
         val granted = projection ?: return
         val geometry = captureGeometry ?: return
-        startSession(tvCode!!.text.toString(), SessionRole.HOST, granted, geometry)
+        startSession(tvCode!!.text.toString(), SessionRole.HOST, granted, geometry, usesAdbGestures = adbInput != null)
     }
 
     private fun checkCode(): Boolean {

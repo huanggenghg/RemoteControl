@@ -34,9 +34,10 @@ class SessionCoordinator(
     private var request: Triple<String, String, SessionRole>? = null
     private var joinedCredentials: SessionCredentials? = null
     private var host = false
+    val remoteUsesAdbGestures: Boolean get() = protocol?.remoteUsesAdbGestures == true
 
     suspend fun start(roomId: String, role: SessionRole, projection: MediaProjection? = null,
-                      geometry: ScreenGeometry? = null) {
+                      geometry: ScreenGeometry? = null, usesAdbGestures: Boolean = false) {
         close()
         val generationAtStart = ++generation
         require(roomId.matches(Regex("[0-9]{6}"))) { "协助码必须是六位数字" }
@@ -64,7 +65,7 @@ class SessionCoordinator(
             if (role == SessionRole.HOST) {
                 require(projection != null && geometry != null)
                 adapter.media.startSharing(projection, geometry).getOrThrow()
-                protocol?.sharing(geometry)
+                protocol?.sharing(geometry, usesAdbGestures)
             }
             work = scope.launch {
                 launch {

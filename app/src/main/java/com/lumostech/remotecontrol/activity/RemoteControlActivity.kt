@@ -21,6 +21,7 @@ import kotlin.math.abs
 class RemoteControlActivity : CommunicationActivity(), View.OnClickListener {
     private var mRoomId: String? = ""
     private var groupMonitor: Group? = null
+    private var groupDirectionalControls: Group? = null
     private var scrollUpView: View? = null
     private var scrollDownView: View? = null
     private var scrollLeftView: View? = null
@@ -57,6 +58,7 @@ class RemoteControlActivity : CommunicationActivity(), View.OnClickListener {
 
     private fun initViews() {
         groupMonitor = findViewById(R.id.group_monitor)
+        groupDirectionalControls = findViewById(R.id.group_directional_controls)
         scrollUpView = findViewById(R.id.scrollUp)
         scrollDownView = findViewById(R.id.scrollDown)
         scrollLeftView = findViewById(R.id.scrollLeft)
@@ -82,6 +84,7 @@ class RemoteControlActivity : CommunicationActivity(), View.OnClickListener {
     override fun onCommunicationState(state: ConnectionState, ready: Boolean, geometry: ScreenGeometry?) {
         if (!ready) touchStart = null
         groupMonitor?.visibility = if (ready) View.GONE else View.VISIBLE
+        groupDirectionalControls?.visibility = if (ready && !remoteUsesAdbGestures) View.VISIBLE else View.GONE
         findViewById<android.widget.TextView>(R.id.tv_monitor).text = when (state) {
             ConnectionState.FAILED -> "连接失败，请返回后重试"
             ConnectionState.RECONNECTING -> "网络中断，正在重新连接"

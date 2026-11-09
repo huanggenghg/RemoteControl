@@ -18,10 +18,10 @@ class RemoteProtocolTest {
         val controller = RemoteProtocol(SessionRole.CONTROLLER, "c", { now },
             { peer, bytes, _ -> packets.add(Packet(Peer("c"), peer, bytes)) },
             { _, _ -> throw AssertionError("Controller cannot dispatch") }, {}, { _, _ -> })
-        fun connect() {
+        fun connect(usesAdbGestures: Boolean = false) {
             host.connection(true)
             controller.connection(true)
-            host.sharing(ScreenGeometry(1080, 1920, 0))
+            host.sharing(ScreenGeometry(1080, 1920, 0), usesAdbGestures)
             host.peerJoined(Peer("c"))
             controller.peerJoined(Peer("h"))
             pump()
@@ -56,6 +56,22 @@ class RemoteProtocolTest {
         link.pump()
         assertEquals(0, link.executed)
         assertFalse(link.controller.canControl)
+    }
+
+    @Test fun adbGestureCapabilityAppliesOnlyToTheCurrentSharingSession() {
+        val link = Link()
+        link.connect(usesAdbGestures = true)
+        assertTrue(link.controller.canControl)
+        assertTrue(link.controller.remoteUsesAdbGestures)
+
+        link.controller.peerLeft(Peer("h"))
+        assertFalse(link.controller.remoteUsesAdbGestures)
+        link.connect()
+        assertTrue(link.controller.canControl)
+        assertFalse(link.controller.remoteUsesAdbGestures)
+        assertTrue(link.controller.command(RemoteCommand("scrollLeft")))
+        link.pump()
+        assertEquals("scrollLeft", link.commands.single().action)
     }
 
     @Test fun queuedCommandsLoseAuthorizationOnExpiryOrPeerDeparture() {

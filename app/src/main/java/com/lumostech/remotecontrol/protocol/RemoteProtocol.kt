@@ -3,6 +3,7 @@ package com.lumostech.remotecontrol.protocol
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 import com.lumostech.communication.Peer
 import com.lumostech.communication.ScreenGeometry
 import com.lumostech.communication.SessionRole
@@ -30,10 +31,13 @@ class RemoteProtocol(
     private var leaseDeadline = 0L
     private var sequence = 0L
     private var hostGeometry: ScreenGeometry? = null
+    private var hostUsesAdbGestures = false
     private var sharing = false
     var peer: Peer? = null
         private set
     var geometry: ScreenGeometry? = null
+        private set
+    var remoteUsesAdbGestures = false
         private set
     var connected = false
         private set
@@ -46,9 +50,10 @@ class RemoteProtocol(
         changed()
     }
 
-    fun sharing(geometry: ScreenGeometry?) {
+    fun sharing(geometry: ScreenGeometry?, usesAdbGestures: Boolean = false) {
         hostGeometry = geometry
         sharing = geometry != null
+        hostUsesAdbGestures = sharing && usesAdbGestures
         if (!sharing) resetHandshake()
         changed()
     }
@@ -122,6 +127,7 @@ class RemoteProtocol(
                         addProperty("session", session)
                         addProperty("hello", remoteHello)
                         add("geometry", gson.toJsonTree(hostGeometry))
+                        if (hostUsesAdbGestures) addProperty("adbGestures", true)
                     }
                     sendLease(from)
                 }
@@ -140,6 +146,7 @@ class RemoteProtocol(
                     session = newSession
                     peer = from
                     geometry = dimensions
+                    remoteUsesAdbGestures = json.get("adbGestures") == JsonPrimitive(true)
                 }
                 "lease" -> {
                     if (role != SessionRole.CONTROLLER || from != peer || session == null ||
@@ -208,6 +215,7 @@ class RemoteProtocol(
         session = null
         lease = null
         geometry = null
+        remoteUsesAdbGestures = false
         sequence = 0
         gate.close()
         frames.clear()

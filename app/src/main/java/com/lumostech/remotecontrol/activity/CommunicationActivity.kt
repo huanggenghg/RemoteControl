@@ -22,6 +22,7 @@ abstract class CommunicationActivity : AccessibilityActivity() {
         private set
     protected var remoteGeometry: ScreenGeometry? = null
         private set
+    protected val remoteUsesAdbGestures: Boolean get() = coordinator?.remoteUsesAdbGestures == true
     private var renderContainer: ViewGroup? = null
 
     protected fun bindRemote(container: ViewGroup) {
@@ -30,7 +31,7 @@ abstract class CommunicationActivity : AccessibilityActivity() {
     }
 
     protected fun startSession(room: String, role: SessionRole, projection: MediaProjection? = null,
-                               geometry: ScreenGeometry? = null) {
+                               geometry: ScreenGeometry? = null, usesAdbGestures: Boolean = false) {
         startJob?.cancel()
         val old = coordinator
         hostGeometry = geometry
@@ -49,7 +50,7 @@ abstract class CommunicationActivity : AccessibilityActivity() {
             coordinator = next
             renderContainer?.let(next::bindRemote)
             RemoteSessions.activate(next)
-            next.start(room, role, projection, geometry)
+            next.start(room, role, projection, geometry, usesAdbGestures)
         }
     }
 
