@@ -3,6 +3,7 @@ package com.lumostech.remotecontrol.api
 import com.google.gson.Gson
 import com.lumostech.communication.SessionRole
 import com.lumostech.remotecontrol.communication.CredentialRequestException
+import java.net.InetAddress
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
@@ -15,13 +16,17 @@ import org.junit.Test
 import retrofit2.Response
 
 class ZegoTokenClientTest {
+    private val loopbackHost = "127.0.0.1"
     private lateinit var server: MockWebServer
-    @Before fun setUp() { server = MockWebServer(); server.start() }
+    @Before fun setUp() {
+        server = MockWebServer()
+        server.start(InetAddress.getByName(loopbackHost), 0)
+    }
     @After fun tearDown() { server.shutdown() }
     private fun response() = ZegoToken("04" + UUID.randomUUID(), ZegoError("SUCCESS", ""),
         "42", "123456", "test-user", System.currentTimeMillis() / 1000 + 600)
     private fun client(api: GetZegoTokenService? = null): ZegoTokenClient {
-        val endpoint = server.url("/remotecontrol/getZegoToken")
+        val endpoint = server.url("/remotecontrol/getZegoToken").newBuilder().host(loopbackHost).build()
         return ZegoTokenClient(api ?: ZegoTokenClient.createService(endpoint), endpoint)
     }
     private suspend fun failure(client: ZegoTokenClient): CredentialRequestException {
