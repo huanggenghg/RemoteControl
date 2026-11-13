@@ -1,0 +1,6 @@
+# Copy to autoclick/signing.properties (ignored by Git), then restrict it to mode 0600.
+# Store the actual keystore outside the repository and back it up privately.
+storeFile=/absolute/private/path/autoclick-release.p12
+storePassword=REPLACE_LOCALLY
+keyAlias=autoclick
+keyPassword=REPLACE_LOCALLY

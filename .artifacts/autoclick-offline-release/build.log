@@ -1,0 +1,322 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+> Task :accessibilityBase:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityBase:preBuild UP-TO-DATE
+> Task :accessibilityBase:preDebugBuild UP-TO-DATE
+> Task :accessibilityBase:generateDebugResValues
+> Task :accessibilityBase:generateDebugResources
+> Task :accessibilityBase:packageDebugResources
+> Task :accessibilityBase:javaPreCompileDebug
+> Task :accessibilityCore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :accessibilityCore:preBuild UP-TO-DATE
+> Task :accessibilityCore:preDebugBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugResValues
+> Task :accessibilityCore:generateDebugResources
+> Task :accessibilityBase:parseDebugLocalResources
+> Task :accessibilityCore:packageDebugResources
+> Task :accessibilityCore:parseDebugLocalResources
+> Task :accessibilityCore:generateDebugRFile
+> Task :accessibilityBase:generateDebugRFile
+> Task :accessibilityCore:javaPreCompileDebug
+> Task :autoclick:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :autoclick:preBuild UP-TO-DATE
+> Task :autoclick:preDebugBuild UP-TO-DATE
+> Task :accessibilityBase:compileDebugKotlin
+> Task :autoclick:dataBindingMergeDependencyArtifactsDebug
+> Task :accessibilityBase:compileDebugJavaWithJavac NO-SOURCE
+> Task :accessibilityBase:bundleLibRuntimeToJarDebug
+> Task :accessibilityBase:processDebugJavaRes
+> Task :autoclick:generateDebugResValues
+> Task :accessibilityBase:bundleLibCompileToJarDebug
+> Task :autoclick:generateDebugResources
+> Task :autoclick:mergeDebugResources
+> Task :autoclick:packageDebugResources
+> Task :autoclick:parseDebugLocalResources
+> Task :autoclick:dataBindingGenBaseClassesDebug
+> Task :autoclick:dataBindingTriggerDebug
+> Task :autoclick:generateDebugBuildConfig
+> Task :accessibilityBase:compileDebugLibraryResources
+> Task :accessibilityCore:compileDebugLibraryResources
+> Task :accessibilityBase:writeDebugAarMetadata
+> Task :accessibilityCore:writeDebugAarMetadata
+> Task :autoclick:checkDebugAarMetadata
+> Task :autoclick:mapDebugSourceSetPaths
+> Task :autoclick:createDebugCompatibleScreenManifests
+> Task :accessibilityBase:extractDeepLinksDebug
+> Task :accessibilityBase:processDebugManifest
+> Task :accessibilityCore:extractDeepLinksDebug
+> Task :accessibilityCore:processDebugManifest
+> Task :autoclick:extractDeepLinksDebug
+
+> Task :autoclick:processDebugMainManifest
+/workspace/RemoteControl/autoclick/src/main/AndroidManifest.xml:6:5-87 Warning:
+	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:6 to remove other declarations but no other declaration present
+
+> Task :autoclick:processDebugManifest
+> Task :autoclick:processDebugManifestForPackage
+> Task :autoclick:processDebugResources
+> Task :autoclick:javaPreCompileDebug
+> Task :autoclick:preDebugUnitTestBuild UP-TO-DATE
+> Task :autoclick:javaPreCompileDebugUnitTest
+> Task :accessibilityCore:preDebugUnitTestBuild UP-TO-DATE
+> Task :accessibilityCore:generateDebugUnitTestStubRFile
+> Task :accessibilityCore:javaPreCompileDebugUnitTest
+> Task :accessibilityBase:preReleaseBuild UP-TO-DATE
+> Task :accessibilityBase:mergeReleaseJniLibFolders
+> Task :accessibilityBase:mergeReleaseNativeLibs NO-SOURCE
+> Task :accessibilityBase:copyReleaseJniLibsProjectOnly
+> Task :accessibilityCore:preReleaseBuild UP-TO-DATE
+> Task :accessibilityCore:mergeReleaseJniLibFolders
+> Task :accessibilityCore:mergeReleaseNativeLibs NO-SOURCE
+> Task :accessibilityCore:copyReleaseJniLibsProjectOnly
+> Task :autoclick:preReleaseBuild UP-TO-DATE
+> Task :autoclick:mergeReleaseJniLibFolders
+
+> Task :accessibilityCore:compileDebugKotlin
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityHandler.kt:7:77 'constructor(): Handler' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:23 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:38 'fun getMetrics(p0: DisplayMetrics!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:70:51 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:219:45 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:239:35 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:259:43 'fun newInstance(): CapturedType(*)!' is deprecated. Deprecated in Java.
+
+> Task :accessibilityCore:compileDebugJavaWithJavac NO-SOURCE
+> Task :autoclick:mergeReleaseNativeLibs
+> Task :accessibilityCore:bundleLibRuntimeToJarDebug
+> Task :accessibilityCore:processDebugJavaRes
+> Task :accessibilityCore:bundleLibCompileToJarDebug
+
+> Task :autoclick:stripReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+
+> Task :accessibilityCore:compileDebugUnitTestKotlin
+> Task :accessibilityCore:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:processDebugUnitTestJavaRes
+> Task :accessibilityCore:testDebugUnitTest
+> Task :autoclick:extractReleaseNativeSymbolTables
+> Task :autoclick:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :accessibilityBase:generateReleaseResValues
+> Task :accessibilityBase:generateReleaseResources
+> Task :accessibilityBase:packageReleaseResources
+> Task :accessibilityBase:parseReleaseLocalResources
+> Task :accessibilityBase:generateReleaseRFile
+> Task :autoclick:compileDebugKotlin
+> Task :accessibilityBase:compileReleaseKotlin
+> Task :accessibilityBase:javaPreCompileRelease
+> Task :accessibilityBase:compileReleaseJavaWithJavac NO-SOURCE
+> Task :accessibilityBase:bundleLibCompileToJarRelease
+> Task :accessibilityCore:generateReleaseResValues
+> Task :accessibilityCore:generateReleaseResources
+> Task :accessibilityCore:packageReleaseResources
+> Task :accessibilityCore:parseReleaseLocalResources
+> Task :accessibilityCore:generateReleaseRFile
+> Task :accessibilityCore:compileReleaseKotlin
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityHandler.kt:7:77 'constructor(): Handler' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:23 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:59:38 'fun getMetrics(p0: DisplayMetrics!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt:70:51 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:219:45 'static field TYPE_SYSTEM_ALERT: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:239:35 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/RemoteControl/accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt:259:43 'fun newInstance(): CapturedType(*)!' is deprecated. Deprecated in Java.
+
+> Task :autoclick:compileDebugJavaWithJavac
+> Task :autoclick:bundleDebugClassesToRuntimeJar
+> Task :autoclick:bundleDebugClassesToCompileJar
+> Task :autoclick:processDebugJavaRes
+> Task :accessibilityCore:javaPreCompileRelease
+> Task :accessibilityCore:compileReleaseJavaWithJavac NO-SOURCE
+> Task :accessibilityCore:bundleLibRuntimeToDirRelease
+> Task :accessibilityBase:bundleLibRuntimeToDirRelease
+> Task :autoclick:checkReleaseDuplicateClasses
+> Task :autoclick:buildKotlinToolingMetadata
+> Task :accessibilityCore:bundleLibCompileToJarRelease
+> Task :autoclick:dataBindingMergeDependencyArtifactsRelease
+> Task :autoclick:generateReleaseResValues
+> Task :autoclick:generateReleaseResources
+> Task :autoclick:mergeReleaseResources
+> Task :autoclick:packageReleaseResources
+> Task :autoclick:parseReleaseLocalResources
+> Task :autoclick:dataBindingGenBaseClassesRelease
+> Task :autoclick:dataBindingTriggerRelease
+> Task :autoclick:generateReleaseBuildConfig
+> Task :accessibilityBase:compileReleaseLibraryResources
+> Task :accessibilityCore:compileReleaseLibraryResources
+> Task :accessibilityBase:writeReleaseAarMetadata
+> Task :accessibilityCore:writeReleaseAarMetadata
+> Task :autoclick:checkReleaseAarMetadata
+> Task :autoclick:mapReleaseSourceSetPaths
+> Task :autoclick:createReleaseCompatibleScreenManifests
+> Task :accessibilityBase:extractDeepLinksRelease
+> Task :accessibilityBase:processReleaseManifest
+> Task :accessibilityCore:extractDeepLinksRelease
+> Task :accessibilityCore:processReleaseManifest
+> Task :autoclick:extractDeepLinksRelease
+
+> Task :autoclick:processReleaseMainManifest
+/workspace/RemoteControl/autoclick/src/main/AndroidManifest.xml:6:5-87 Warning:
+	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:6 to remove other declarations but no other declaration present
+
+> Task :autoclick:processReleaseManifest
+> Task :autoclick:processReleaseManifestForPackage
+> Task :autoclick:processReleaseResources
+> Task :autoclick:compileDebugUnitTestKotlin
+> Task :autoclick:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :autoclick:processDebugUnitTestJavaRes
+> Task :autoclick:testDebugUnitTest
+> Task :autoclick:javaPreCompileRelease
+> Task :autoclick:desugarReleaseFileDependencies
+> Task :autoclick:mergeReleaseStartupProfile
+> Task :autoclick:compileReleaseKotlin
+> Task :autoclick:mergeExtDexRelease
+> Task :autoclick:compileReleaseJavaWithJavac
+> Task :autoclick:dexBuilderRelease
+> Task :accessibilityBase:prepareReleaseArtProfile
+> Task :accessibilityCore:prepareReleaseArtProfile
+> Task :autoclick:mergeReleaseArtProfile
+> Task :accessibilityCore:bundleLibRuntimeToJarRelease
+> Task :accessibilityBase:bundleLibRuntimeToJarRelease
+> Task :autoclick:mergeDexRelease
+> Task :accessibilityBase:mergeReleaseShaders
+> Task :accessibilityBase:compileReleaseShaders NO-SOURCE
+> Task :accessibilityBase:generateReleaseAssets UP-TO-DATE
+> Task :accessibilityBase:mergeReleaseAssets
+> Task :accessibilityCore:mergeReleaseShaders
+> Task :accessibilityCore:compileReleaseShaders NO-SOURCE
+> Task :accessibilityCore:generateReleaseAssets UP-TO-DATE
+> Task :accessibilityCore:mergeReleaseAssets
+> Task :autoclick:mergeReleaseGlobalSynthetics
+> Task :autoclick:mergeReleaseShaders
+> Task :autoclick:compileReleaseShaders NO-SOURCE
+> Task :autoclick:generateReleaseAssets UP-TO-DATE
+> Task :autoclick:mergeReleaseAssets
+> Task :autoclick:compressReleaseAssets
+> Task :autoclick:extractReleaseVersionControlInfo
+> Task :accessibilityBase:extractProguardFiles
+> Task :accessibilityBase:generateReleaseLintVitalModel
+> Task :autoclick:compileReleaseArtProfile
+> Task :accessibilityBase:prepareLintJarForPublish
+> Task :accessibilityBase:processReleaseJavaRes
+> Task :accessibilityBase:createFullJarRelease
+> Task :accessibilityBase:generateReleaseLintModel
+> Task :accessibilityCore:extractProguardFiles
+> Task :accessibilityCore:generateReleaseLintVitalModel
+> Task :accessibilityBase:stripReleaseDebugSymbols NO-SOURCE
+> Task :accessibilityBase:copyReleaseJniLibsProjectAndLocalJars
+> Task :accessibilityBase:extractDeepLinksForAarRelease
+> Task :accessibilityBase:extractReleaseAnnotations
+> Task :accessibilityBase:mergeReleaseGeneratedProguardFiles
+> Task :accessibilityBase:mergeReleaseConsumerProguardFiles
+> Task :accessibilityBase:mergeReleaseJavaResource
+> Task :accessibilityBase:syncReleaseLibJars
+> Task :accessibilityBase:bundleReleaseLocalLintAar
+> Task :accessibilityBase:writeReleaseLintModelMetadata
+> Task :accessibilityBase:lintVitalAnalyzeRelease
+> Task :accessibilityCore:prepareLintJarForPublish
+> Task :accessibilityCore:processReleaseJavaRes
+> Task :accessibilityCore:createFullJarRelease
+> Task :accessibilityCore:generateReleaseLintModel
+> Task :autoclick:extractProguardFiles
+> Task :autoclick:generateReleaseLintVitalReportModel
+> Task :accessibilityCore:stripReleaseDebugSymbols NO-SOURCE
+> Task :accessibilityCore:copyReleaseJniLibsProjectAndLocalJars
+> Task :accessibilityCore:extractDeepLinksForAarRelease
+> Task :accessibilityCore:extractReleaseAnnotations
+> Task :accessibilityCore:mergeReleaseGeneratedProguardFiles
+> Task :accessibilityCore:mergeReleaseConsumerProguardFiles
+> Task :accessibilityCore:mergeReleaseJavaResource
+> Task :accessibilityCore:syncReleaseLibJars
+> Task :accessibilityCore:bundleReleaseLocalLintAar
+> Task :accessibilityCore:writeReleaseLintModelMetadata
+> Task :autoclick:processReleaseJavaRes
+> Task :autoclick:mergeReleaseJavaResource
+> Task :autoclick:optimizeReleaseResources
+> Task :autoclick:collectReleaseDependencies
+> Task :autoclick:sdkReleaseDependencyData
+> Task :autoclick:writeReleaseAppMetadata
+> Task :autoclick:writeReleaseSigningConfigVersions
+> Task :autoclick:preDebugAndroidTestBuild SKIPPED
+> Task :accessibilityCore:lintVitalAnalyzeRelease
+> Task :autoclick:processDebugAndroidTestManifest
+> Task :autoclick:generateDebugAndroidTestBuildConfig
+> Task :autoclick:checkDebugAndroidTestAarMetadata
+> Task :autoclick:generateDebugAndroidTestResValues
+> Task :autoclick:mapDebugAndroidTestSourceSetPaths
+> Task :autoclick:generateDebugAndroidTestResources
+> Task :autoclick:mergeDebugAndroidTestResources
+> Task :autoclick:processDebugAndroidTestResources
+> Task :autoclick:lintVitalAnalyzeRelease
+> Task :autoclick:compileDebugAndroidTestKotlin
+> Task :autoclick:lintVitalReportRelease SKIPPED
+> Task :autoclick:lintVitalRelease SKIPPED
+> Task :autoclick:packageRelease
+> Task :autoclick:createReleaseApkListingFileRedirect
+> Task :autoclick:assembleRelease
+> Task :autoclick:javaPreCompileDebugAndroidTest
+> Task :accessibilityBase:mergeDebugShaders
+> Task :accessibilityBase:compileDebugShaders NO-SOURCE
+> Task :accessibilityBase:generateDebugAssets UP-TO-DATE
+> Task :accessibilityBase:mergeDebugAssets
+> Task :accessibilityCore:mergeDebugShaders
+> Task :accessibilityCore:compileDebugShaders NO-SOURCE
+> Task :accessibilityCore:generateDebugAssets UP-TO-DATE
+> Task :accessibilityCore:mergeDebugAssets
+> Task :autoclick:mergeDebugAndroidTestShaders
+> Task :autoclick:compileDebugAndroidTestShaders NO-SOURCE
+> Task :autoclick:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :autoclick:mergeDebugAndroidTestAssets
+> Task :autoclick:compressDebugAndroidTestAssets
+> Task :autoclick:checkDebugAndroidTestDuplicateClasses
+> Task :autoclick:desugarDebugAndroidTestFileDependencies
+
+> Task :autoclick:compileDebugAndroidTestKotlin
+w: file:///workspace/RemoteControl/autoclick/src/androidTest/java/com/lumostech/autoclick/EditScheduleUiTest.kt:231:39 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+
+> Task :autoclick:mergeExtDexDebugAndroidTest
+> Task :autoclick:compileDebugAndroidTestJavaWithJavac
+> Task :autoclick:processDebugAndroidTestJavaRes
+> Task :accessibilityCore:bundleLibRuntimeToDirDebug
+> Task :autoclick:mergeDebugAndroidTestJavaResource
+> Task :accessibilityBase:bundleLibRuntimeToDirDebug
+> Task :autoclick:dexBuilderDebugAndroidTest
+> Task :autoclick:mergeLibDexDebugAndroidTest
+> Task :accessibilityBase:mergeDebugJniLibFolders
+> Task :accessibilityBase:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityBase:copyDebugJniLibsProjectOnly
+> Task :autoclick:mergeProjectDexDebugAndroidTest
+> Task :accessibilityCore:mergeDebugJniLibFolders
+> Task :accessibilityCore:mergeDebugNativeLibs NO-SOURCE
+> Task :accessibilityCore:copyDebugJniLibsProjectOnly
+> Task :autoclick:mergeDebugAndroidTestJniLibFolders
+> Task :autoclick:mergeDebugJniLibFolders
+> Task :autoclick:mergeDebugNativeLibs
+> Task :autoclick:validateSigningDebugAndroidTest
+> Task :autoclick:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :autoclick:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :autoclick:writeDebugAndroidTestSigningConfigVersions
+> Task :accessibilityBase:preReleaseUnitTestBuild UP-TO-DATE
+> Task :accessibilityBase:generateReleaseUnitTestLintModel
+> Task :autoclick:packageDebugAndroidTest
+> Task :autoclick:createDebugAndroidTestApkListingFileRedirect
+> Task :autoclick:assembleDebugAndroidTest
+> Task :accessibilityBase:lintAnalyzeReleaseUnitTest
+> Task :accessibilityCore:preReleaseUnitTestBuild UP-TO-DATE
+> Task :accessibilityCore:generateReleaseUnitTestLintModel
+> Task :accessibilityCore:lintAnalyzeReleaseUnitTest
+> Task :autoclick:generateReleaseLintReportModel
+> Task :autoclick:bundleReleaseClassesToCompileJar
+> Task :autoclick:preReleaseUnitTestBuild UP-TO-DATE
+> Task :accessibilityBase:lintAnalyzeRelease
+> Task :autoclick:generateReleaseUnitTestLintModel
+> Task :autoclick:lintAnalyzeReleaseUnitTest
+> Task :accessibilityCore:lintAnalyzeRelease
+> Task :autoclick:lintAnalyzeRelease
+
+> Task :autoclick:lintReportRelease
+Wrote HTML report to file:///workspace/RemoteControl/autoclick/build/reports/lint-results-release.html
+
+> Task :autoclick:lintRelease
+
+BUILD SUCCESSFUL in 16m
+232 actionable tasks: 232 executed

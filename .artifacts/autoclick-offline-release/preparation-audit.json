@@ -1,0 +1,72 @@
+{
+  "application_id": "com.lumostech.autoclick",
+  "version_name": "1.0.1",
+  "version_code": "2",
+  "permissions": [
+    "android.permission.FOREGROUND_SERVICE",
+    "android.permission.RECEIVE_BOOT_COMPLETED",
+    "android.permission.SCHEDULE_EXACT_ALARM",
+    "android.permission.SYSTEM_ALERT_WINDOW",
+    "android.permission.WAKE_LOCK",
+    "com.lumostech.autoclick.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "network_access": false,
+  "screenshot_capability": false,
+  "system_backup": false,
+  "system_device_transfer": false,
+  "apk_sha256": "446f9daa047d5ab0f1be641b18472e0afb404f94ee48f9234a727459e4d2777a",
+  "apk_size_bytes": 10890502,
+  "recorded_at_utc": "2026-11-11T05:31:01.658570+00:00",
+  "source_head": "800829167f3df3ff63ee5248bae070af963345cd",
+  "source_has_uncommitted_changes": true,
+  "distribution_ready": false,
+  "signing_status": "unsigned; intended release key not yet confirmed",
+  "publisher_status": "awaiting confirmed developer name and feedback email",
+  "physical_device_acceptance": "not run: adb reported no attached devices; emulator and /dev/kvm unavailable",
+  "instrumentation": "test APK compiled; no device run in this session",
+  "tests": {
+    "autoclick": {
+      "tests": 94,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "accessibilityCore": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "python_distribution_guards": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "Warning": 37,
+    "Error": 0
+  },
+  "embedded_resources": {
+    "xml/accessibility_config": "res/az.xml",
+    "xml/data_extraction_rules": "res/4j.xml",
+    "raw/privacy_policy": "res/Oo.txt",
+    "raw/user_guide": "res/gM.txt"
+  },
+  "native_libraries": [
+    "lib/arm64-v8a/libandroidx.graphics.path.so",
+    "lib/armeabi-v7a/libandroidx.graphics.path.so",
+    "lib/x86/libandroidx.graphics.path.so",
+    "lib/x86_64/libandroidx.graphics.path.so"
+  ],
+  "elf_minimum_load_alignment": {
+    "lib/arm64-v8a/libandroidx.graphics.path.so": 16384,
+    "lib/armeabi-v7a/libandroidx.graphics.path.so": 16384,
+    "lib/x86/libandroidx.graphics.path.so": 16384,
+    "lib/x86_64/libandroidx.graphics.path.so": 16384
+  },
+  "zip_alignment_16k": true,
+  "signing_helper_smoke": "passed with isolated temporary key; permissions, matching public pin, no secret output, no overwrite",
+  "debug_signature_guard_smoke": "passed on actual release APK signed temporarily with test Debug key; distribution rejected and temporary file deleted"
+}

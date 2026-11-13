@@ -137,7 +137,9 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                 }
                 if (gatePhase != AccessibilityGatePhase.READY) {
                     if (foreground) {
-                        AccessibilityGateDialog(gatePhase, ::openAccessibilitySettings, ::finish)
+                        AccessibilityGateDialog(gatePhase, ::openAccessibilitySettings, ::finish,
+                            onPrivacy = { startActivity(LocalInfoActivity.intent(this@MainActivity)) },
+                            onHelp = { startActivity(LocalInfoActivity.intent(this@MainActivity, guide = true)) })
                     }
                     return@AutoclickTheme
                 }
@@ -167,7 +169,9 @@ class MainActivity : AccessibilityActivity(), AccessibilityCoreService.OnPointLo
                     recoveryError = recoveryViewModel.error ?: recoveryPermissionHint,
                     storageUnconfirmed = storageUnconfirmed || recoveryViewModel.storageUnconfirmed,
                     onRecover = { if (allowed(ClickTaskAction.RECOVER)) recoveryPrompt = true },
-                    onPauseRecovery = { recoveryViewModel.pause() }
+                    onPauseRecovery = { recoveryViewModel.pause() },
+                    onPrivacy = { startActivity(LocalInfoActivity.intent(this@MainActivity)) },
+                    onHelp = { startActivity(LocalInfoActivity.intent(this@MainActivity, guide = true)) }
                 )
                 if (recoveryPrompt) LegacyTaskRecoveryDialog(recoveryViewModel.session != null,
                     onDismiss = { recoveryPrompt = false; pendingRecoverySourceId = null },

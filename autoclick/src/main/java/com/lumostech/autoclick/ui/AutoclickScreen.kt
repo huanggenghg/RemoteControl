@@ -46,7 +46,9 @@ fun AutoclickScreen(
     recoveryError: String? = null,
     storageUnconfirmed: Boolean = false,
     onRecover: () -> Unit = {},
-    onPauseRecovery: () -> Unit = {}
+    onPauseRecovery: () -> Unit = {},
+    onPrivacy: () -> Unit = {},
+    onHelp: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     fun action(which: ClickTaskAction): ClickTaskActionState = if (storageUnconfirmed)
@@ -205,6 +207,10 @@ fun AutoclickScreen(
                     Text("屏幕亮起并解锁，目标页面已打开，无障碍服务已开启。", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                     Text("每次点击前核对应用、屏幕方向和锁屏状态；同一应用内的页面变化仍需自行确认。", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                     Text("计划时间后 5 秒内未开始则跳过；请保持亮屏解锁并打开目标页面。已开始的计划不会自动重放。最多 200 个点击，录制时长不超过 8 分钟。", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onPrivacy, modifier = Modifier.heightIn(min = 48.dp)) { Text("隐私与权限说明") }
+                    TextButton(onClick = onHelp, modifier = Modifier.heightIn(min = 48.dp)) { Text("使用指南") }
                 }
             }
         }

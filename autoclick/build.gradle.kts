@@ -1,7 +1,27 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Passwords come from an ignored local file or environment, never from source control.
+val releaseProperties = Properties().apply {
+    val local = project.file("signing.properties")
+    if (local.isFile) local.inputStream().use { load(it) }
+}
+fun releaseValue(property: String, environment: String): String? =
+    providers.environmentVariable(environment).orNull?.takeIf { it.isNotBlank() }
+        ?: releaseProperties.getProperty(property)?.takeIf { it.isNotBlank() }
+
+val releaseStore = releaseValue("storeFile", "AUTOCLICK_KEYSTORE_PATH")
+val releaseStorePassword = releaseValue("storePassword", "AUTOCLICK_KEYSTORE_PASSWORD")
+val releaseAlias = releaseValue("keyAlias", "AUTOCLICK_KEY_ALIAS")
+val releaseKeyPassword = releaseValue("keyPassword", "AUTOCLICK_KEY_PASSWORD")
+val releaseSigningReady = listOf(releaseStore, releaseStorePassword, releaseAlias, releaseKeyPassword).all { it != null }
+require(releaseSigningReady || listOf(releaseStore, releaseStorePassword, releaseAlias, releaseKeyPassword).all { it == null }) {
+    "AutoClick release signing is incomplete. Configure all four AUTOCLICK_* signing variables or autoclick/signing.properties."
 }
 
 android {
@@ -12,14 +32,27 @@ android {
         applicationId = "com.lumostech.autoclick"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (releaseSigningReady) create("offlineRelease") {
+            storeFile = project.file(requireNotNull(releaseStore))
+            storePassword = releaseStorePassword
+            keyAlias = releaseAlias
+            keyPassword = releaseKeyPassword
+            enableV1Signing = true
+            enableV2Signing = true
+        }
+    }
+
     buildTypes {
         release {
+            // An unconfigured developer build stays unsigned; no debug-key fallback.
+            if (releaseSigningReady) signingConfig = signingConfigs.getByName("offlineRelease")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

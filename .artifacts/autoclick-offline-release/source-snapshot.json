@@ -1,0 +1,538 @@
+{
+  "recorded_at_utc": "2026-11-13T03:57:16.939587+00:00",
+  "archive_tag": "autoclick-v1.0.1",
+  "artifact_build_base": "800829167f3df3ff63ee5248bae070af963345cd",
+  "artifact_built_before_archival_commit": true,
+  "snapshot_scope": "build configuration, AutoClick/shared runtime source and release tools; signing secrets excluded",
+  "external_signing_backup_status": "pending user download; confirmed by publisher on 2026-11-13",
+  "files": [
+    {
+      "path": "accessibilityBase/build.gradle.kts",
+      "sha256": "c9b686feeb27eda38f4f923d5eb45889f15fc451cbc5194b27e5b9499968ac9b"
+    },
+    {
+      "path": "accessibilityBase/src/main/AndroidManifest.xml",
+      "sha256": "f0f4b47043b24ea2136dabe1cd4309c3b71d84d779889989dbe6d6e5126bfd56"
+    },
+    {
+      "path": "accessibilityBase/src/main/java/com/lumostech/accessibilitybase/AccessibilityBaseEvent.kt",
+      "sha256": "b95ba98799ea85ad284839e1dff8504659d7ad2a5f7048bd707c7ea6e49d7685"
+    },
+    {
+      "path": "accessibilityBase/src/main/java/com/lumostech/accessibilitybase/utils/Logger.kt",
+      "sha256": "68f24952eebcfa235eebae70751aff1980645a1f126994abd545e071afb086cd"
+    },
+    {
+      "path": "accessibilityCore/build.gradle.kts",
+      "sha256": "6016e1ced0b1ef139468999e094ae221b4fe27ee9f1740b0b111f428063fc23f"
+    },
+    {
+      "path": "accessibilityCore/src/main/AndroidManifest.xml",
+      "sha256": "32ce3eddade3f955a94c7868f79401553e36fac0e0f772256113c1b2f76bc6fe"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityActivity.kt",
+      "sha256": "fe1b357de2d0a58b8290e3a1f4726dd94a4aa580eba59cc01776bb5559439fe2"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityCoreService.kt",
+      "sha256": "46d049ebea6bb6a04a94a78dbeed53d8ae732c44da14470a90093b4497654209"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/AccessibilityHandler.kt",
+      "sha256": "7044ecceb875fd4fc097378cdb6b46ff93dae67a80c7c583a56eb1d68a6bdb9b"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickCounterIconView.kt",
+      "sha256": "4be2246e56087c2e286fd9e1f5a8d3aee1eaa980f21f591f8d41d7c9e7365d08"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickPoint.kt",
+      "sha256": "a4a47116573bf7f127accad7decb2a69eafc7d180e7493c21b6f0b833925ce1b"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickRecording.kt",
+      "sha256": "b8d72e66c633f18b85db8229293eee9216e17e8941d19838f3c5bb8331de55cd"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickRecordingProtection.kt",
+      "sha256": "6cb1334f6c3a24c6b049454362a72ff4c32ec348f340c8ef3087037f161e7ca2"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickSequenceCodec.kt",
+      "sha256": "9f71b01ad189ad6d3b6336669df4e0da20fafd2718a1f14c42d65cbc87f26d2e"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickSequenceExecutor.kt",
+      "sha256": "12335f1c90976bc1fc5b65bd083eea362c3150cf84385111c2028b3f41f11aae"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ClickSequenceStore.kt",
+      "sha256": "d392e6e44d35c376e8fcd36cc31d64a0e723bc00e66bbf266a4a5e1e5d39c807"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FloatWindowUtils.kt",
+      "sha256": "e256a9ee66d3ff3bf74856eb4433b9308030ee011d0c33470f50d0ae228dc72a"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/FullScreenWidthDialog.kt",
+      "sha256": "40757fdcef614822c577db8f0fc235ab7c9df338fbd490eb25a6c0c790846323"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ScrollData.kt",
+      "sha256": "626e1d9c5b057886f7c617ef6eb4d3e71f4033b2d1ff2bc6aae67622c976d52c"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/SmallWindowView.kt",
+      "sha256": "12a6be9408cc5a8f47a9ed73faf8c7f953121732c84cc8d049e9fea44278d15f"
+    },
+    {
+      "path": "accessibilityCore/src/main/java/com/lumostech/accessibilitycore/ViewModelMain.kt",
+      "sha256": "b3895f85eff1e6c2c56716111f99638d53184fb81ed153c12ec6548cc95bb9ff"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/selector_button_enable.xml",
+      "sha256": "1130d9576e959fb929e97798e441eda6f1841f94dd37209bd609a75789c97b17"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/selector_dialog_cancel.xml",
+      "sha256": "285b57d75951c033155257e3ddff08663710266ce8c0e7698aedee69b3743208"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/selector_dialog_confirm.xml",
+      "sha256": "03cae71114080e8c99917b91ac3a7cbe18fde330b719642561a5150eaad54dbf"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_button_cancel_normal.xml",
+      "sha256": "7d7be4255ba185ec51f121fd9b5524e07bc0af490ead6cf5dec622bec14c409a"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_button_cancel_pressed.xml",
+      "sha256": "9b5eb2939ffe2e86149c1160331f4fad69212ece4c1f289b20b4fa8ff8befb4d"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_button_confirm_disable.xml",
+      "sha256": "813b5d86a1c0167e91c45b1cc9902a663a1f3712ce65747547ba859a4af4e04e"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_button_confirm_normal.xml",
+      "sha256": "81cfc36716f3984994e29182187f13856c9f3d03545e608c6e684e823648e736"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_button_confirm_pressed.xml",
+      "sha256": "08d34097031bdadbe20bc1e0f311bf6539f0c745ee8786a3625923db68b15c06"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_edittext_normal.xml",
+      "sha256": "93c8e2a76dda8dbe6e8e7b5f79ed63e6aa625235238e866f657b8ac30ecbd94e"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/drawable/shape_edittext_pressed.xml",
+      "sha256": "372a0a3cb348df75011a45d78e492b5448e90094309d6fe5821d4ab073749d03"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/layout/dialog_alert.xml",
+      "sha256": "1206e7caad12b4409445f176d5dcc37ab700da3fe6d5dac41938acce4330c74b"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/layout/float_window.xml",
+      "sha256": "0a203df2f01f8765093d8d7660ca20c72d1b806229ba026b19a813277af7acd9"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/values/strings.xml",
+      "sha256": "04fbffe16d3d2ca3795249168c0af69a9d2f53cc29ae56c8992ef1df943fcdaa"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/values/styles.xml",
+      "sha256": "5f6389079ced771a779c4dbcacc41522a3e860b98052c3c16b2984f6cf89031d"
+    },
+    {
+      "path": "accessibilityCore/src/main/res/xml/accessibility_config.xml",
+      "sha256": "63a16df02100ecd67671d7c868d44c4662cf687721725f6da001a4b0d5ca1a55"
+    },
+    {
+      "path": "autoclick/build.gradle.kts",
+      "sha256": "e6376856c2bfcd1e8c472bdabd706dbd5072cf4db2b82eab96889b658efcce93"
+    },
+    {
+      "path": "autoclick/src/main/AndroidManifest.xml",
+      "sha256": "a63965341ed4fca2bc54a09cdbce01ecab80efd826fa75160525d4ffc1402690"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/AccessibilityGateState.kt",
+      "sha256": "3ce6372e0b2dca17579d79192224d76399f903507b414698b9705fa188a12e0b"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/AccessibilityGateViewModel.kt",
+      "sha256": "195cca5e3b283dbdce627c2f52f3f7738645e36360816e34e8f979442ec20c00"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/AutoclickApp.kt",
+      "sha256": "3d2fb735e1788515aa98cf5822b36feea859ab32aae23d5cef624fc666ba8b8f"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/BoundedReceiverTask.kt",
+      "sha256": "3970935701ac53e72885601653a85a993da74f6059c0be753fc448d5e29cf9d8"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickAlarmDispatcher.kt",
+      "sha256": "ceb468fc5200ffee562c10412b1827cbf9028625104dd5e793d9ee06f482d261"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickAlarmPlatform.kt",
+      "sha256": "02ca4416a3ed5d96543aac922b91e49681ba6e1bc630e917f2577fbbeee6661c"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickAlarmReceiver.kt",
+      "sha256": "521b537ee9c42422f4ab4626afb1ff171399b3413e68d70ad5b8658ed28a1222"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickAlarmState.kt",
+      "sha256": "c286ff31edec707fb324a7be8f64250ee5432d82984c556d400ac075b3c2bd4e"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickClock.kt",
+      "sha256": "d4417c4f7f4c00d3a08f874e6da81ea9846571f3ef5cedb71bae1927bfb57b80"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickExecutionGate.kt",
+      "sha256": "bc883bfa67f7b748a0e32fd2e29e3444055b7068a728ad158a2f8c00f5a3e042"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickExecutionOverlay.kt",
+      "sha256": "9efa11ad6b576ebe14e3eda9644a06e1b374f5172d81f2ad6aa625b8b9c02a89"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickExecutionRecord.kt",
+      "sha256": "36ea2b0f754a12dd100e2a6c251b88698facfcb157f280e6ad619789c454c100"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickExecutionSession.kt",
+      "sha256": "3e35fb18295795ab05c0a367a4452c5d77aea308b42d5a0743a0c054bd1565c5"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickPeriodicWorker.kt",
+      "sha256": "42b600184a4138a6aece36d5cf2042117a241eda2945a395c70caf3eb4915054"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickScheduleEditPolicy.kt",
+      "sha256": "573663d1bddc3b9678f48a617ba2fee919ded302ca9cc4f3d42a12036a718c52"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickSchedulePolicy.kt",
+      "sha256": "c55206c7c6d5d0db44f4b46bb39eef95b34de73fd49bd73be3b27ea803c72e96"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickScheduleRecoveryReceiver.kt",
+      "sha256": "f5223da8c59b6c41329978ae81540a781b31dd3f36d89163b1ede9ee868a8ec4"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickServiceConnection.kt",
+      "sha256": "aa0770a59d67bf899d37dfac7aecb2bb50b586fd5cb637647908d511701d0880"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickServiceReadiness.kt",
+      "sha256": "bc3c1ab35ef909fc1ec2ed8a51a8b2dbf0bad587aab3a8016fd6c602a44dbfcd"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTask.kt",
+      "sha256": "d96966bbb6c36a3d447aaf663b79364a7df6583e950b7f008c359f92f0e338f8"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskActions.kt",
+      "sha256": "ace055300fd645f3ca261230222e418a6956e0cc49f87d5ee7b48e528c729b7e"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskController.kt",
+      "sha256": "0d68b3bbed0df045989595303374945e8aff7fcd66989900ed7b16209bccae8e"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskPresentation.kt",
+      "sha256": "5d4ab0ac05f9f9ad1030a0434208d5bdc3dc9379ed5196ea43c62f11ba0edc23"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskRunner.kt",
+      "sha256": "3983a876cf02a929c73bec1243ed5bf47e2e508388f62819e5da42e2b82669f7"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskStatusObserver.kt",
+      "sha256": "ead1327b94b6bc424616497a141b559f3863af5b786a008437940ed87267ce88"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ClickTaskStore.kt",
+      "sha256": "40cdb9740847c82df6ccb2614b79c9a00839a2d66c0f8b7d4aef00efe77ae2b7"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ConfirmEventHandler.kt",
+      "sha256": "9b5fbdd5000ab690c70a9116937eca251501791e75da3555081c30ab0499b53b"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/EditScheduleViewModel.kt",
+      "sha256": "ccbeea5fa399d049186d8ef233dc5ae46d25dc3a937657c48032fd097691f2dc"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ExactClickPolicy.kt",
+      "sha256": "1b93dae408d7b62cdc4017dc6abaebe277d52e40d10f55e2f536669670960127"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/LegacyTaskRecoverySession.kt",
+      "sha256": "db457a2ae07e33f7d52090e4c9cfdbfbe022d96297bddd0eb9be5b00a568d9d5"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/LegacyTaskRecoveryStore.kt",
+      "sha256": "ccd41d9c3cf2bc28ea7d7933dd1ecb1fbcc43d4e2396277cab2f308c5ba7764c"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/LegacyTaskRecoveryViewModel.kt",
+      "sha256": "6c3f8be70b803f834982263fb4749f3a79fa83bf8014a46b468aef1894d6d674"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/LocalInfoActivity.kt",
+      "sha256": "a63c62160ae4fce8d9912c26a2755aa86e49ce98fce33830b36a1994f010ea51"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/MainActivity.kt",
+      "sha256": "da878c7596d16bc8d6a0aba922e3f143f302189d6bb6de38f649acf98e6db239"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/RecoverableTaskPreferences.kt",
+      "sha256": "b58a404e292081312bd602b45d47096a8f3ffdd783761c2216fba7a5ac7d9fd2"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/RecoveryJournalStorage.kt",
+      "sha256": "71e7d72b26b02d3bc0c001a22b324e6728582b3da3c31d65fe82380111870b68"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ScheduledClickExecutor.kt",
+      "sha256": "9485b4ae13eb82fa707acb70ac393eb12299ac98f7e0e54acbc045d7b66074df"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ServiceConnectionWaiter.kt",
+      "sha256": "f85761a897068cad03011c24910eee9919687f9acd903c24ff85d503a1bcfdb6"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/StopControlPlacement.kt",
+      "sha256": "6af2b1e37ae0ad7501e89e04533db1fbe19fbd8c515bfb7065bda22dcf4e5757"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/TaskPreferenceSnapshot.kt",
+      "sha256": "7c20b4ebc51fc0c0f5ebeb42f29f3734b4026a6f3d5dc8961bc41184cef1ee09"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/AccessibilityGateDialog.kt",
+      "sha256": "44a90957e1fa6d8dc9de369e52f623ade1e6cd321fcd7b15da6a722d6be244a0"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/AutoclickScreen.kt",
+      "sha256": "f863556a6c50ddf37cffe0a179d7ebb8acbf92d95c68135af90c447dfb81b5d9"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/EditScheduleDialog.kt",
+      "sha256": "756cced61f11dce49199fd407e8442761261b3b18560d983b2e80e0066b0fef9"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/ExactTimingPermissionDialog.kt",
+      "sha256": "bbba346e6931acbee0a54d0ea722801a475d96d89bc551ec710a126d3ba8cfd5"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/LegacyTaskRecoveryDialog.kt",
+      "sha256": "a2e41133a031dde3c56cc095e32251936858d0d60823a6117185996a2b0dc2df"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/ScheduleEditorPanel.kt",
+      "sha256": "6d0b6dfcda798781ceb3a134e089cfc8466402b743bc8b14984ba2fa8540dbd1"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/theme/Theme.kt",
+      "sha256": "f2d030632a1f5f4208fbb22e608769206323ab9dfb3a80bac6baaf40c3e65479"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/theme/Type.kt",
+      "sha256": "f27e6970ff4afaaddbbded2ccd902e6fc9e9812079981c4b5663b8cdb7047de2"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/widget/OnWeekRecurrenceChangeListener.java",
+      "sha256": "0099d2af20bac5707dcb8de608af17fea842d659c6298eacf416f012ed673f62"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/widget/OnWeekdaysChangeListener.java",
+      "sha256": "35b2d7ec66a63fad1ec095aa8d7ebff4b3af21f5f2ca5b1f8850d5c0bc38f4a8"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/widget/RecordingIconView.kt",
+      "sha256": "1fb98d60bd1993ac4d47aadd0eca7413ea4dd8d44996921ffaaab2331e6bb9f9"
+    },
+    {
+      "path": "autoclick/src/main/java/com/lumostech/autoclick/ui/widget/WeekdaysPicker.java",
+      "sha256": "b4df6488c5b5865771447eec7fc307b4b0aca3846beb0ab2e7deefb74b35642b"
+    },
+    {
+      "path": "autoclick/src/main/res/color/ac_button_text.xml",
+      "sha256": "1e7651255c4c9b73ee7bda16d545de881c4b03bda30712519e5c7bacf254f9bf"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/ac_panel.xml",
+      "sha256": "ad6a5ba122a0b4df57cc7d845522ca819367906e8295fdadf9082ae6b79b97bf"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "5e814b76f1f61012ee652ff8b3b5b2cd9d23b5651e473dbbc0847ca72616b75d"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/ic_launcher_foreground.xml",
+      "sha256": "4ae5796c729fbf7d72022e288185faefa18d3d6e5eb15ead9b2a4e66d9870cf3"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/ic_launcher_monochrome.xml",
+      "sha256": "76b8723bdc2ab2446a1e2c6b1e1c396fce29a8567287478db65d3268f224ed8f"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/selector_dialog_cancel.xml",
+      "sha256": "1307e28efe27e27e335021ce20c5b6bcd6222a75c31b195c21c5efb3c071bd18"
+    },
+    {
+      "path": "autoclick/src/main/res/drawable/selector_dialog_confirm.xml",
+      "sha256": "b47fe8cb57b7f493374ca1b89ed099091b46e631d60432dbf61c453bad5d1ffd"
+    },
+    {
+      "path": "autoclick/src/main/res/layout/dialog_alert.xml",
+      "sha256": "08f3061c61f45eb1635cf654424201be1da7050b21cc43fb7ffda22762ebe351"
+    },
+    {
+      "path": "autoclick/src/main/res/layout/float_window.xml",
+      "sha256": "6d7d7c56700a252fbf8d4c8bac3c5869a1318d590a92d3cde04ca410bb00be27"
+    },
+    {
+      "path": "autoclick/src/main/res/layout/layout_confirm.xml",
+      "sha256": "cc07a9c216cfd3966ce8ed30e96285b1c54006632da91f2936fbe18cdb7704a2"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "ada31da9e23f4520f3753e71ca23799a107431473daa3774b6cecac26847260c"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "sha256": "ada31da9e23f4520f3753e71ca23799a107431473daa3774b6cecac26847260c"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-hdpi/ic_launcher.webp",
+      "sha256": "c5cf436286e323ac4f6bf1600a6d37a32ac38aa9d85fbc19fb3ecaa811fd2dd9"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-hdpi/ic_launcher_round.webp",
+      "sha256": "46acf249fdffff12e1777c0cf9aa11c8d605263906d8e8c0a7f5529be1bd9fb1"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-mdpi/ic_launcher.webp",
+      "sha256": "bb46b02d1c5f4c348aa190486a437158709cd7bf20bb315e454b856d8cc54820"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-mdpi/ic_launcher_round.webp",
+      "sha256": "237cbf3f8de1bc893b0a23bf826e2e7e62a432e93abb534d8e7252ab51788d97"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xhdpi/ic_launcher.webp",
+      "sha256": "b7e39c9ca35f6da80c96a7e900e91e274cac81618ad544e9e845d628a875bb62"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xhdpi/ic_launcher_round.webp",
+      "sha256": "2bc9d8602f07cc39a99f0a4af900a97897a7f4abb85b73e5f8b3b7b4433598b6"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xxhdpi/ic_launcher.webp",
+      "sha256": "cf5d9617c9be7771e1b057d783e2e3a3fe0eb46e512b51254065f8f0285f2658"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp",
+      "sha256": "59ef349497ffbcd197942f30d0d2336f81620f1525bd9816f57bf6d7b57145b1"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xxxhdpi/ic_launcher.webp",
+      "sha256": "f4ad038a5d765cc2cbb4b0d53c026f14d26fb6199aa13fa421fdb5d826f07721"
+    },
+    {
+      "path": "autoclick/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp",
+      "sha256": "14b5ab6760ba961449df0e799ca5161e75499e01e0a0f4848cb9d8bff5c4d6d2"
+    },
+    {
+      "path": "autoclick/src/main/res/raw/privacy_policy.txt",
+      "sha256": "5011717ac48adeee6f459bd3ca9c9f1fa5e7adff875f6fdbad3d597a37cb2369"
+    },
+    {
+      "path": "autoclick/src/main/res/raw/user_guide.txt",
+      "sha256": "54a9329b41f5192a966aee48d60e1c23c02ad60a2e4ed9e1daeb348c8c59334b"
+    },
+    {
+      "path": "autoclick/src/main/res/values-v27/themes.xml",
+      "sha256": "d59867df73e0d8950f0233909236434e149780a0747bd9944964c1286df23355"
+    },
+    {
+      "path": "autoclick/src/main/res/values-v29/themes.xml",
+      "sha256": "c02775157bd57edc112da2bacd6e278bc7405b2128d78cfa96231c7901560e04"
+    },
+    {
+      "path": "autoclick/src/main/res/values/attrs.xml",
+      "sha256": "8d16fa0010a8f86655d1ad8302240fddbcda820d17bd7ac9038eb83f6376ab61"
+    },
+    {
+      "path": "autoclick/src/main/res/values/colors.xml",
+      "sha256": "41ec5e19315d3d59b2594a8923321e9826e09fc2e1f434a51fe063f475f903c1"
+    },
+    {
+      "path": "autoclick/src/main/res/values/strings.xml",
+      "sha256": "e4f763ed058c0f1e32f78cd1f58dcd9e3d3a28cc9816659a65c84ad300de481b"
+    },
+    {
+      "path": "autoclick/src/main/res/values/themes.xml",
+      "sha256": "39d5f371008e4d51f599be4c8ba7ff05320518efda2ddb7abbba1cd41db0bc7e"
+    },
+    {
+      "path": "autoclick/src/main/res/xml/accessibility_config.xml",
+      "sha256": "655976c5158504408d7a5334959aa08257c97fe322e589705f258fd11187989f"
+    },
+    {
+      "path": "autoclick/src/main/res/xml/data_extraction_rules.xml",
+      "sha256": "cb029b35db0e976c087100424e16e14a6256b46962398887520e51508c3b5842"
+    },
+    {
+      "path": "build.gradle.kts",
+      "sha256": "121e8c821be15389c9860ccf3fc8084f3dccc162156b8fef9bfe1c9870a868c8"
+    },
+    {
+      "path": "gradle.properties",
+      "sha256": "51e4b5a131eb01b1cdeb2f6f26aaba69d367a4a9d4ccd10c6d6f6d12fd545b66"
+    },
+    {
+      "path": "gradle/libs.versions.toml",
+      "sha256": "71eede5fdf6d05aef4f6da8b835b987e40474d966aa2e8e3e10911732da93d12"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "381dff8aa434499aa93bc25572b049c8c586a67faff2c02f375e4f23e17e49de"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "6cacb9209595cf77ca9013581efc0dfc9efd584b7e65f98028fada740136986a"
+    },
+    {
+      "path": "gradlew",
+      "sha256": "8c4c04dd98db1f00d49456dd162418a39312c5cb13d6865d783deb483bd1ed22"
+    },
+    {
+      "path": "scripts/init_autoclick_signing.py",
+      "sha256": "5c01b8a702bbcfe50dac295fb212175181d7b6b6bce97777684719d41c4bfdf7"
+    },
+    {
+      "path": "scripts/package_autoclick.py",
+      "sha256": "f7b8aed7f27374b9b6aa468b4ed5c45227dcabadb77507e06415c15e57257a99"
+    },
+    {
+      "path": "scripts/tests/test_package_autoclick.py",
+      "sha256": "36949676cbb83a51c288c693a393a47db734677b1c2e5d043a6ef3f31f1c059f"
+    },
+    {
+      "path": "settings.gradle.kts",
+      "sha256": "9b4fc6e45336ab09a4baf29b9433369eb3b445484f0d06fa559e52ac6f8f6eeb"
+    }
+  ]
+}

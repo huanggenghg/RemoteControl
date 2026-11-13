@@ -1,0 +1,47 @@
+{
+  "recorded_at_utc": "2026-11-11T06:56:03.968464+00:00",
+  "signing_status": "first official key created; Gradle release signing and APK signature verification passed",
+  "key_alias": "autoclick",
+  "key_algorithm": "RSA 3072",
+  "keystore_format": "PKCS12",
+  "certificate_subject": "CN=AutoClick",
+  "certificate_sha256": "b7bd7c3aec77266ce511bbc126481c3e3e18568255ff1e0ba84dc45ed5108e06",
+  "certificate_valid_until_utc": "2054-03-29T06:52:01Z",
+  "private_backup_verified": true,
+  "private_key_git_ignored": true,
+  "signed_candidate_apk": "autoclick/build/outputs/apk/release/autoclick-release.apk",
+  "apk_sha256": "043587cbb4c4b9e67912f2ebec234c1cb719208b64d8e70a3fcf7153eb7b4bef",
+  "apk_size_bytes": 10981683,
+  "signature_results": [
+    "Verified using v1 scheme (JAR signing): false",
+    "Verified using v2 scheme (APK Signature Scheme v2): true",
+    "Verified using v3 scheme (APK Signature Scheme v3): false",
+    "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+    "Verified using v4 scheme (APK Signature Scheme v4): false",
+    "Number of signers: 1"
+  ],
+  "offline_apk_audit": {
+    "application_id": "com.lumostech.autoclick",
+    "version_name": "1.0.1",
+    "version_code": "2",
+    "permissions": [
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.SCHEDULE_EXACT_ALARM",
+      "android.permission.SYSTEM_ALERT_WINDOW",
+      "android.permission.WAKE_LOCK",
+      "com.lumostech.autoclick.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ],
+    "network_access": false,
+    "screenshot_capability": false,
+    "system_backup": false,
+    "system_device_transfer": false
+  },
+  "zip_alignment_16k": true,
+  "distribution_ready": false,
+  "blocked_on": [
+    "confirmed publisher name",
+    "public feedback email"
+  ],
+  "distribution_guard": "correctly rejected signed candidate with placeholder publisher metadata; no public output created"
+}

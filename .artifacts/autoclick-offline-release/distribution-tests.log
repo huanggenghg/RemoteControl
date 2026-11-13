@@ -1,0 +1,16 @@
+test_accessibility_service_requires_system_binding_permission (test_package_autoclick.OfflineDistributionGuardTest.test_accessibility_service_requires_system_binding_permission) ... ok
+test_compiled_policy_preserves_false_and_android_namespace (test_package_autoclick.OfflineDistributionGuardTest.test_compiled_policy_preserves_false_and_android_namespace) ... ok
+test_debug_and_test_packages_are_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_debug_and_test_packages_are_rejected) ... ok
+test_legacy_backup_is_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_legacy_backup_is_rejected) ... ok
+test_local_graphics_library_is_allowed_but_communication_sdk_is_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_local_graphics_library_is_allowed_but_communication_sdk_is_rejected) ... ok
+test_missing_cloud_or_transfer_exclusion_is_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_missing_cloud_or_transfer_exclusion_is_rejected) ... ok
+test_offline_package_keeps_clicking_and_local_information (test_package_autoclick.OfflineDistributionGuardTest.test_offline_package_keeps_clicking_and_local_information) ... ok
+test_public_information_activity_cannot_be_exported (test_package_autoclick.OfflineDistributionGuardTest.test_public_information_activity_cannot_be_exported) ... ok
+test_screenshot_capability_is_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_screenshot_capability_is_rejected) ... ok
+test_shortened_apk_paths_are_resolved_from_actual_resource_table (test_package_autoclick.OfflineDistributionGuardTest.test_shortened_apk_paths_are_resolved_from_actual_resource_table) ... ok
+test_transitive_network_or_other_unexpected_permission_is_rejected (test_package_autoclick.OfflineDistributionGuardTest.test_transitive_network_or_other_unexpected_permission_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.004s
+
+OK

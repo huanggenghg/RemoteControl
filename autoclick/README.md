@@ -2,6 +2,8 @@
 
 Records screen coordinates and relative timing, then replays one saved sequence on selected weekdays.
 
+The 1.0.1 offline release adds bundled privacy/permission information and a user guide, readable before granting accessibility. It removes network permissions, disables the AutoClick screenshot capability and system data backup/transfer, and supports a separate private release signing key. See [offline release preparation](../docs/autoclick/offline-release.md) and [first-user instructions](../docs/autoclick/first-users.md). Signed APK distribution is gated by an APK audit and confirmed developer/contact information; physical-device acceptance is tracked separately.
+
 ## Use
 
 1. Open AutoClick and enable accessibility when prompted. The app checks both the grant and live connection whenever it is in the foreground. Choose **去开启** to open settings or **退出应用** to close the Activity without deleting data. A connecting service waits up to ten seconds in this foreground guide.

@@ -1,0 +1,47 @@
+{
+  "recorded_at_utc": "2026-11-11T13:17:13.263555+00:00",
+  "artifact_status": "ready for first-user offline trial",
+  "distribution_ready": true,
+  "publisher": "黄耿",
+  "support_email": "huanggeng0607@163.com",
+  "version_name": "1.0.1",
+  "version_code": 2,
+  "application_id": "com.lumostech.autoclick",
+  "certificate_sha256": "b7bd7c3aec77266ce511bbc126481c3e3e18568255ff1e0ba84dc45ed5108e06",
+  "apk_path": "/workspace/releases/autoclick-1.0.1/AutoClick-1.0.1-offline.apk",
+  "apk_sha256": "ba1674c77755c450ac9dfad78a1686b45ad9e15197d370f025841d85a5039060",
+  "apk_size_bytes": 10981669,
+  "bundle_path": "/workspace/releases/autoclick-1.0.1/AutoClick-1.0.1-offline.zip",
+  "bundle_sha256": "1e4b3b7d006f48f2d2fef61161b133fb08ab2fa70ebbe8640367843de96d4cc6",
+  "bundle_size_bytes": 9706983,
+  "build": "assembleRelease and lintRelease passed; final publisher metadata embedded in APK",
+  "lint": {
+    "errors": 0,
+    "warnings": 37
+  },
+  "distribution_guard_tests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "prior_functional_unit_test_baseline": {
+    "passed": 110,
+    "failed": 0,
+    "note": "previous preparation pass; only publisher strings changed in this step"
+  },
+  "checks": {
+    "signature_and_certificate_pin": true,
+    "offline_permissions": true,
+    "no_screenshot_capability": true,
+    "no_system_backup_or_transfer": true,
+    "zip_alignment_16k": true,
+    "publisher_metadata": true,
+    "archive_and_SHA256SUMS": true,
+    "public_output_excludes_signing_secrets": true,
+    "delivery_copy_identical": true
+  },
+  "physical_device_acceptance": "not run; adb devices reports no attached devices",
+  "market_submission": "not submitted",
+  "user_contact": "not performed",
+  "source_commit": "800829167f3df3ff63ee5248bae070af963345cd",
+  "source_has_uncommitted_changes": true
+}

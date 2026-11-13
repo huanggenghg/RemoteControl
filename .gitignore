@@ -15,3 +15,11 @@
 .cxx
 .idea
 .idea/misc.xml
+
+# AutoClick release signing stays outside version control.
+autoclick/signing.properties
+*.jks
+*.keystore
+*.p12
+AutoClick-release-signing-PRIVATE.zip
+__pycache__/

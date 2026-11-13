@@ -8,11 +8,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.window.DialogProperties
 import com.lumostech.autoclick.AccessibilityGatePhase
 
 @Composable
-internal fun AccessibilityGateDialog(phase: AccessibilityGatePhase, onSettings: () -> Unit, onExit: () -> Unit) {
+internal fun AccessibilityGateDialog(phase: AccessibilityGatePhase, onSettings: () -> Unit, onExit: () -> Unit,
+    onPrivacy: () -> Unit = {}, onHelp: () -> Unit = {}) {
     val title = when (phase) {
         AccessibilityGatePhase.CHECKING -> "正在检查无障碍服务"
         AccessibilityGatePhase.ENABLE -> "请先开启 AutoClick 无障碍服务"
@@ -21,7 +25,7 @@ internal fun AccessibilityGateDialog(phase: AccessibilityGatePhase, onSettings: 
         AccessibilityGatePhase.READY -> return
     }
     val description = when (phase) {
-        AccessibilityGatePhase.ENABLE -> "自动点击需要无障碍服务。请进入系统设置，找到 AutoClick 并开启服务。"
+        AccessibilityGatePhase.ENABLE -> "自动点击需要无障碍服务：读取当前窗口信息核对目标应用和屏幕环境，再按录制坐标执行点击。记录仅保存在本机，不联网、不上传、不截屏。您可随时在系统设置关闭服务。了解后，请进入系统设置，找到 AutoClick 并手动开启。"
         AccessibilityGatePhase.RECONNECT -> "服务已开启，但系统尚未连接。请进入无障碍设置，关闭后重新开启 AutoClick 服务，再返回应用检查。"
         AccessibilityGatePhase.CONNECTING -> "系统正在连接已开启的服务，最多等待 10 秒。连接成功后即可使用。"
         else -> "正在确认系统授权和服务连接，请稍候。"
@@ -31,7 +35,13 @@ internal fun AccessibilityGateDialog(phase: AccessibilityGatePhase, onSettings: 
         onDismissRequest = onExit,
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
         title = { Text(title) },
-        text = { Text(description) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(description)
+                TextButton(onClick = onPrivacy) { Text("隐私与权限说明") }
+                TextButton(onClick = onHelp) { Text("使用指南") }
+            }
+        },
         confirmButton = {
             if (phase == AccessibilityGatePhase.ENABLE || phase == AccessibilityGatePhase.RECONNECT) {
                 TextButton(onClick = onSettings) { Text(if (phase == AccessibilityGatePhase.ENABLE) "去开启" else "去设置") }
